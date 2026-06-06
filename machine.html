@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wistron — Machine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root{
+  --bg:#0d1117;--sur:#161b22;--sur2:#1c2128;--bdr:#21262d;--bdr2:#30363d;
+  --amb:#00a3e0;--amb-rgb:0,163,224;--amb-hover:#0086b8;
+  --grn:#3fb950;--red:#f85149;--blu:#388bfd;--pur:#a371f7;--ora:#ff8c42;--yel:#f5d937;
+  --txt:#e6edf3;--mut:#d0d7de;--mut2:#b1bac4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+button{touch-action:manipulation;cursor:pointer;}
+input,select,textarea{font-size:16px !important;}
+@media(min-width:861px){input,select,textarea{font-size:13px !important;}}
+body{
+  font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--txt);
+  min-height:100vh;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
+  padding-bottom:80px;
+}
+
+.site-header{
+  background:var(--sur);border-bottom:1px solid var(--bdr);
+  padding:0 24px;display:flex;align-items:center;justify-content:space-between;
+  height:56px;position:sticky;top:0;z-index:100;
+}
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  padding:5px 11px;border-radius:6px;text-decoration:none;
+  transition:all .15s;
+}
+.back-btn:hover{border-color:var(--amb);color:var(--amb);}
+.brand{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+  color:var(--amb);letter-spacing:.08em;text-transform:uppercase;
+}
+.lang-btn{
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  padding:5px 11px;border-radius:6px;
+}
+
+.wrap{max-width:900px;margin:0 auto;padding:26px 22px;}
+
+.machine-head{
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  margin-bottom:6px;
+}
+.machine-head h1{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:32px;font-weight:600;letter-spacing:.02em;
+  color:var(--txt);
+}
+.machine-head .area-pill{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  padding:3px 10px;border-radius:12px;
+  background:rgba(var(--amb-rgb),.15);
+  color:var(--amb);
+  text-transform:uppercase;letter-spacing:.06em;font-weight:600;
+}
+.machine-sub{
+  font-size:13px;color:var(--mut);
+  margin-bottom:24px;
+}
+
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;flex-wrap:wrap;
+  margin:30px 0 14px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--bdr);
+}
+.section-title{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+  color:var(--mut);text-transform:uppercase;letter-spacing:.1em;
+}
+.btn{
+  background:var(--amb);color:#000;border:none;
+  padding:8px 14px;border-radius:6px;font-weight:600;
+  font-size:12.5px;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:hover{background:var(--amb-hover);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);
+}
+.btn-ghost:hover{border-color:var(--amb);color:var(--amb);background:transparent;}
+.btn-sm{padding:5px 10px;font-size:11.5px;}
+
+/* Parts list — one card per part */
+.parts-list{display:flex;flex-direction:column;gap:10px;}
+.part-card{
+  background:var(--sur);
+  border:1px solid var(--bdr);
+  border-radius:10px;
+  padding:14px 16px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:14px;
+  align-items:flex-start;
+  transition:border-color .15s;
+}
+.part-card.low{
+  border-color:rgba(248,81,73,.45);
+  background:linear-gradient(135deg, rgba(248,81,73,.06) 0%, var(--sur) 60%);
+}
+.part-photo{
+  width:64px;height:64px;
+  border-radius:8px;
+  background:var(--bg);
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  cursor:pointer;
+  position:relative;
+}
+.part-photo img{
+  width:100%;height:100%;object-fit:cover;
+}
+.part-photo-placeholder{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;
+  color:var(--mut2);text-transform:uppercase;letter-spacing:.06em;
+  text-align:center;line-height:1.3;
+}
+.part-info{min-width:0;}
+.part-name{
+  font-size:15px;font-weight:600;
+  color:var(--txt);
+  margin-bottom:3px;
+  word-break:break-word;
+}
+.part-meta{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  color:var(--mut2);
+  margin-bottom:8px;
+}
+.part-notes{
+  font-size:12px;color:var(--mut);
+  background:var(--bg);
+  padding:6px 10px;border-radius:5px;
+  margin-bottom:8px;
+  line-height:1.4;
+}
+.part-notes-empty{
+  font-size:11px;color:var(--mut2);font-style:italic;
+  margin-bottom:8px;
+}
+.low-pill{
+  display:inline-block;
+  background:rgba(248,81,73,.18);color:#ffa3a3;
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
+  padding:2px 7px;border-radius:9px;
+  text-transform:uppercase;letter-spacing:.05em;
+  margin-left:6px;
+}
+.part-actions{
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  flex-shrink:0;
+}
+.qty-display{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:28px;font-weight:600;
+  color:var(--amb);
+  line-height:1;
+  padding:6px 14px;
+  background:var(--bg);
+  border-radius:8px;
+  border:1px solid var(--bdr);
+  min-width:64px;
+  text-align:center;
+}
+.part-card.low .qty-display{color:#ffa3a3;border-color:rgba(248,81,73,.3);}
+.qty-actions{display:flex;gap:5px;}
+.qty-btn{
+  width:32px;height:32px;
+  background:var(--sur2);border:1px solid var(--bdr2);
+  color:var(--txt);
+  font-size:18px;font-weight:600;line-height:1;
+  border-radius:6px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.qty-btn:hover{border-color:var(--amb);color:var(--amb);}
+.qty-btn-edit{
+  background:transparent;border:1px solid var(--bdr2);
+  color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;
+  padding:4px 9px;border-radius:5px;cursor:pointer;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.qty-btn-edit:hover{border-color:var(--amb);color:var(--amb);}
+
+@media(max-width:600px){
+  .part-card{grid-template-columns:auto 1fr;}
+  .part-actions{
+    grid-column:1 / -1;
+    flex-direction:row;align-items:center;justify-content:space-between;
+    border-top:1px solid var(--bdr);padding-top:10px;margin-top:4px;
+  }
+}
+
+/* Empty state */
+.empty{
+  text-align:center;padding:40px 20px;
+  background:var(--sur);border:2px dashed var(--bdr2);
+  border-radius:11px;color:var(--mut2);
+}
+.empty h2{font-size:15px;color:var(--txt);margin-bottom:8px;font-weight:600;}
+.empty p{font-size:12.5px;max-width:380px;margin:0 auto 14px;line-height:1.5;}
+
+.loading{text-align:center;padding:60px 20px;color:var(--mut2);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+.notice{background:rgba(var(--amb-rgb),.06);border:1px solid rgba(var(--amb-rgb),.22);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--mut);margin-bottom:16px;}
+.notice.err{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.25);}
+.notice code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'IBM Plex Mono',monospace;}
+
+/* Modal */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:none;align-items:center;justify-content:center;
+  z-index:200;padding:16px;
+}
+.modal-bg.show{display:flex;}
+.modal{
+  background:var(--sur);border:1px solid var(--bdr2);
+  border-radius:11px;
+  max-width:480px;width:100%;
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 16px 50px rgba(0,0,0,.6);
+}
+.modal-head{
+  padding:16px 20px;border-bottom:1px solid var(--bdr);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.modal-title{font-size:15px;font-weight:600;}
+.modal-close{
+  background:transparent;border:none;color:var(--mut2);
+  font-size:22px;cursor:pointer;line-height:1;padding:4px;
+}
+.modal-body{padding:18px 20px;}
+.modal-foot{
+  padding:14px 20px;border-top:1px solid var(--bdr);
+  display:flex;gap:10px;justify-content:flex-end;
+}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.field label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--mut2);
+}
+.field input, .field select, .field textarea{
+  background:var(--bg);border:1px solid var(--bdr2);
+  border-radius:6px;padding:8px 11px;
+  color:var(--txt);font-family:'IBM Plex Sans',sans-serif;
+  outline:none;transition:border-color .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--amb);}
+.field textarea{resize:vertical;min-height:60px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.adjust-toggle{
+  display:flex;gap:6px;margin-bottom:12px;
+}
+.adjust-toggle button{
+  flex:1;
+  background:var(--bg);border:1px solid var(--bdr2);
+  color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  padding:8px 10px;border-radius:6px;cursor:pointer;
+  transition:all .15s;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.adjust-toggle button.active{
+  background:rgba(var(--amb-rgb),.15);
+  border-color:var(--amb);color:var(--amb);
+}
+
+.toast{
+  position:fixed;bottom:22px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--sur);border:1px solid var(--bdr2);
+  padding:11px 20px;border-radius:8px;font-size:13px;font-weight:500;
+  box-shadow:0 8px 30px rgba(0,0,0,.5);
+  opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);
+  z-index:9999;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.t-ok{border-color:var(--grn);color:var(--grn);}
+.toast.t-err{border-color:var(--red);color:var(--red);}
+
+/* Photo lightbox */
+.lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,.92);
+  display:none;align-items:center;justify-content:center;
+  z-index:300;padding:20px;cursor:zoom-out;
+}
+.lightbox.show{display:flex;}
+.lightbox img{max-width:100%;max-height:90vh;border-radius:8px;}
+</style>
+<script src="wistron_config.js"></script>
+<script src="translations.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="back-btn" id="backBtn" href="index.html">← <span data-i18n="common.back">Back</span></a>
+  <span class="brand">WISTRON · MACHINE</span>
+  <button id="langBtn" class="lang-btn" onclick="cycleLang()">EN</button>
+</header>
+
+<main class="wrap" id="mainWrap">
+  <div class="loading" data-i18n="common.loading">Loading…</div>
+</main>
+
+<!-- ASSIGN PART MODAL — pick a part from the master catalog -->
+<div class="modal-bg" id="assignModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" data-i18n="parts.add">+ Add part to this machine</div>
+      <button class="modal-close" onclick="closeAssignModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label data-i18n="master.name">Part name</label>
+        <select id="assignPart"></select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label data-i18n="parts.qty">Quantity</label>
+          <input type="number" id="assignQty" min="0" value="0">
+        </div>
+        <div class="field">
+          <label data-i18n="parts.reorder">Reorder at</label>
+          <input type="number" id="assignReorder" min="0" placeholder="(optional)">
+        </div>
+      </div>
+      <div class="field">
+        <label data-i18n="parts.notes">Notes</label>
+        <textarea id="assignNotes" placeholder=""></textarea>
+      </div>
+      <div class="field">
+        <label data-i18n="parts.your_name">Your name</label>
+        <input type="text" id="assignName" placeholder="">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeAssignModal()" data-i18n="parts.cancel">Cancel</button>
+      <button class="btn" onclick="saveAssignPart()" data-i18n="parts.save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADJUST QUANTITY MODAL -->
+<div class="modal-bg" id="adjustModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Adjust quantity</div>
+      <button class="modal-close" onclick="closeAdjustModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="adjustPartName" style="font-weight:600;font-size:14px;margin-bottom:4px;"></div>
+      <div id="adjustCurrentQty" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut2);margin-bottom:14px;"></div>
+
+      <div class="adjust-toggle">
+        <button id="adjUp" class="active" onclick="setAdjustDir('up')" data-i18n="parts.adjust_up">Restock (+)</button>
+        <button id="adjDown" onclick="setAdjustDir('down')" data-i18n="parts.adjust_down">Used (−)</button>
+      </div>
+
+      <div class="field">
+        <label data-i18n="parts.adjust_amount">Amount</label>
+        <input type="number" id="adjustAmount" min="1" value="1">
+      </div>
+      <div class="field">
+        <label data-i18n="parts.adjust_reason">Reason (optional)</label>
+        <input type="text" id="adjustReason">
+      </div>
+      <div class="field">
+        <label data-i18n="parts.your_name">Your name</label>
+        <input type="text" id="adjustName" placeholder="">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeAdjustModal()" data-i18n="parts.cancel">Cancel</button>
+      <button class="btn" onclick="saveAdjust()" data-i18n="parts.save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PART MODAL (notes, threshold, photo, remove) -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Edit part</div>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="editPartName" style="font-weight:600;font-size:14px;margin-bottom:14px;"></div>
+      <div class="field-row">
+        <div class="field">
+          <label data-i18n="parts.qty">Quantity</label>
+          <input type="number" id="editQty" min="0">
+        </div>
+        <div class="field">
+          <label data-i18n="parts.reorder">Reorder at</label>
+          <input type="number" id="editReorder" min="0" placeholder="(optional)">
+        </div>
+      </div>
+      <div class="field">
+        <label data-i18n="parts.notes">Notes</label>
+        <textarea id="editNotes"></textarea>
+      </div>
+      <div class="field">
+        <label data-i18n="parts.upload_photo">Upload photo</label>
+        <input type="file" id="editPhoto" accept="image/*">
+        <div id="editPhotoPreview" style="margin-top:8px;"></div>
+      </div>
+      <div class="field">
+        <label data-i18n="parts.your_name">Your name</label>
+        <input type="text" id="editName">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="removePart()" style="margin-right:auto;color:#ffa3a3;border-color:rgba(248,81,73,.3);" data-i18n="parts.remove">Remove</button>
+      <button class="btn btn-ghost" onclick="closeEditModal()" data-i18n="parts.cancel">Cancel</button>
+      <button class="btn" onclick="saveEditPart()" data-i18n="parts.save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+let machineId = null;
+let machineRow = null;     // { id, area, machine_code, ... }
+let allParts = [];         // joined rows: machine_parts + parts_master
+let masterCatalog = [];    // for the assign dropdown
+let editingPartId = null;
+let adjustingPartId = null;
+let adjustDir = 'up';
+
+// ── INIT ───────────────────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+machineId = parseInt(params.get('id'), 10);
+if(!machineId){
+  document.getElementById('mainWrap').innerHTML =
+    '<div class="notice err">No machine specified. <a href="index.html" style="color:var(--amb);">Go home</a>.</div>';
+} else {
+  loadMachine();
+}
+
+async function loadMachine(){
+  if(!window.WISTRON_SB_URL || window.WISTRON_SB_URL.includes('YOUR-PROJECT-REF')){
+    document.getElementById('mainWrap').innerHTML = `<div class="notice err">
+      <strong>Setup needed:</strong> Replace placeholders in <code>wistron_config.js</code> with your Supabase URL and anon key.
+    </div>`;
+    return;
+  }
+  try {
+    // Fetch the machine, its parts (joined with master), and the full master
+    // catalog (for the assign dropdown) in parallel.
+    const [mRes, pRes, masterRes] = await Promise.all([
+      fetch(`${WISTRON_SB_URL}/rest/v1/machines?id=eq.${machineId}&limit=1`, {headers: wistronHeaders()}),
+      fetch(`${WISTRON_SB_URL}/rest/v1/machine_parts?machine_id=eq.${machineId}&select=*,parts_master(name,part_number,description,default_photo_url)`, {headers: wistronHeaders()}),
+      fetch(`${WISTRON_SB_URL}/rest/v1/parts_master?order=name.asc&limit=500`, {headers: wistronHeaders()}),
+    ]);
+    if(!mRes.ok){
+      document.getElementById('mainWrap').innerHTML = `<div class="notice err">
+        <strong>Database not set up.</strong> Run <code>supabase_setup.sql</code> in Supabase.</div>`;
+      return;
+    }
+    const mArr = await mRes.json();
+    if(mArr.length === 0){
+      document.getElementById('mainWrap').innerHTML =
+        '<div class="notice err">Machine not found.</div>';
+      return;
+    }
+    machineRow = mArr[0];
+    allParts = pRes.ok ? await pRes.json() : [];
+    masterCatalog = masterRes.ok ? await masterRes.json() : [];
+    render();
+  } catch(e){
+    document.getElementById('mainWrap').innerHTML =
+      `<div class="notice err"><strong>Error:</strong> ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function render(){
+  // Build the header + parts list HTML and inject into mainWrap
+  const backHref = `area.html?area=${encodeURIComponent(machineRow.area)}`;
+  document.getElementById('backBtn').setAttribute('href', backHref);
+
+  // Sort parts: low-stock first, then alphabetical by name
+  allParts.sort((a,b) => {
+    const aLow = isLow(a), bLow = isLow(b);
+    if(aLow !== bLow) return aLow ? -1 : 1;
+    return ((a.parts_master?.name) || '').localeCompare((b.parts_master?.name) || '');
+  });
+
+  const lowCount = allParts.filter(isLow).length;
+  const listHtml = allParts.length === 0
+    ? `<div class="empty">
+        <h2 data-i18n="parts.none">No parts assigned to this machine yet.</h2>
+        <p>Tap "Add part" to link a part from the master catalog to this machine.</p>
+        <button class="btn" onclick="openAssignModal()" data-i18n="parts.add">+ Add part to this machine</button>
+      </div>`
+    : `<div class="parts-list">${allParts.map(renderPart).join('')}</div>`;
+
+  document.getElementById('mainWrap').innerHTML = `
+    <div class="machine-head">
+      <h1>${escapeHtml(machineRow.machine_code)}</h1>
+      <span class="area-pill">${escapeHtml(machineRow.area)}</span>
+    </div>
+    <div class="machine-sub">
+      ${allParts.length} part${allParts.length===1?'':'s'} on this machine${lowCount > 0 ? ` · <span style="color:#ffa3a3;font-weight:600;">${lowCount} low stock</span>` : ''}
+    </div>
+
+    <div class="section-head">
+      <span class="section-title" data-i18n="parts.title">Parts on this machine</span>
+      <button class="btn btn-sm" onclick="openAssignModal()" data-i18n="parts.add">+ Add part to this machine</button>
+    </div>
+
+    ${listHtml}
+  `;
+  applyTranslations(getCurrentLang());
+}
+
+function renderPart(p){
+  const m = p.parts_master || {};
+  const photoUrl = p.photo_url || m.default_photo_url;
+  const photoHtml = photoUrl
+    ? `<img src="${escapeHtml(photoUrl)}" alt="" onclick="openLightbox('${escapeHtml(photoUrl)}')">`
+    : `<div class="part-photo-placeholder">NO<br>PHOTO</div>`;
+  const low = isLow(p);
+  const notesHtml = p.notes
+    ? `<div class="part-notes">${escapeHtml(p.notes)}</div>`
+    : `<div class="part-notes-empty">No notes</div>`;
+  const lowPill = low ? `<span class="low-pill" data-i18n="parts.low">LOW STOCK</span>` : '';
+  const partNumberMeta = m.part_number ? ` · ${escapeHtml(m.part_number)}` : '';
+  const reorderMeta = p.reorder_threshold != null ? ` · reorder at ${p.reorder_threshold}` : '';
+  return `
+    <div class="part-card ${low ? 'low' : ''}" data-part-id="${p.id}">
+      <div class="part-photo">${photoHtml}</div>
+      <div class="part-info">
+        <div class="part-name">${escapeHtml(m.name || '(unknown part)')}${lowPill}</div>
+        <div class="part-meta">ID #${p.id}${partNumberMeta}${reorderMeta}</div>
+        ${notesHtml}
+        <button class="qty-btn-edit" onclick="openEditModal(${p.id})">edit details</button>
+      </div>
+      <div class="part-actions">
+        <div class="qty-display">${p.quantity}</div>
+        <div class="qty-actions">
+          <button class="qty-btn" onclick="quickAdjust(${p.id}, -1)" title="Used 1">−</button>
+          <button class="qty-btn" onclick="quickAdjust(${p.id}, +1)" title="Restocked 1">+</button>
+          <button class="qty-btn-edit" onclick="openAdjustModal(${p.id})">±</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function isLow(p){
+  return p.reorder_threshold != null && p.quantity <= p.reorder_threshold;
+}
+
+// ── QUICK ADJUST (single +1 / -1 from the card) ──────────────────────
+async function quickAdjust(mpId, delta){
+  const part = allParts.find(p => p.id === mpId);
+  if(!part) return;
+  const newQty = Math.max(0, part.quantity + delta);
+  if(newQty === part.quantity) return;  // would have gone negative; skip
+  const who = getSavedName() || (prompt('Your name (saved for later adjustments):') || '').trim();
+  if(!who){ showToast('Name required for audit trail', 't-err'); return; }
+  saveName(who);
+  try {
+    await applyAdjustment(part, newQty, delta, '(quick adjust)', who);
+    showToast(`✓ ${part.parts_master?.name || 'Part'} → ${newQty}`, 't-ok');
+    await loadMachine();
+  } catch(e){
+    showToast('Save failed: ' + e.message, 't-err');
+  }
+}
+
+// Common adjustment-application logic — also writes the audit row.
+async function applyAdjustment(part, newQty, delta, reason, who){
+  const patch = {
+    quantity: newQty,
+    last_updated_by: who,
+    last_updated_at: new Date().toISOString(),
+  };
+  const r1 = await fetch(`${WISTRON_SB_URL}/rest/v1/machine_parts?id=eq.${part.id}`, {
+    method: 'PATCH',
+    headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+    body: JSON.stringify(patch),
+  });
+  if(!r1.ok){
+    const t = await r1.text();
+    throw new Error('HTTP ' + r1.status + ' ' + t.slice(0,120));
+  }
+  // Write the audit-log row. If this fails we don't roll back the patch
+  // (quantity correction is more important than a single missing log entry),
+  // but we surface the error in the console.
+  const log = {
+    machine_part_id: part.id,
+    delta: delta,
+    quantity_after: newQty,
+    reason: reason || null,
+    adjusted_by: who,
+  };
+  try {
+    await fetch(`${WISTRON_SB_URL}/rest/v1/parts_adjustments`, {
+      method: 'POST',
+      headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body: JSON.stringify(log),
+    });
+  } catch(e){ console.warn('Adjustment log not written:', e); }
+}
+
+// ── ADJUST MODAL (custom amount + reason) ────────────────────────────
+function openAdjustModal(mpId){
+  adjustingPartId = mpId;
+  const part = allParts.find(p => p.id === mpId);
+  if(!part) return;
+  document.getElementById('adjustPartName').textContent = part.parts_master?.name || '(unknown)';
+  document.getElementById('adjustCurrentQty').textContent = `Current quantity: ${part.quantity}`;
+  document.getElementById('adjustAmount').value = 1;
+  document.getElementById('adjustReason').value = '';
+  document.getElementById('adjustName').value = getSavedName();
+  setAdjustDir('up');
+  document.getElementById('adjustModal').classList.add('show');
+}
+function closeAdjustModal(){
+  document.getElementById('adjustModal').classList.remove('show');
+  adjustingPartId = null;
+}
+function setAdjustDir(dir){
+  adjustDir = dir;
+  document.getElementById('adjUp').classList.toggle('active', dir === 'up');
+  document.getElementById('adjDown').classList.toggle('active', dir === 'down');
+}
+async function saveAdjust(){
+  const part = allParts.find(p => p.id === adjustingPartId);
+  if(!part) return;
+  const amount = parseInt(document.getElementById('adjustAmount').value, 10);
+  if(!amount || amount <= 0){ showToast('Enter a positive amount', 't-err'); return; }
+  const who = document.getElementById('adjustName').value.trim();
+  if(!who){ showToast('Your name is required', 't-err'); return; }
+  saveName(who);
+  const reason = document.getElementById('adjustReason').value.trim();
+  const delta = adjustDir === 'up' ? amount : -amount;
+  const newQty = Math.max(0, part.quantity + delta);
+  try {
+    await applyAdjustment(part, newQty, delta, reason || null, who);
+    showToast(`✓ ${part.parts_master?.name || 'Part'} → ${newQty}`, 't-ok');
+    closeAdjustModal();
+    await loadMachine();
+  } catch(e){
+    showToast('Save failed: ' + e.message, 't-err');
+  }
+}
+
+// ── ASSIGN A NEW PART TO THIS MACHINE ────────────────────────────────
+function openAssignModal(){
+  if(masterCatalog.length === 0){
+    showToast('Parts master is empty. Add part types in the Parts Master screen first.', 't-err');
+    return;
+  }
+  // Filter out parts already on this machine (no point assigning twice)
+  const assigned = new Set(allParts.map(p => p.part_id));
+  const available = masterCatalog.filter(m => !assigned.has(m.id));
+  const sel = document.getElementById('assignPart');
+  if(available.length === 0){
+    showToast('Every part in the master catalog is already on this machine.', 't-err');
+    return;
+  }
+  sel.innerHTML = available.map(m =>
+    `<option value="${m.id}">${escapeHtml(m.name)}${m.part_number ? ' — ' + escapeHtml(m.part_number) : ''}</option>`
+  ).join('');
+  document.getElementById('assignQty').value = 0;
+  document.getElementById('assignReorder').value = '';
+  document.getElementById('assignNotes').value = '';
+  document.getElementById('assignName').value = getSavedName();
+  document.getElementById('assignModal').classList.add('show');
+}
+function closeAssignModal(){
+  document.getElementById('assignModal').classList.remove('show');
+}
+async function saveAssignPart(){
+  const partId = parseInt(document.getElementById('assignPart').value, 10);
+  const qty = parseInt(document.getElementById('assignQty').value, 10) || 0;
+  const reorderRaw = document.getElementById('assignReorder').value.trim();
+  const reorder = reorderRaw === '' ? null : parseInt(reorderRaw, 10);
+  const notes = document.getElementById('assignNotes').value.trim() || null;
+  const who = document.getElementById('assignName').value.trim();
+  if(!who){ showToast('Your name is required', 't-err'); return; }
+  saveName(who);
+  const payload = {
+    machine_id: machineId, part_id: partId,
+    quantity: qty, reorder_threshold: reorder, notes,
+    last_updated_by: who, last_updated_at: new Date().toISOString(),
+  };
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/machine_parts`, {
+      method: 'POST',
+      headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok){
+      const t = await res.text();
+      throw new Error('HTTP ' + res.status + ' ' + t.slice(0,120));
+    }
+    showToast('✓ Part added', 't-ok');
+    closeAssignModal();
+    await loadMachine();
+  } catch(e){
+    showToast('Save failed: ' + e.message, 't-err');
+  }
+}
+
+// ── EDIT PART (notes, threshold, photo upload, remove) ───────────────
+function openEditModal(mpId){
+  editingPartId = mpId;
+  const part = allParts.find(p => p.id === mpId);
+  if(!part) return;
+  document.getElementById('editPartName').textContent = part.parts_master?.name || '(unknown)';
+  document.getElementById('editQty').value = part.quantity;
+  document.getElementById('editReorder').value = part.reorder_threshold ?? '';
+  document.getElementById('editNotes').value = part.notes || '';
+  document.getElementById('editName').value = getSavedName() || part.last_updated_by || '';
+  document.getElementById('editPhoto').value = '';
+  const preview = document.getElementById('editPhotoPreview');
+  preview.innerHTML = part.photo_url
+    ? `<img src="${escapeHtml(part.photo_url)}" style="max-width:120px;max-height:120px;border-radius:6px;border:1px solid var(--bdr);">`
+    : '';
+  document.getElementById('editModal').classList.add('show');
+}
+function closeEditModal(){
+  document.getElementById('editModal').classList.remove('show');
+  editingPartId = null;
+}
+async function saveEditPart(){
+  const part = allParts.find(p => p.id === editingPartId);
+  if(!part) return;
+  const who = document.getElementById('editName').value.trim();
+  if(!who){ showToast('Your name is required', 't-err'); return; }
+  saveName(who);
+  const newQty = parseInt(document.getElementById('editQty').value, 10) || 0;
+  const reorderRaw = document.getElementById('editReorder').value.trim();
+  const reorder = reorderRaw === '' ? null : parseInt(reorderRaw, 10);
+  const notes = document.getElementById('editNotes').value.trim() || null;
+
+  // Handle photo upload (if a new file was picked)
+  let photoUrl = part.photo_url;
+  const file = document.getElementById('editPhoto').files[0];
+  if(file){
+    try {
+      photoUrl = await uploadPartPhoto(file);
+    } catch(e){
+      showToast('Photo upload failed: ' + e.message, 't-err');
+      return;
+    }
+  }
+
+  // If quantity changed, log it
+  const qtyChanged = newQty !== part.quantity;
+  const patch = {
+    quantity: newQty,
+    reorder_threshold: reorder,
+    notes,
+    photo_url: photoUrl,
+    last_updated_by: who,
+    last_updated_at: new Date().toISOString(),
+  };
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/machine_parts?id=eq.${part.id}`, {
+      method: 'PATCH',
+      headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body: JSON.stringify(patch),
+    });
+    if(!res.ok){
+      const t = await res.text();
+      throw new Error('HTTP ' + res.status + ' ' + t.slice(0,120));
+    }
+    if(qtyChanged){
+      // Audit row for the manual-edit quantity change
+      fetch(`${WISTRON_SB_URL}/rest/v1/parts_adjustments`, {
+        method: 'POST',
+        headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+        body: JSON.stringify({
+          machine_part_id: part.id,
+          delta: newQty - part.quantity,
+          quantity_after: newQty,
+          reason: 'Edit modal',
+          adjusted_by: who,
+        }),
+      }).catch(() => {});
+    }
+    showToast('✓ Saved', 't-ok');
+    closeEditModal();
+    await loadMachine();
+  } catch(e){
+    showToast('Save failed: ' + e.message, 't-err');
+  }
+}
+
+async function removePart(){
+  const part = allParts.find(p => p.id === editingPartId);
+  if(!part) return;
+  if(!confirm(`Remove "${part.parts_master?.name}" from this machine?\nThis only removes the link; the part type stays in the master catalog.`)) return;
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/machine_parts?id=eq.${part.id}`, {
+      method: 'DELETE', headers: wistronHeaders(),
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('Part removed', 't-ok');
+    closeEditModal();
+    await loadMachine();
+  } catch(e){
+    showToast('Remove failed: ' + e.message, 't-err');
+  }
+}
+
+// ── PHOTO UPLOAD to Supabase Storage ─────────────────────────────────
+async function uploadPartPhoto(file){
+  // Compress big images to keep bandwidth down — photos from phones can be 5MB+
+  const blob = await compressImage(file, 1600, 0.85);
+  const safeName = file.name.replace(/[^\w.\-]/g, '_');
+  const path = `machine-${machineId}/${Date.now()}-${safeName}`;
+  const upRes = await fetch(`${WISTRON_SB_URL}/storage/v1/object/machine-photos/${path}`, {
+    method: 'POST',
+    headers: {
+      ...wistronHeaders(),
+      'Content-Type': blob.type || 'image/jpeg',
+      'x-upsert': 'true',
+    },
+    body: blob,
+  });
+  if(!upRes.ok){
+    const t = await upRes.text();
+    throw new Error('Storage HTTP ' + upRes.status + ' ' + t.slice(0,120));
+  }
+  return `${WISTRON_SB_URL}/storage/v1/object/public/machine-photos/${path}`;
+}
+
+// Compress an image File using a canvas. maxDim caps the longest side.
+function compressImage(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxDim || h > maxDim){
+          const scale = maxDim / Math.max(w, h);
+          w = Math.round(w * scale); h = Math.round(h * scale);
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        c.toBlob(blob => blob ? resolve(blob) : reject(new Error('Compress failed')), 'image/jpeg', quality);
+      };
+      img.onerror = () => reject(new Error('Image load failed'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+function getSavedName(){
+  try { return localStorage.getItem('wistron_tech_name') || ''; } catch(e){ return ''; }
+}
+function saveName(n){
+  try { localStorage.setItem('wistron_tech_name', n); } catch(e){}
+}
+function openLightbox(url){
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightbox').classList.add('show');
+}
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let _toastTimer = null;
+function showToast(msg, cls){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (cls || '');
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.className = 'toast ' + (cls||''); }, 3500);
+}
+
+// Close modals on outside-click + escape
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if(e.target === bg) bg.classList.remove('show'); });
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    closeAssignModal(); closeAdjustModal(); closeEditModal();
+    document.getElementById('lightbox').classList.remove('show');
+  }
+});
+</script>
+
+</body>
+</html>

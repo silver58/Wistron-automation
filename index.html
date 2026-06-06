@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wistron Automation — Parts Inventory</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root{
+  --bg:#0d1117;--sur:#161b22;--sur2:#1c2128;--bdr:#21262d;--bdr2:#30363d;
+  --amb:#00a3e0;--amb-rgb:0,163,224;--amb-hover:#0086b8;--amb-deep:#005f80;
+  --grn:#3fb950;--red:#f85149;--blu:#388bfd;--pur:#a371f7;--cyn:#39c5cf;--ora:#ff8c42;--yel:#f5d937;
+  --txt:#e6edf3;--mut:#d0d7de;--mut2:#b1bac4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+button{touch-action:manipulation;cursor:pointer;}
+input,select,textarea{font-size:16px !important;}
+@media(min-width:861px){input,select,textarea{font-size:13px !important;}}
+body{
+  font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--txt);
+  min-height:100vh;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
+  padding-bottom:40px;
+}
+
+/* Header */
+.site-header{
+  background:var(--sur);border-bottom:1px solid var(--bdr);
+  padding:0 24px;display:flex;align-items:center;justify-content:space-between;
+  height:56px;position:sticky;top:0;z-index:100;
+}
+.brand{
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;
+  color:var(--amb);letter-spacing:.08em;text-transform:uppercase;
+}
+.header-actions{display:flex;align-items:center;gap:8px;}
+.lang-btn, .master-btn{
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  padding:5px 11px;border-radius:6px;text-decoration:none;
+  transition:all .15s;
+}
+.lang-btn:hover, .master-btn:hover{border-color:var(--amb);color:var(--amb);}
+
+.wrap{max-width:1100px;margin:0 auto;padding:30px 28px;}
+
+/* Hero */
+.hero{
+  background:linear-gradient(135deg, rgba(var(--amb-rgb),.08) 0%, var(--sur) 70%);
+  border:1px solid rgba(var(--amb-rgb),.25);
+  border-radius:14px;padding:30px 30px 24px;
+  margin-bottom:28px;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-50%;right:-10%;
+  width:300px;height:300px;
+  background:radial-gradient(circle, rgba(var(--amb-rgb),.15) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero h1{
+  font-size:28px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px;
+  position:relative;
+}
+.hero .sub{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amb);
+  text-transform:uppercase;letter-spacing:.12em;
+  position:relative;
+}
+.hero .tap-hint{
+  font-size:13px;color:var(--mut);margin-top:14px;
+  position:relative;
+}
+@media(max-width:600px){
+  .hero{padding:22px 20px 18px;}
+  .hero h1{font-size:22px;}
+}
+
+/* Area grid */
+.areas{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:14px;
+}
+@media(max-width:860px){.areas{grid-template-columns:repeat(2, 1fr);}}
+@media(max-width:520px){.areas{grid-template-columns:1fr;}}
+
+.area-card{
+  background:linear-gradient(135deg, var(--sur) 0%, #14191f 100%);
+  border:1px solid var(--bdr);
+  border-radius:11px;
+  padding:22px 22px 20px;
+  text-decoration:none;color:var(--txt);
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  transition:all .18s ease;
+  min-height:140px;
+}
+.area-card::before{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 100% 0%, var(--accent, transparent) 0%, transparent 60%);
+  opacity:.10;
+  transition:opacity .2s;
+  pointer-events:none;
+}
+.area-card:hover{
+  transform:translateY(-3px);
+  border-color:var(--accent, var(--amb));
+  box-shadow:0 8px 25px rgba(0,0,0,.4), 0 0 0 1px var(--accent, var(--amb));
+}
+.area-card:hover::before{opacity:.18;}
+.area-icon{
+  width:42px;height:42px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.04);
+  margin-bottom:14px;
+  color:var(--accent, var(--amb));
+}
+.area-icon svg{width:22px;height:22px;}
+.area-name{
+  font-size:17px;font-weight:600;
+  margin-bottom:4px;
+}
+.area-meta{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  color:var(--mut2);
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.area-count{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  color:var(--accent, var(--amb));
+  margin-top:auto;
+  padding-top:14px;
+}
+
+/* Per-area accent colors */
+.area-card[data-area="DIP Line"] { --accent: var(--ora); }
+.area-card[data-area="Line 1"]   { --accent: var(--amb); }
+.area-card[data-area="Line 2"]   { --accent: var(--cyn); }
+.area-card[data-area="PODS"]     { --accent: var(--pur); }
+.area-card[data-area="Line 4"]   { --accent: var(--grn); }
+.area-card[data-area="Pack Out"] { --accent: var(--yel); }
+
+.footer{
+  text-align:center;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  color:var(--mut2);letter-spacing:.1em;text-transform:uppercase;
+  padding-top:30px;margin-top:30px;border-top:1px solid var(--bdr);
+}
+
+/* Loading / error states */
+.notice{
+  background:rgba(var(--amb-rgb),.06);
+  border:1px solid rgba(var(--amb-rgb),.22);
+  border-radius:8px;padding:14px 16px;
+  font-size:13px;color:var(--mut);
+  margin-bottom:18px;
+}
+.notice.err{
+  background:rgba(248,81,73,.08);
+  border-color:rgba(248,81,73,.25);
+}
+.notice code{
+  background:var(--bg);padding:1px 5px;border-radius:3px;
+  font-size:11px;font-family:'IBM Plex Mono',monospace;
+}
+</style>
+<script src="wistron_config.js"></script>
+<script src="translations.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="brand">WISTRON · AUTOMATION</span>
+  <div class="header-actions">
+    <button id="langBtn" class="lang-btn" onclick="cycleLang()">EN</button>
+    <a class="master-btn" href="parts_master.html">⚙ Parts Master</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="sub" data-i18n="app.subtitle">Parts Inventory System</div>
+    <h1 data-i18n="app.title">Wistron Automation Team</h1>
+    <div class="tap-hint" data-i18n="home.tap">Tap an area to view machines</div>
+  </div>
+
+  <div id="configNotice"></div>
+
+  <div class="areas">
+    <a class="area-card" data-area="DIP Line" href="area.html?area=DIP%20Line">
+      <div class="area-icon">
+        <!-- Conveyor icon: horizontal belt + rollers -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <rect x="2" y="9" width="20" height="6" rx="1"/>
+          <circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+          <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+          <circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <div class="area-name" data-i18n="area.dip">DIP Line</div>
+      <div class="area-meta">CONVEYOR</div>
+      <div class="area-count" id="count-DIP-Line">—</div>
+    </a>
+
+    <a class="area-card" data-area="Line 1" href="area.html?area=Line%201">
+      <div class="area-icon">
+        <!-- Station rack: 3x3 grid -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="3" y="3" width="6" height="6" rx="1"/>
+          <rect x="3" y="11" width="6" height="6" rx="1" opacity=".75"/>
+          <rect x="11" y="3" width="6" height="6" rx="1" opacity=".75"/>
+          <rect x="11" y="11" width="6" height="6" rx="1"/>
+          <rect x="3" y="19" width="6" height="2" rx="1" opacity=".5"/>
+          <rect x="11" y="19" width="6" height="2" rx="1" opacity=".5"/>
+        </svg>
+      </div>
+      <div class="area-name" data-i18n="area.line1">Line 1</div>
+      <div class="area-meta">S1 – S18</div>
+      <div class="area-count" id="count-Line-1">—</div>
+    </a>
+
+    <a class="area-card" data-area="Line 2" href="area.html?area=Line%202">
+      <div class="area-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="3" y="3" width="6" height="6" rx="1"/>
+          <rect x="3" y="11" width="6" height="6" rx="1" opacity=".75"/>
+          <rect x="11" y="3" width="6" height="6" rx="1" opacity=".75"/>
+          <rect x="11" y="11" width="6" height="6" rx="1"/>
+          <rect x="3" y="19" width="6" height="2" rx="1" opacity=".5"/>
+          <rect x="11" y="19" width="6" height="2" rx="1" opacity=".5"/>
+        </svg>
+      </div>
+      <div class="area-name" data-i18n="area.line2">Line 2</div>
+      <div class="area-meta">S1 – S18</div>
+      <div class="area-count" id="count-Line-2">—</div>
+    </a>
+
+    <a class="area-card" data-area="PODS" href="area.html?area=PODS">
+      <div class="area-icon">
+        <!-- Robot arm icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="5" r="2"/>
+          <path d="M12 7v4l4 4"/>
+          <path d="M12 11l-4 4"/>
+          <rect x="6" y="17" width="12" height="4" rx="1"/>
+        </svg>
+      </div>
+      <div class="area-name" data-i18n="area.pods">PODS</div>
+      <div class="area-meta">RACK PLACEMENT</div>
+      <div class="area-count" id="count-PODS">—</div>
+    </a>
+
+    <a class="area-card" data-area="Line 4" href="area.html?area=Line%204">
+      <div class="area-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="3" y="3" width="6" height="6" rx="1"/>
+          <rect x="3" y="11" width="6" height="6" rx="1" opacity=".75"/>
+          <rect x="11" y="3" width="6" height="6" rx="1" opacity=".75"/>
+          <rect x="11" y="11" width="6" height="6" rx="1"/>
+          <rect x="3" y="19" width="6" height="2" rx="1" opacity=".5"/>
+          <rect x="11" y="19" width="6" height="2" rx="1" opacity=".5"/>
+        </svg>
+      </div>
+      <div class="area-name" data-i18n="area.line4">Line 4</div>
+      <div class="area-meta">S1 – S18</div>
+      <div class="area-count" id="count-Line-4">—</div>
+    </a>
+
+    <a class="area-card" data-area="Pack Out" href="area.html?area=Pack%20Out">
+      <div class="area-icon">
+        <!-- Box / packaging -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7l9-4 9 4-9 4-9-4z"/>
+          <path d="M3 7v10l9 4 9-4V7"/>
+          <path d="M12 11v10"/>
+        </svg>
+      </div>
+      <div class="area-name" data-i18n="area.packout">Pack Out</div>
+      <div class="area-meta">AVI · LABEL · SEAL</div>
+      <div class="area-count" id="count-Pack-Out">—</div>
+    </a>
+  </div>
+
+  <div class="footer">WISTRON · AUTOMATION TEAM</div>
+</main>
+
+<script>
+// Show a setup notice if the Supabase config hasn't been filled in yet.
+// This is purely a developer convenience — production deploys with real creds
+// will skip past this silently.
+(function(){
+  const notice = document.getElementById('configNotice');
+  if(!window.WISTRON_SB_URL || window.WISTRON_SB_URL.includes('YOUR-PROJECT-REF')){
+    notice.innerHTML = `<div class="notice err">
+      <strong>Setup needed:</strong> The Supabase URL and key in <code>wistron_config.js</code> are placeholders.
+      Create a new Supabase project, run <code>supabase_setup.sql</code> in the SQL Editor,
+      then paste your project URL + anon key into <code>wistron_config.js</code>.
+    </div>`;
+    return;
+  }
+  // Fetch the machine count per area to populate the cards
+  loadMachineCounts();
+})();
+
+async function loadMachineCounts(){
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/machines?select=area&limit=500`, {headers: wistronHeaders()});
+    if(!res.ok){
+      // Table may not exist yet — show a friendlier notice
+      document.getElementById('configNotice').innerHTML = `<div class="notice">
+        <strong>Almost there:</strong> Supabase is reachable but the <code>machines</code> table isn't set up yet.
+        Run <code>supabase_setup.sql</code> in your Supabase SQL Editor to create the tables and seed the machine list.
+      </div>`;
+      return;
+    }
+    const rows = await res.json();
+    const counts = {};
+    rows.forEach(r => { counts[r.area] = (counts[r.area] || 0) + 1; });
+    document.querySelectorAll('.area-count').forEach(el => {
+      // Element ids are "count-<area-with-dashes>"
+      const area = el.id.replace(/^count-/, '').replace(/-/g, ' ');
+      const n = counts[area] || 0;
+      el.textContent = n === 0 ? 'No machines yet' : `${n} machine${n===1?'':'s'}`;
+    });
+  } catch(e){
+    // Network/parse error — keep the page usable, just leave counts as "—"
+    console.warn('Could not load machine counts:', e);
+  }
+}
+</script>
+
+</body>
+</html>

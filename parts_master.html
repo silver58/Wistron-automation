@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wistron — Parts Master</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root{
+  --bg:#0d1117;--sur:#161b22;--sur2:#1c2128;--bdr:#21262d;--bdr2:#30363d;
+  --amb:#00a3e0;--amb-rgb:0,163,224;--amb-hover:#0086b8;
+  --grn:#3fb950;--red:#f85149;
+  --txt:#e6edf3;--mut:#d0d7de;--mut2:#b1bac4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+button{touch-action:manipulation;cursor:pointer;}
+input,select,textarea{font-size:16px !important;}
+@media(min-width:861px){input,select,textarea{font-size:13px !important;}}
+body{
+  font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--txt);
+  min-height:100vh;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
+  padding-bottom:60px;
+}
+
+.site-header{
+  background:var(--sur);border-bottom:1px solid var(--bdr);
+  padding:0 24px;display:flex;align-items:center;justify-content:space-between;
+  height:56px;position:sticky;top:0;z-index:100;
+}
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  padding:5px 11px;border-radius:6px;text-decoration:none;
+  transition:all .15s;
+}
+.back-btn:hover{border-color:var(--amb);color:var(--amb);}
+.brand{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+  color:var(--amb);letter-spacing:.08em;text-transform:uppercase;
+}
+.lang-btn{
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  padding:5px 11px;border-radius:6px;
+}
+
+.wrap{max-width:1000px;margin:0 auto;padding:26px 22px;}
+
+.page-head{margin-bottom:24px;}
+.page-head h1{font-size:24px;font-weight:600;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--mut);}
+
+.lock-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  background:var(--sur);
+  border:1px solid var(--bdr);
+  border-radius:9px;
+  padding:11px 16px;
+  margin-bottom:18px;
+}
+.lock-bar.unlocked{
+  background:linear-gradient(90deg, rgba(63,185,80,.06), transparent);
+  border-color:rgba(63,185,80,.25);
+}
+.lock-status{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;
+  color:var(--mut);
+}
+.lock-bar.unlocked .lock-status{color:var(--grn);font-weight:600;}
+.lock-btn{
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  padding:6px 12px;border-radius:5px;cursor:pointer;
+  transition:all .15s;
+}
+.lock-btn:hover{border-color:var(--amb);color:var(--amb);}
+.lock-bar.unlocked .lock-btn{border-color:rgba(63,185,80,.4);color:var(--grn);}
+
+/* Add form */
+.add-form{
+  background:rgba(var(--amb-rgb),.05);
+  border:1px solid rgba(var(--amb-rgb),.25);
+  border-radius:9px;
+  padding:15px 18px;
+  margin-bottom:18px;
+}
+.add-form h2{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--amb);font-weight:600;
+  margin-bottom:12px;
+}
+.add-grid{
+  display:grid;
+  grid-template-columns:1.3fr 1fr 1.6fr auto;
+  gap:10px;align-items:end;
+}
+@media(max-width:760px){
+  .add-grid{grid-template-columns:1fr 1fr;}
+  .add-grid > div:last-child{grid-column:1 / -1;}
+}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--mut2);
+}
+.field input, .field textarea{
+  background:var(--bg);border:1px solid var(--bdr2);
+  border-radius:5px;padding:7px 10px;
+  color:var(--txt);font-family:'IBM Plex Sans',sans-serif;
+  outline:none;transition:border-color .15s;
+}
+.field input:focus, .field textarea:focus{border-color:var(--amb);}
+.btn{
+  background:var(--amb);color:#000;border:none;
+  padding:8px 14px;border-radius:5px;font-weight:600;
+  font-size:12px;cursor:pointer;font-family:inherit;
+}
+.btn:hover{background:var(--amb-hover);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Catalog table */
+.catalog{
+  background:var(--sur);border:1px solid var(--bdr);
+  border-radius:10px;overflow:hidden;
+}
+.catalog-head{
+  padding:11px 16px;background:var(--bg);border-bottom:1px solid var(--bdr);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.catalog-title{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  color:var(--mut);text-transform:uppercase;letter-spacing:.08em;
+}
+.catalog-count{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--mut2);
+}
+.parts-table{width:100%;border-collapse:collapse;}
+.parts-table th{
+  text-align:left;padding:10px 14px;
+  background:var(--bg);
+  border-bottom:1px solid var(--bdr);
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  color:var(--mut2);text-transform:uppercase;letter-spacing:.08em;font-weight:600;
+}
+.parts-table td{
+  padding:10px 14px;border-bottom:1px solid var(--bdr);
+  font-size:12.5px;color:var(--txt);
+}
+.parts-table tr:last-child td{border-bottom:none;}
+.parts-table tr:hover td{background:rgba(255,255,255,.02);}
+.parts-table td.actions{text-align:right;white-space:nowrap;}
+.parts-table td.desc{color:var(--mut);font-size:11.5px;max-width:300px;}
+.parts-table td.pn{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);}
+.usage-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  background:rgba(var(--amb-rgb),.15);color:var(--amb);
+  padding:2px 7px;border-radius:9px;
+  margin-left:8px;
+}
+.row-btn{
+  background:transparent;border:1px solid var(--bdr2);
+  color:var(--mut2);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  padding:3px 8px;border-radius:4px;cursor:pointer;
+  transition:all .15s;margin-left:4px;
+}
+.row-btn:hover{border-color:var(--amb);color:var(--amb);}
+.row-btn-del:hover{border-color:var(--red);color:var(--red);}
+
+.empty{
+  text-align:center;padding:36px 20px;
+  color:var(--mut2);font-size:13px;
+}
+
+.loading{text-align:center;padding:60px 20px;color:var(--mut2);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+.notice{background:rgba(var(--amb-rgb),.06);border:1px solid rgba(var(--amb-rgb),.22);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--mut);margin-bottom:16px;}
+.notice.err{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.25);}
+.notice code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'IBM Plex Mono',monospace;}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sur);border:1px solid var(--bdr2);padding:11px 20px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:9999;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.t-ok{border-color:var(--grn);color:var(--grn);}
+.toast.t-err{border-color:var(--red);color:var(--red);}
+
+/* Edit modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:200;padding:16px;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--sur);border:1px solid var(--bdr2);border-radius:11px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 16px 50px rgba(0,0,0,.6);}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;}
+.modal-title{font-size:15px;font-weight:600;}
+.modal-close{background:transparent;border:none;color:var(--mut2);font-size:20px;cursor:pointer;line-height:1;padding:4px;}
+.modal-body{padding:18px 20px;}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end;}
+.modal .field{margin-bottom:12px;}
+</style>
+<script src="wistron_config.js"></script>
+<script src="translations.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="back-btn" href="index.html">← <span data-i18n="common.home">Home</span></a>
+  <span class="brand">WISTRON · PARTS MASTER</span>
+  <button id="langBtn" class="lang-btn" onclick="cycleLang()">EN</button>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1 data-i18n="master.title">Parts Master Catalog</h1>
+    <div class="page-sub" data-i18n="master.subtitle">Engineer-only. Add new part types here before they can be assigned to machines.</div>
+  </div>
+
+  <div id="lockBar" class="lock-bar">
+    <span class="lock-status" id="lockStatus" data-i18n="master.locked">🔒 Locked · enter password to manage</span>
+    <button class="lock-btn" id="lockBtn" onclick="toggleLock()">Unlock</button>
+  </div>
+
+  <div id="addFormSlot"></div>
+
+  <div id="catalogSlot"><div class="loading" data-i18n="common.loading">Loading…</div></div>
+</main>
+
+<!-- Edit modal -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Edit part type</div>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label data-i18n="master.name">Part name</label>
+        <input type="text" id="editName">
+      </div>
+      <div class="field">
+        <label data-i18n="master.part_number">Part number (optional)</label>
+        <input type="text" id="editPartNumber">
+      </div>
+      <div class="field">
+        <label data-i18n="master.description">Description (optional)</label>
+        <textarea id="editDescription" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" style="background:transparent;border:1px solid var(--bdr2);color:var(--mut);" onclick="closeEditModal()" data-i18n="parts.cancel">Cancel</button>
+      <button class="btn" onclick="savePartEdit()" data-i18n="parts.save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+let allParts = [];
+let usageCounts = {};   // part_id → number of machines that use it
+let unlocked = false;
+let editingId = null;
+
+// Hash setup — see wistron_config.js. We compute the default-password hash
+// locally so the placeholder still works for testing if config.js hasn't been
+// regenerated with a real hash.
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+let defaultPwHash = null;
+sha256(window.WISTRON_PW_PLAINTEXT_DEFAULT || '7012').then(h => { defaultPwHash = h; });
+
+// ── INIT ───────────────────────────────────────────────────────────
+(async function init(){
+  if(!window.WISTRON_SB_URL || window.WISTRON_SB_URL.includes('YOUR-PROJECT-REF')){
+    document.getElementById('catalogSlot').innerHTML = `<div class="notice err">
+      <strong>Setup needed:</strong> Replace placeholders in <code>wistron_config.js</code> with your Supabase URL and anon key.
+    </div>`;
+    return;
+  }
+  await loadCatalog();
+})();
+
+async function loadCatalog(){
+  const slot = document.getElementById('catalogSlot');
+  try {
+    const [partsRes, linksRes] = await Promise.all([
+      fetch(`${WISTRON_SB_URL}/rest/v1/parts_master?order=name.asc&limit=1000`, {headers: wistronHeaders()}),
+      fetch(`${WISTRON_SB_URL}/rest/v1/machine_parts?select=part_id&limit=5000`, {headers: wistronHeaders()}),
+    ]);
+    if(!partsRes.ok){
+      slot.innerHTML = `<div class="notice err">
+        <strong>Database not set up.</strong> Run <code>supabase_setup.sql</code> in Supabase to create the tables.</div>`;
+      return;
+    }
+    allParts = await partsRes.json();
+    const links = linksRes.ok ? await linksRes.json() : [];
+    usageCounts = {};
+    links.forEach(l => { usageCounts[l.part_id] = (usageCounts[l.part_id] || 0) + 1; });
+    renderCatalog();
+  } catch(e){
+    slot.innerHTML = `<div class="notice err"><strong>Error:</strong> ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderCatalog(){
+  const slot = document.getElementById('catalogSlot');
+  if(allParts.length === 0){
+    slot.innerHTML = `<div class="catalog">
+      <div class="catalog-head">
+        <span class="catalog-title">Catalog</span>
+        <span class="catalog-count">0 parts</span>
+      </div>
+      <div class="empty">No part types defined yet. ${unlocked ? 'Use the form above to add one.' : 'Unlock to start adding.'}</div>
+    </div>`;
+    return;
+  }
+  const rows = allParts.map(p => {
+    const usage = usageCounts[p.id] || 0;
+    const usageBadge = usage > 0 ? `<span class="usage-badge">${usage} machine${usage===1?'':'s'}</span>` : '';
+    const actions = unlocked ? `
+      <button class="row-btn" onclick="openEditModal(${p.id})">edit</button>
+      <button class="row-btn row-btn-del" onclick="deletePart(${p.id})" title="${usage > 0 ? 'Cannot delete — in use on '+usage+' machine(s)' : 'Delete'}" ${usage > 0 ? 'disabled' : ''}>✕</button>
+    ` : '';
+    return `
+      <tr>
+        <td><strong>${escapeHtml(p.name)}</strong>${usageBadge}</td>
+        <td class="pn">${escapeHtml(p.part_number || '—')}</td>
+        <td class="desc">${escapeHtml(p.description || '')}</td>
+        <td class="actions">${actions}</td>
+      </tr>`;
+  }).join('');
+  slot.innerHTML = `
+    <div class="catalog">
+      <div class="catalog-head">
+        <span class="catalog-title">Catalog</span>
+        <span class="catalog-count">${allParts.length} part type${allParts.length===1?'':'s'}</span>
+      </div>
+      <table class="parts-table">
+        <thead><tr><th>Name</th><th>Part #</th><th>Description</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── LOCK / UNLOCK ───────────────────────────────────────────────────
+async function toggleLock(){
+  if(unlocked){
+    unlocked = false;
+    updateLockUI();
+    return;
+  }
+  const entered = (prompt(window.WISTRON_T['master.password_prompt'].en) || '').trim();
+  if(!entered) return;
+  const enteredHash = await sha256(entered);
+  // Accept either the configured hash OR the default-password hash (handy for
+  // testing before the engineer customizes the config)
+  if(!defaultPwHash) defaultPwHash = await sha256(window.WISTRON_PW_PLAINTEXT_DEFAULT || '7012');
+  if(enteredHash !== window.WISTRON_PW_HASH && enteredHash !== defaultPwHash){
+    showToast(window.WISTRON_T['master.wrong_password'].en, 't-err');
+    return;
+  }
+  unlocked = true;
+  updateLockUI();
+}
+function updateLockUI(){
+  const bar = document.getElementById('lockBar');
+  const status = document.getElementById('lockStatus');
+  const btn = document.getElementById('lockBtn');
+  bar.classList.toggle('unlocked', unlocked);
+  if(unlocked){
+    status.textContent = window.WISTRON_T['master.unlocked'].en;
+    btn.textContent = 'Lock';
+    renderAddForm();
+  } else {
+    status.textContent = window.WISTRON_T['master.locked'].en;
+    btn.textContent = 'Unlock';
+    document.getElementById('addFormSlot').innerHTML = '';
+  }
+  renderCatalog();
+}
+
+function renderAddForm(){
+  document.getElementById('addFormSlot').innerHTML = `
+    <div class="add-form">
+      <h2>${window.WISTRON_T['master.add'].en}</h2>
+      <div class="add-grid">
+        <div class="field">
+          <label>${window.WISTRON_T['master.name'].en}</label>
+          <input type="text" id="newName" placeholder="e.g. Spring 5mm M3">
+        </div>
+        <div class="field">
+          <label>${window.WISTRON_T['master.part_number'].en}</label>
+          <input type="text" id="newPartNumber" placeholder="optional">
+        </div>
+        <div class="field">
+          <label>${window.WISTRON_T['master.description'].en}</label>
+          <input type="text" id="newDescription" placeholder="optional">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="btn" onclick="addPart()">+ Add</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function addPart(){
+  const name = document.getElementById('newName').value.trim();
+  if(!name){ showToast('Name is required', 't-err'); return; }
+  const partNumber = document.getElementById('newPartNumber').value.trim() || null;
+  const description = document.getElementById('newDescription').value.trim() || null;
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/parts_master`, {
+      method: 'POST',
+      headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body: JSON.stringify({name, part_number: partNumber, description, created_by: 'Engineer'}),
+    });
+    if(!res.ok){
+      const t = await res.text();
+      throw new Error('HTTP ' + res.status + ' ' + t.slice(0,120));
+    }
+    showToast('✓ Part type added', 't-ok');
+    // Clear form
+    document.getElementById('newName').value = '';
+    document.getElementById('newPartNumber').value = '';
+    document.getElementById('newDescription').value = '';
+    await loadCatalog();
+  } catch(e){
+    showToast('Save failed: ' + e.message, 't-err');
+  }
+}
+
+function openEditModal(id){
+  if(!unlocked) return;
+  const part = allParts.find(p => p.id === id);
+  if(!part) return;
+  editingId = id;
+  document.getElementById('editName').value = part.name || '';
+  document.getElementById('editPartNumber').value = part.part_number || '';
+  document.getElementById('editDescription').value = part.description || '';
+  document.getElementById('editModal').classList.add('show');
+}
+function closeEditModal(){
+  document.getElementById('editModal').classList.remove('show');
+  editingId = null;
+}
+async function savePartEdit(){
+  if(!editingId) return;
+  const payload = {
+    name: document.getElementById('editName').value.trim(),
+    part_number: document.getElementById('editPartNumber').value.trim() || null,
+    description: document.getElementById('editDescription').value.trim() || null,
+  };
+  if(!payload.name){ showToast('Name is required', 't-err'); return; }
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/parts_master?id=eq.${editingId}`, {
+      method: 'PATCH',
+      headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('✓ Saved', 't-ok');
+    closeEditModal();
+    await loadCatalog();
+  } catch(e){
+    showToast('Save failed: ' + e.message, 't-err');
+  }
+}
+
+async function deletePart(id){
+  if(!unlocked) return;
+  const part = allParts.find(p => p.id === id);
+  if(!part) return;
+  if((usageCounts[id] || 0) > 0){
+    showToast('Cannot delete — part is in use on at least one machine', 't-err');
+    return;
+  }
+  if(!confirm(`Delete "${part.name}" from the master catalog?`)) return;
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/parts_master?id=eq.${id}`, {
+      method: 'DELETE', headers: wistronHeaders(),
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('Deleted', 't-ok');
+    await loadCatalog();
+  } catch(e){
+    showToast('Delete failed: ' + e.message, 't-err');
+  }
+}
+
+// ── UTILITIES ───────────────────────────────────────────────────────
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let _toastTimer = null;
+function showToast(msg, cls){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (cls || '');
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.className = 'toast ' + (cls||''); }, 3500);
+}
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if(e.target === bg) bg.classList.remove('show'); });
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeEditModal();
+});
+</script>
+
+</body>
+</html>
