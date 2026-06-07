@@ -1,13 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════════════
  * WISTRON — Supabase configuration
  *
- * BEFORE GOING LIVE: replace the two placeholder values below with your
- * own Wistron Supabase project's URL and anon key. Find them at:
- *   https://supabase.com/dashboard/project/<your-project>/settings/api
+ * This file is configured for the Wistron Supabase project.
+ * The publishable key below is client-side safe to commit.
  * ═══════════════════════════════════════════════════════════════════════ */
 
-window.WISTRON_SB_URL = 'https://YOUR-PROJECT-REF.supabase.co';
-window.WISTRON_SB_KEY = 'YOUR-ANON-KEY';
+window.WISTRON_SB_URL = 'https://dijmfzwosmdmfggqpbko.supabase.co';
+
+// Supabase now offers two key formats:
+//   - Legacy "anon" JWT (eyJhbGc...)
+//   - New "publishable" key (sb_publishable_...)
+// Both go into the apikey + Authorization headers the same way.
+window.WISTRON_SB_KEY = 'sb_publishable_sTGej7eI9mWQs16mkYeU7Q_x0sY6Rv7';
 
 window.wistronHeaders = function(){
   return {
@@ -17,8 +21,8 @@ window.wistronHeaders = function(){
 };
 
 // Master password for engineer-only screens (parts master, machine editing).
-// SHA-256 hash of the plaintext — change here and update the password.
-// The current hash is for password '7012' (same default as the Salcomp app).
-// Generate a new hash: https://emn178.github.io/online-tools/sha256.html
-window.WISTRON_PW_HASH = '7cf3ec98c5907f1b1ff3a4960c1234567890abcdef1234567890abcdef123456';
+// Default password is '7012'. To change it, generate a SHA-256 hash of your
+// new password (e.g. at https://emn178.github.io/online-tools/sha256.html)
+// and paste it as WISTRON_PW_HASH. Until then, '7012' works.
+window.WISTRON_PW_HASH = 'REPLACE_WITH_HASH_OF_YOUR_PASSWORD';
 window.WISTRON_PW_PLAINTEXT_DEFAULT = '7012';
