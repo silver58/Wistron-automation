@@ -69,6 +69,62 @@ body{
   margin-bottom:24px;
 }
 
+/* Machine reference photo — large hero image at top of page */
+.machine-photo-block{
+  margin-bottom:24px;
+  background:var(--sur);
+  border:1px solid var(--bdr);
+  border-radius:11px;
+  overflow:hidden;
+  position:relative;
+}
+.machine-photo-img{
+  display:block;width:100%;
+  max-height:340px;object-fit:cover;
+  background:var(--bg);
+  cursor:zoom-in;
+}
+.machine-photo-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;
+  background:repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,.015) 8px, rgba(255,255,255,.015) 16px);
+  color:var(--mut2);
+  text-align:center;
+  gap:8px;
+}
+.machine-photo-empty svg{width:40px;height:40px;opacity:.4;}
+.machine-photo-empty-txt{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;}
+.machine-photo-actions{
+  position:absolute;top:10px;right:10px;
+  display:flex;gap:6px;
+}
+.machine-photo-actions button{
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
+  padding:6px 11px;border-radius:5px;cursor:pointer;
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  transition:all .15s;
+}
+.machine-photo-actions button:hover{
+  background:rgba(0,0,0,.75);border-color:rgba(var(--amb-rgb),.5);color:var(--amb);
+}
+.machine-notes-block{
+  background:var(--sur2);
+  border:1px solid var(--bdr);
+  border-radius:9px;
+  padding:11px 14px;
+  margin-bottom:18px;
+  font-size:12.5px;color:var(--mut);
+  line-height:1.5;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.machine-notes-block::before{
+  content:'📌';flex-shrink:0;font-size:13px;line-height:1.4;
+}
+
 .section-head{
   display:flex;align-items:center;justify-content:space-between;
   gap:10px;flex-wrap:wrap;
@@ -433,6 +489,36 @@ body{
   </div>
 </div>
 
+<!-- MACHINE PHOTO MODAL — upload or replace the per-machine reference photo -->
+<div class="modal-bg" id="machinePhotoModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Machine photo</div>
+      <button class="modal-close" onclick="closeMachinePhotoModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Upload photo of this machine</label>
+        <input type="file" id="machinePhotoFile" accept="image/*">
+        <div id="machinePhotoPreview" style="margin-top:10px;"></div>
+      </div>
+      <div class="field">
+        <label>Machine notes (optional — shown above parts list)</label>
+        <textarea id="machineNotes" rows="3" placeholder="e.g., Rebuilt March 2026 · Check belt tension before each shift"></textarea>
+      </div>
+      <div class="field">
+        <label>Your name</label>
+        <input type="text" id="machinePhotoName">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="removeMachinePhotoBtn" onclick="removeMachinePhoto()" style="margin-right:auto;color:#ffa3a3;border-color:rgba(248,81,73,.3);">Remove photo</button>
+      <button class="btn btn-ghost" onclick="closeMachinePhotoModal()">Cancel</button>
+      <button class="btn" onclick="saveMachinePhoto()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
   <img id="lightboxImg" src="" alt="">
 </div>
@@ -525,6 +611,10 @@ function render(){
       ${allParts.length} part${allParts.length===1?'':'s'} on this machine${lowCount > 0 ? ` · <span style="color:#ffa3a3;font-weight:600;">${lowCount} low stock</span>` : ''}
     </div>
 
+    ${renderMachinePhoto()}
+
+    ${machineRow.machine_notes ? `<div class="machine-notes-block">${escapeHtml(machineRow.machine_notes)}</div>` : ''}
+
     <div class="section-head">
       <span class="section-title" data-i18n="parts.title">Parts on this machine</span>
       <button class="btn btn-sm" onclick="openAssignModal()" data-i18n="parts.add">+ Add part to this machine</button>
@@ -533,6 +623,35 @@ function render(){
     ${listHtml}
   `;
   applyTranslations(getCurrentLang());
+}
+
+// Renders the per-machine hero photo block. If there's no photo yet, shows an
+// empty-state placeholder. Either way has an upload button overlay in the corner.
+function renderMachinePhoto(){
+  const url = machineRow.photo_url;
+  if(url){
+    return `
+      <div class="machine-photo-block">
+        <img class="machine-photo-img" src="${escapeHtml(url)}" alt="${escapeHtml(machineRow.machine_code)}" onclick="openLightbox('${escapeHtml(url)}')">
+        <div class="machine-photo-actions">
+          <button onclick="openMachinePhotoModal()" title="Change photo">📷 Edit</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="machine-photo-block">
+      <div class="machine-photo-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <circle cx="12" cy="12" r="3.5"/>
+          <path d="M8 5l1.5-2h5L16 5"/>
+        </svg>
+        <div class="machine-photo-empty-txt">No machine photo yet</div>
+      </div>
+      <div class="machine-photo-actions">
+        <button onclick="openMachinePhotoModal()" title="Add photo">📷 Add Photo</button>
+      </div>
+    </div>`;
 }
 
 function renderPart(p){
@@ -830,6 +949,98 @@ async function removePart(){
 }
 
 // ── PHOTO UPLOAD to Supabase Storage ─────────────────────────────────
+// ── MACHINE PHOTO MODAL ──────────────────────────────────────────────
+// Engineers can upload a reference photo of the physical machine itself.
+// The photo is stored in the same 'machine-photos' bucket but at a separate
+// path prefix so it's easy to tell machine-level photos from per-part ones.
+function openMachinePhotoModal(){
+  document.getElementById('machinePhotoFile').value = '';
+  document.getElementById('machineNotes').value = machineRow.machine_notes || '';
+  document.getElementById('machinePhotoName').value = getSavedName();
+  const preview = document.getElementById('machinePhotoPreview');
+  preview.innerHTML = machineRow.photo_url
+    ? `<img src="${escapeHtml(machineRow.photo_url)}" style="max-width:200px;max-height:160px;border-radius:6px;border:1px solid var(--bdr);">`
+    : '<span style="font-size:11px;color:var(--mut2);font-style:italic;">No photo on file yet.</span>';
+  // Show/hide the Remove button depending on whether there's a current photo
+  document.getElementById('removeMachinePhotoBtn').style.display =
+    machineRow.photo_url ? 'inline-flex' : 'none';
+  document.getElementById('machinePhotoModal').classList.add('show');
+}
+function closeMachinePhotoModal(){
+  document.getElementById('machinePhotoModal').classList.remove('show');
+}
+async function saveMachinePhoto(){
+  const who = document.getElementById('machinePhotoName').value.trim();
+  if(!who){ showToast('Your name is required', 't-err'); return; }
+  saveName(who);
+  let photoUrl = machineRow.photo_url;
+  const file = document.getElementById('machinePhotoFile').files[0];
+  if(file){
+    try {
+      photoUrl = await uploadMachinePhoto(file);
+    } catch(e){
+      showToast('Photo upload failed: ' + e.message, 't-err');
+      return;
+    }
+  }
+  const notes = document.getElementById('machineNotes').value.trim() || null;
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/machines?id=eq.${machineId}`, {
+      method: 'PATCH',
+      headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body: JSON.stringify({ photo_url: photoUrl, machine_notes: notes }),
+    });
+    if(!res.ok){
+      const t = await res.text();
+      throw new Error('HTTP ' + res.status + ' ' + t.slice(0,120));
+    }
+    showToast('✓ Machine updated', 't-ok');
+    closeMachinePhotoModal();
+    await loadMachine();
+  } catch(e){
+    showToast('Save failed: ' + e.message, 't-err');
+  }
+}
+async function removeMachinePhoto(){
+  if(!confirm('Remove the machine photo? The notes below will be kept.')) return;
+  try {
+    const res = await fetch(`${WISTRON_SB_URL}/rest/v1/machines?id=eq.${machineId}`, {
+      method: 'PATCH',
+      headers: {...wistronHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body: JSON.stringify({ photo_url: null }),
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('Photo removed', 't-ok');
+    closeMachinePhotoModal();
+    await loadMachine();
+  } catch(e){
+    showToast('Remove failed: ' + e.message, 't-err');
+  }
+}
+
+// Separate uploader for machine-level photos. Same bucket, distinct path
+// prefix ('machines/') so we can later differentiate or apply lifecycle
+// rules to part photos vs machine photos.
+async function uploadMachinePhoto(file){
+  const blob = await compressImage(file, 1800, 0.85);
+  const safeName = file.name.replace(/[^\w.\-]/g, '_');
+  const path = `machines/${machineId}/${Date.now()}-${safeName}`;
+  const upRes = await fetch(`${WISTRON_SB_URL}/storage/v1/object/machine-photos/${path}`, {
+    method: 'POST',
+    headers: {
+      ...wistronHeaders(),
+      'Content-Type': blob.type || 'image/jpeg',
+      'x-upsert': 'true',
+    },
+    body: blob,
+  });
+  if(!upRes.ok){
+    const t = await upRes.text();
+    throw new Error('Storage HTTP ' + upRes.status + ' ' + t.slice(0,120));
+  }
+  return `${WISTRON_SB_URL}/storage/v1/object/public/machine-photos/${path}`;
+}
+
 async function uploadPartPhoto(file){
   // Compress big images to keep bandwidth down — photos from phones can be 5MB+
   const blob = await compressImage(file, 1600, 0.85);
@@ -907,6 +1118,7 @@ document.querySelectorAll('.modal-bg').forEach(bg => {
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){
     closeAssignModal(); closeAdjustModal(); closeEditModal();
+    closeMachinePhotoModal();
     document.getElementById('lightbox').classList.remove('show');
   }
 });
