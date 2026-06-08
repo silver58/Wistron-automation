@@ -5,25 +5,203 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wistron Automation — Parts Inventory</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
 
 :root{
-  --bg:#0d1117;--sur:#161b22;--sur2:#1c2128;--bdr:#21262d;--bdr2:#30363d;
+  --bg:#0a0e14;--sur:#161b22;--sur2:#1c2128;--bdr:#21262d;--bdr2:#30363d;
   --amb:#00a3e0;--amb-rgb:0,163,224;--amb-hover:#0086b8;--amb-deep:#005f80;
   --grn:#3fb950;--red:#f85149;--blu:#388bfd;--pur:#a371f7;--cyn:#39c5cf;--ora:#ff8c42;--yel:#f5d937;
   --txt:#e6edf3;--mut:#d0d7de;--mut2:#b1bac4;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-button{touch-action:manipulation;cursor:pointer;}
+button{touch-action:manipulation;cursor:pointer;font-family:inherit;}
 input,select,textarea{font-size:16px !important;}
 @media(min-width:861px){input,select,textarea{font-size:13px !important;}}
 body{
   font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--txt);
-  min-height:100vh;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
-  padding-bottom:40px;
+  min-height:100vh;overflow-x:hidden;
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
 }
 
-/* Header */
+/* ════════════════════════════════════════════════════════════════════
+   LANDING SCREEN — full viewport, animated, with a START button.
+   Hides itself once the user taps START, revealing the main app.
+   ════════════════════════════════════════════════════════════════════ */
+.landing{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(var(--amb-rgb),.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(0,163,224,.12) 0%, transparent 50%),
+    linear-gradient(180deg, #0a0e14 0%, #060a10 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:1000;
+  padding:24px;
+  transition:opacity .55s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.4,0,.2,1);
+}
+.landing.hidden{
+  opacity:0;
+  pointer-events:none;
+  transform:scale(1.04);
+}
+
+/* Subtle grid pattern behind everything */
+.landing::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse at center, black 0%, transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse at center, black 0%, transparent 75%);
+  pointer-events:none;
+}
+
+/* Animated particles drifting upward — 8 of them, staggered */
+.landing .particle{
+  position:absolute;
+  width:6px;height:6px;border-radius:50%;
+  background:radial-gradient(circle, rgba(var(--amb-rgb),.9) 0%, rgba(var(--amb-rgb),0) 70%);
+  pointer-events:none;
+  animation:particleFloat 6s linear infinite;
+}
+@keyframes particleFloat{
+  0%   { transform:translateY(110vh) scale(0); opacity:0; }
+  10%  { opacity:1; }
+  90%  { opacity:1; }
+  100% { transform:translateY(-20vh) scale(1.5); opacity:0; }
+}
+
+/* Brand block */
+.landing-content{
+  position:relative;z-index:2;
+  text-align:center;
+  max-width:520px;
+  animation:landingFadeUp .8s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes landingFadeUp{
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.landing-logo{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:84px;height:84px;
+  margin-bottom:28px;
+  border-radius:20px;
+  background:linear-gradient(135deg, rgba(var(--amb-rgb),.25) 0%, rgba(0,163,224,.05) 100%);
+  border:1px solid rgba(var(--amb-rgb),.4);
+  box-shadow:
+    0 0 40px rgba(var(--amb-rgb),.25),
+    inset 0 1px 0 rgba(255,255,255,.1);
+  position:relative;
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{
+  0%, 100% { box-shadow:0 0 40px rgba(var(--amb-rgb),.25), inset 0 1px 0 rgba(255,255,255,.1); }
+  50%      { box-shadow:0 0 60px rgba(var(--amb-rgb),.45), inset 0 1px 0 rgba(255,255,255,.1); }
+}
+.landing-logo svg{
+  width:44px;height:44px;
+  color:var(--amb);
+}
+
+.landing-eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;font-weight:600;
+  color:var(--amb);
+  text-transform:uppercase;letter-spacing:.25em;
+  margin-bottom:14px;
+  display:flex;align-items:center;justify-content:center;gap:14px;
+}
+.landing-eyebrow::before, .landing-eyebrow::after{
+  content:'';
+  width:36px;height:1px;
+  background:linear-gradient(90deg, transparent, var(--amb));
+}
+.landing-eyebrow::after{
+  background:linear-gradient(90deg, var(--amb), transparent);
+}
+
+.landing-title{
+  font-size:48px;font-weight:700;
+  letter-spacing:-.02em;
+  margin-bottom:12px;
+  background:linear-gradient(180deg, #ffffff 0%, #b8d4e3 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  line-height:1.05;
+}
+@media(max-width:600px){.landing-title{font-size:36px;}}
+
+.landing-subtitle{
+  font-size:17px;color:var(--mut);
+  margin-bottom:8px;
+  line-height:1.5;
+}
+
+.landing-tagline{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11.5px;color:var(--mut2);
+  text-transform:uppercase;letter-spacing:.15em;
+  margin-bottom:42px;
+}
+
+/* Start button — large, prominent, animated */
+.start-btn{
+  position:relative;
+  background:linear-gradient(135deg, var(--amb) 0%, #0086b8 100%);
+  color:#fff;border:none;
+  padding:18px 48px;
+  font-size:16px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;
+  border-radius:12px;
+  cursor:pointer;
+  box-shadow:
+    0 10px 30px rgba(var(--amb-rgb),.35),
+    0 0 0 1px rgba(255,255,255,.1) inset;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  display:inline-flex;align-items:center;gap:12px;
+  overflow:hidden;
+}
+.start-btn::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+  transform:translateX(-100%);
+  transition:transform .6s;
+}
+.start-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 14px 40px rgba(var(--amb-rgb),.5),
+    0 0 0 1px rgba(255,255,255,.15) inset;
+}
+.start-btn:hover::before{
+  transform:translateX(100%);
+}
+.start-btn:active{transform:translateY(0);}
+.start-btn svg{
+  width:18px;height:18px;
+  transition:transform .25s;
+}
+.start-btn:hover svg{transform:translateX(4px);}
+
+/* Footer info on landing */
+.landing-foot{
+  position:absolute;bottom:24px;left:0;right:0;
+  text-align:center;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  color:var(--mut2);
+  letter-spacing:.12em;text-transform:uppercase;
+  z-index:2;
+  opacity:.6;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MAIN APP — what shows after START is tapped.
+   ════════════════════════════════════════════════════════════════════ */
 .site-header{
   background:var(--sur);border-bottom:1px solid var(--bdr);
   padding:0 24px;display:flex;align-items:center;justify-content:space-between;
@@ -42,9 +220,12 @@ body{
 }
 .lang-btn:hover, .master-btn:hover{border-color:var(--amb);color:var(--amb);}
 
-.wrap{max-width:1100px;margin:0 auto;padding:30px 28px;}
+.wrap{
+  max-width:1100px;margin:0 auto;padding:30px 28px 40px;
+  animation:wrapFadeIn .5s ease both;
+}
+@keyframes wrapFadeIn{from{opacity:0;}to{opacity:1;}}
 
-/* Hero */
 .hero{
   background:linear-gradient(135deg, rgba(var(--amb-rgb),.08) 0%, var(--sur) 70%);
   border:1px solid rgba(var(--amb-rgb),.25);
@@ -59,37 +240,23 @@ body{
   background:radial-gradient(circle, rgba(var(--amb-rgb),.15) 0%, transparent 70%);
   pointer-events:none;
 }
-.hero h1{
-  font-size:28px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px;
-  position:relative;
-}
+.hero h1{font-size:28px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px;position:relative;}
 .hero .sub{
   font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amb);
-  text-transform:uppercase;letter-spacing:.12em;
-  position:relative;
+  text-transform:uppercase;letter-spacing:.12em;position:relative;
 }
-.hero .tap-hint{
-  font-size:13px;color:var(--mut);margin-top:14px;
-  position:relative;
-}
-@media(max-width:600px){
-  .hero{padding:22px 20px 18px;}
-  .hero h1{font-size:22px;}
-}
+.hero .tap-hint{font-size:13px;color:var(--mut);margin-top:14px;position:relative;}
+@media(max-width:600px){.hero{padding:22px 20px 18px;}.hero h1{font-size:22px;}}
 
-/* Area grid */
 .areas{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:14px;
+  display:grid;grid-template-columns:repeat(3, 1fr);gap:14px;
 }
 @media(max-width:860px){.areas{grid-template-columns:repeat(2, 1fr);}}
 @media(max-width:520px){.areas{grid-template-columns:1fr;}}
 
 .area-card{
   background:linear-gradient(135deg, var(--sur) 0%, #14191f 100%);
-  border:1px solid var(--bdr);
-  border-radius:11px;
+  border:1px solid var(--bdr);border-radius:11px;
   padding:22px 22px 20px;
   text-decoration:none;color:var(--txt);
   display:flex;flex-direction:column;
@@ -98,12 +265,9 @@ body{
   min-height:140px;
 }
 .area-card::before{
-  content:'';
-  position:absolute;inset:0;
+  content:'';position:absolute;inset:0;
   background:radial-gradient(circle at 100% 0%, var(--accent, transparent) 0%, transparent 60%);
-  opacity:.10;
-  transition:opacity .2s;
-  pointer-events:none;
+  opacity:.10;transition:opacity .2s;pointer-events:none;
 }
 .area-card:hover{
   transform:translateY(-3px);
@@ -115,27 +279,19 @@ body{
   width:42px;height:42px;border-radius:10px;
   display:flex;align-items:center;justify-content:center;
   background:rgba(255,255,255,.04);
-  margin-bottom:14px;
-  color:var(--accent, var(--amb));
+  margin-bottom:14px;color:var(--accent, var(--amb));
 }
 .area-icon svg{width:22px;height:22px;}
-.area-name{
-  font-size:17px;font-weight:600;
-  margin-bottom:4px;
-}
+.area-name{font-size:17px;font-weight:600;margin-bottom:4px;}
 .area-meta{
   font-family:'IBM Plex Mono',monospace;font-size:10.5px;
-  color:var(--mut2);
-  text-transform:uppercase;letter-spacing:.06em;
+  color:var(--mut2);text-transform:uppercase;letter-spacing:.06em;
 }
 .area-count{
   font-family:'IBM Plex Mono',monospace;font-size:10.5px;
   color:var(--accent, var(--amb));
-  margin-top:auto;
-  padding-top:14px;
+  margin-top:auto;padding-top:14px;
 }
-
-/* Per-area accent colors */
 .area-card[data-area="DIP Line"] { --accent: var(--ora); }
 .area-card[data-area="Line 1"]   { --accent: var(--amb); }
 .area-card[data-area="Line 2"]   { --accent: var(--cyn); }
@@ -150,21 +306,18 @@ body{
   padding-top:30px;margin-top:30px;border-top:1px solid var(--bdr);
 }
 
-/* Loading / error states */
 .notice{
   background:rgba(var(--amb-rgb),.06);
   border:1px solid rgba(var(--amb-rgb),.22);
   border-radius:8px;padding:14px 16px;
-  font-size:13px;color:var(--mut);
-  margin-bottom:18px;
+  font-size:13px;color:var(--mut);margin-bottom:18px;
 }
-.notice.err{
-  background:rgba(248,81,73,.08);
-  border-color:rgba(248,81,73,.25);
-}
-.notice code{
-  background:var(--bg);padding:1px 5px;border-radius:3px;
-  font-size:11px;font-family:'IBM Plex Mono',monospace;
+.notice.err{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.25);}
+.notice code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'IBM Plex Mono',monospace;}
+
+/* Reduced-motion users get an instant transition */
+@media (prefers-reduced-motion: reduce){
+  .landing, .landing.hidden, .landing-content, .landing-logo, .start-btn, .particle, .wrap{animation:none !important;transition:none !important;}
 }
 </style>
 <script src="wistron_config.js"></script>
@@ -172,6 +325,47 @@ body{
 </head>
 <body>
 
+<!-- LANDING SCREEN — what users see first -->
+<div class="landing" id="landing">
+  <!-- Animated background particles -->
+  <span class="particle" style="left:8%;  animation-delay:0s;"></span>
+  <span class="particle" style="left:22%; animation-delay:1.4s;"></span>
+  <span class="particle" style="left:36%; animation-delay:2.8s;"></span>
+  <span class="particle" style="left:48%; animation-delay:0.7s;"></span>
+  <span class="particle" style="left:62%; animation-delay:3.5s;"></span>
+  <span class="particle" style="left:74%; animation-delay:2.1s;"></span>
+  <span class="particle" style="left:86%; animation-delay:4.2s;"></span>
+  <span class="particle" style="left:94%; animation-delay:1.0s;"></span>
+
+  <div class="landing-content">
+    <div class="landing-logo">
+      <!-- Stylized W / circuit icon -->
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 12 L14 36 L20 18 L24 30 L28 18 L34 36 L40 12"/>
+        <circle cx="8"  cy="12" r="2" fill="currentColor"/>
+        <circle cx="40" cy="12" r="2" fill="currentColor"/>
+        <circle cx="24" cy="30" r="1.5" fill="currentColor"/>
+      </svg>
+    </div>
+
+    <div class="landing-eyebrow">Wistron · Automation</div>
+    <h1 class="landing-title">Parts Inventory</h1>
+    <p class="landing-subtitle">Real-time tracking for every machine across the floor.</p>
+    <p class="landing-tagline">6 areas · 60+ machines · live stock</p>
+
+    <button class="start-btn" id="startBtn" onclick="enterApp()">
+      <span>Start</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14"/>
+        <path d="M13 5l7 7-7 7"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="landing-foot">Tap Start · Toca Iniciar · Chạm Bắt Đầu</div>
+</div>
+
+<!-- MAIN APP (revealed after START) -->
 <header class="site-header">
   <span class="brand">WISTRON · AUTOMATION</span>
   <div class="header-actions">
@@ -192,7 +386,6 @@ body{
   <div class="areas">
     <a class="area-card" data-area="DIP Line" href="area.html?area=DIP%20Line">
       <div class="area-icon">
-        <!-- Conveyor icon: horizontal belt + rollers -->
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
           <rect x="2" y="9" width="20" height="6" rx="1"/>
           <circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/>
@@ -207,7 +400,6 @@ body{
 
     <a class="area-card" data-area="Line 1" href="area.html?area=Line%201">
       <div class="area-icon">
-        <!-- Station rack: 3x3 grid -->
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
           <rect x="3" y="3" width="6" height="6" rx="1"/>
           <rect x="3" y="11" width="6" height="6" rx="1" opacity=".75"/>
@@ -240,7 +432,6 @@ body{
 
     <a class="area-card" data-area="PODS" href="area.html?area=PODS">
       <div class="area-icon">
-        <!-- Robot arm icon -->
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="5" r="2"/>
           <path d="M12 7v4l4 4"/>
@@ -271,7 +462,6 @@ body{
 
     <a class="area-card" data-area="Pack Out" href="area.html?area=Pack%20Out">
       <div class="area-icon">
-        <!-- Box / packaging -->
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 7l9-4 9 4-9 4-9-4z"/>
           <path d="M3 7v10l9 4 9-4V7"/>
@@ -288,10 +478,39 @@ body{
 </main>
 
 <script>
-// Show a setup notice if the Supabase config hasn't been filled in yet.
-// This is purely a developer convenience — production deploys with real creds
-// will skip past this silently.
-(function(){
+// ── Landing screen control ────────────────────────────────────────────
+// Tap START → fade out the landing overlay, reveal the app. We don't
+// destroy the landing markup so the user can be sent back to it programmatically
+// later if needed (e.g., a "Lock Screen" button).
+function enterApp(){
+  document.getElementById('landing').classList.add('hidden');
+  try { sessionStorage.setItem('wistron_started', '1'); } catch(e){}
+  // After the fade-out animation completes, fully remove from layout so it
+  // doesn't block scroll or interactions on slow devices.
+  setTimeout(() => {
+    const el = document.getElementById('landing');
+    if(el) el.style.display = 'none';
+  }, 600);
+  // Lazy-load the machine counts AFTER the landing is dismissed — keeps the
+  // landing snappy even on a cold connection.
+  loadMachineCounts();
+}
+
+// If they've already started in this session (e.g. they navigated back from
+// a machine page), skip the landing.
+(function checkStarted(){
+  try {
+    if(sessionStorage.getItem('wistron_started') === '1'){
+      const el = document.getElementById('landing');
+      el.classList.add('hidden');
+      el.style.display = 'none';
+      loadMachineCounts();
+    }
+  } catch(e){}
+})();
+
+// Setup notice — fires only after START so it doesn't ruin the landing
+async function loadMachineCounts(){
   const notice = document.getElementById('configNotice');
   if(!window.WISTRON_SB_URL || window.WISTRON_SB_URL.includes('YOUR-PROJECT-REF')){
     notice.innerHTML = `<div class="notice err">
@@ -301,18 +520,12 @@ body{
     </div>`;
     return;
   }
-  // Fetch the machine count per area to populate the cards
-  loadMachineCounts();
-})();
-
-async function loadMachineCounts(){
   try {
     const res = await fetch(`${WISTRON_SB_URL}/rest/v1/machines?select=area&limit=500`, {headers: wistronHeaders()});
     if(!res.ok){
-      // Table may not exist yet — show a friendlier notice
-      document.getElementById('configNotice').innerHTML = `<div class="notice">
+      notice.innerHTML = `<div class="notice">
         <strong>Almost there:</strong> Supabase is reachable but the <code>machines</code> table isn't set up yet.
-        Run <code>supabase_setup.sql</code> in your Supabase SQL Editor to create the tables and seed the machine list.
+        Run <code>supabase_setup.sql</code> in your Supabase SQL Editor.
       </div>`;
       return;
     }
@@ -320,16 +533,23 @@ async function loadMachineCounts(){
     const counts = {};
     rows.forEach(r => { counts[r.area] = (counts[r.area] || 0) + 1; });
     document.querySelectorAll('.area-count').forEach(el => {
-      // Element ids are "count-<area-with-dashes>"
       const area = el.id.replace(/^count-/, '').replace(/-/g, ' ');
       const n = counts[area] || 0;
       el.textContent = n === 0 ? 'No machines yet' : `${n} machine${n===1?'':'s'}`;
     });
   } catch(e){
-    // Network/parse error — keep the page usable, just leave counts as "—"
     console.warn('Could not load machine counts:', e);
   }
 }
+
+// Allow ENTER / SPACE on the landing to fire Start (keyboard accessibility)
+document.addEventListener('keydown', e => {
+  if(document.getElementById('landing').classList.contains('hidden')) return;
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    enterApp();
+  }
+});
 </script>
 
 </body>
