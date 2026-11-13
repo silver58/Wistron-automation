@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crypt Delver</title>
+<style>
+:root{
+  --bg:#110e16;--panel:#1c1724;--panel2:#241e2e;--ink:#eadfc6;--muted:#9a8e78;
+  --gold:#e3b14b;--red:#d4544a;--green:#6cc070;--blue:#6b9cf0;--line:#3a3046;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Georgia,"Times New Roman",serif}
+header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{margin:0;font-size:24px;color:var(--gold);letter-spacing:1px;font-variant:small-caps}
+header span{color:var(--muted);font-style:italic}
+.wrap{display:flex;gap:16px;padding:16px;max-width:1340px;margin:0 auto;align-items:flex-start}
+.board{flex:1;min-width:0;position:relative}
+canvas{width:100%;height:auto;display:block;background:#000;border:1px solid var(--line);border-radius:6px}
+aside{width:310px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px}
+.card h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:2px;color:var(--gold)}
+.who{font-size:18px;margin-bottom:6px}
+.who small{color:var(--muted);font-size:13px}
+.bar{height:14px;background:#000;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin:4px 0 10px;position:relative}
+.bar i{display:block;height:100%;background:linear-gradient(#e0665b,#a83a31)}
+.bar.xp i{background:linear-gradient(#e8c66a,#b08a2e)}
+.bar b{position:absolute;inset:0;text-align:center;font:600 11px/14px ui-monospace,Menlo,Consolas,monospace;color:#fff;text-shadow:0 0 2px #000}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:13px}
+.grid div{display:flex;justify-content:space-between;border-bottom:1px dotted #3a3046}
+.grid em{font-style:normal;color:var(--muted)}
+.scores{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;text-align:center}
+.scores div{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:4px 0;font:12px ui-monospace,Menlo,Consolas,monospace}
+.scores b{display:block;color:var(--gold);font-size:11px}
+.ability{margin-top:10px;padding:6px 8px;background:var(--panel2);border-radius:4px;font-size:13px}
+#log{height:260px;overflow-y:auto;font-size:12.5px;display:flex;flex-direction:column;gap:3px}
+#log p{margin:0;padding-bottom:3px;border-bottom:1px solid #2a2333}
+#log .hit{color:#f0d79a}#log .miss{color:var(--muted)}#log .hurt{color:#ff8a7e}
+#log .good{color:var(--green)}#log .info{color:var(--gold)}#log .magic{color:#a9c4ff}
+.help{font-size:12.5px;color:var(--muted)}
+.help kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 4px;color:var(--ink);font:11px ui-monospace,Menlo,Consolas,monospace}
+.pad{display:none;margin-top:12px;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.pad .dirs{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:4px}
+.pad button,.btn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;font:600 15px Georgia,serif;cursor:pointer;touch-action:manipulation}
+.pad button:active{background:#3a3046}
+.pad .acts{display:grid;grid-template-columns:repeat(2,84px);gap:6px}
+.pad .acts button{height:44px;font-size:13px}
+#overlay{position:absolute;inset:0;background:rgba(10,8,14,.92);display:flex;align-items:center;justify-content:center;border-radius:6px;padding:16px;overflow:auto}
+#overlay.hidden{display:none}
+.ov{max-width:760px;text-align:center}
+.ov h2{color:var(--gold);font-variant:small-caps;font-size:30px;margin:0 0 4px}
+.ov p{color:var(--muted);margin:0 0 16px}
+.classes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cls{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+.cls:hover,.cls:focus{border-color:var(--gold);outline:none;transform:translateY(-2px)}
+.cls h4{margin:0 0 4px;font-size:19px}
+.cls .tag{font-size:12px;color:var(--muted);margin-bottom:8px}
+.cls ul{margin:0;padding-left:16px;font-size:12.5px}
+.btn{padding:10px 22px;font-size:16px;margin-top:8px}
+.btn:hover{border-color:var(--gold)}
+@media (max-width:900px){
+  .wrap{flex-direction:column}
+  aside{width:100%}
+  .pad{display:flex}
+  .classes{grid-template-columns:1fr}
+  #log{height:160px}
+}
+@media (pointer:coarse){.pad{display:flex}}
+</style>
+</head>
+<body>
+<header><h1>Crypt Delver</h1><span>A d20 dungeon crawl — descend five floors and slay the Ancient Wyrm.</span></header>
+<div class="wrap">
+  <div class="board">
+    <canvas id="cv"></canvas>
+    <div id="overlay"></div>
+    <div class="pad" id="pad">
+      <div class="dirs">
+        <span></span><button data-a="up">▲</button><span></span>
+        <button data-a="left">◀</button><button data-a="wait">·</button><button data-a="right">▶</button>
+        <span></span><button data-a="down">▼</button><span></span>
+      </div>
+      <div class="acts">
+        <button data-a="ability" id="padAbility">Ability</button>
+        <button data-a="bolt" id="padBolt">Fire Bolt</button>
+        <button data-a="potion">Potion</button>
+        <button data-a="descend">Descend</button>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <div class="card" id="stats"><div class="who" style="color:var(--muted)">Choose a hero to begin</div></div>
+    <div class="card"><h3>Chronicle</h3><div id="log"></div></div>
+    <div class="card help">
+      <h3>Controls</h3>
+      <kbd>WASD</kbd>/<kbd>Arrows</kbd> move &amp; attack (bump into foes)<br>
+      <kbd>Space</kbd> class ability &nbsp; <kbd>F</kbd> Fire Bolt (wizard)<br>
+      <kbd>H</kbd> drink potion &nbsp; <kbd>Enter</kbd> descend stairs <b style="color:var(--gold)">&gt;</b><br>
+      <kbd>.</kbd> wait a turn<br><br>
+      Attacks roll <b>d20 + bonus vs AC</b>. A natural 20 is a critical hit (double dice); a natural 1 always misses. Sleeping foes (<i>z</i>) are attacked with advantage.
+    </div>
+  </aside>
+</div>
+
+<script>
+"use strict";
+// ---------- constants & dice ----------
+const W = 50, H = 34, T = 20, MAXD = 5, FOV_R = 8;
+const XP_TABLE = [0, 200, 600, 1400, 2800, 5000, 9000, 99999];
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+cv.width = W * T; cv.height = H * T;
+
+const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const mod = s => Math.floor((s - 10) / 2);
+const sgn = n => (n >= 0 ? '+' : '') + n;
+const d20 = () => rand(1, 20);
+function parseDice(s) { const m = s.match(/(\d+)d(\d+)([+-]\d+)?/); return { n: +m[1], s: +m[2], b: m[3] ? +m[3] : 0 }; }
+function rollDice(spec, crit = false, extra = 0) {
+  const d = parseDice(spec), n = crit ? d.n * 2 : d.n, rolls = [];
+  for (let i = 0; i < n; i++) rolls.push(rand(1, d.s));
+  const b = d.b + extra;
+  return { total: Math.max(1, rolls.reduce((a, c) => a + c, 0) + b), text: `${n}d${d.s}${b ? sgn(b) : ''} [${rolls.join(',')}]` };
+}
+
+// ---------- data ----------
+const CLASSES = {
+  fighter: { name: 'Fighter', color: '#e0645a', stats: { STR: 16, DEX: 12, CON: 15, INT: 8 }, hitDie: 10, baseAC: 16, acDex: false,
+    weapon: { name: 'Longsword', dice: '1d8', stat: 'STR' }, potions: 2, ability: 'Second Wind',
+    tag: 'Armored warrior. Tough and steady.',
+    perks: ['Chain mail, AC 16', 'Longsword 1d8 + STR', 'Second Wind: heal 1d10 + level, once per floor'] },
+  rogue: { name: 'Rogue', color: '#6cc070', stats: { STR: 10, DEX: 16, CON: 13, INT: 12 }, hitDie: 8, baseAC: 11, acDex: true,
+    weapon: { name: 'Shortsword', dice: '1d6', stat: 'DEX' }, potions: 2, ability: 'Hide',
+    tag: 'Stealthy striker. Monsters notice you less.',
+    perks: ['Leather armor, AC 14', 'Shortsword 1d6 + DEX', 'Sneak Attack: extra d6s with advantage', 'Hide: vanish for 4 turns (cooldown 15)'] },
+  wizard: { name: 'Wizard', color: '#6b9cf0', stats: { STR: 8, DEX: 14, CON: 14, INT: 16 }, hitDie: 6, baseAC: 11, acDex: true,
+    weapon: { name: 'Dagger', dice: '1d4', stat: 'DEX' }, potions: 3, ability: 'Magic Missile',
+    tag: 'Fragile spellcaster with ranged magic.',
+    perks: ['Mage armor, AC 13', 'Fire Bolt cantrip: ranged 1d10 (F)', 'Magic Missile: 3 darts that never miss', 'Spell slots refresh each floor'] },
+};
+const MONSTERS = [
+  { name: 'Kobold',    g: 'k', col: '#d3a368', hp: 5,  ac: 12, atk: 4, dmg: '1d4+2',  xp: 25,  min: 1, max: 2 },
+  { name: 'Giant Rat', g: 'r', col: '#b8998a', hp: 7,  ac: 12, atk: 4, dmg: '1d4+2',  xp: 25,  min: 1, max: 2 },
+  { name: 'Goblin',    g: 'g', col: '#8ad065', hp: 7,  ac: 15, atk: 4, dmg: '1d6+2',  xp: 50,  min: 1, max: 3 },
+  { name: 'Skeleton',  g: 's', col: '#ece7da', hp: 13, ac: 13, atk: 4, dmg: '1d6+2',  xp: 50,  min: 2, max: 4 },
+  { name: 'Zombie',    g: 'z', col: '#86a874', hp: 22, ac: 8,  atk: 3, dmg: '1d6+1',  xp: 50,  min: 2, max: 4, slow: true },
+  { name: 'Orc',       g: 'o', col: '#a9bf52', hp: 15, ac: 13, atk: 5, dmg: '1d12+3', xp: 100, min: 3, max: 5 },
+  { name: 'Gnoll',     g: 'n', col: '#d4ac46', hp: 22, ac: 15, atk: 4, dmg: '1d8+2',  xp: 100, min: 3, max: 5 },
+  { name: 'Ogre',      g: 'O', col: '#e09460', hp: 45, ac: 11, atk: 6, dmg: '2d8+4',  xp: 450, min: 4, max: 5 },
+];
+const BOSS = { name: 'Ancient Wyrm', g: 'D', col: '#ff5a3c', hp: 75, ac: 17, atk: 7, dmg: '2d8+4', xp: 2000, boss: true };
+
+// ---------- state ----------
+let map, seen, vis, mons, items, depth, P, logLines = [], turn = 0, state = 'menu', fx = null;
+
+function newPlayer(cls) {
+  const c = CLASSES[cls], hp = c.hitDie + mod(c.stats.CON);
+  return { cls, c, x: 0, y: 0, level: 1, xp: 0, maxHp: hp, hp, potions: c.potions, gold: 0,
+    wpnBonus: 0, acBonus: 0, hidden: 0, hideCd: 0, windUsed: false, slots: 2, kills: 0 };
+}
+const prof = () => 2 + Math.floor((P.level - 1) / 4);
+const ac = () => P.c.baseAC + (P.c.acDex ? mod(P.c.stats.DEX) : 0) + P.acBonus;
+const atkMod = () => mod(P.c.stats[P.c.weapon.stat]);
+const maxSlots = () => 1 + P.level;
+
+// ---------- dungeon generation ----------
+function grid(v) { return Array.from({ length: H }, () => new Array(W).fill(v)); }
+function genFloor() {
+  map = grid(0); seen = grid(false); vis = grid(false); mons = []; items = [];
+  const rooms = [];
+  for (let t = 0; t < 300 && rooms.length < 12; t++) {
+    const w = rand(5, 11), h = rand(4, 8), x = rand(1, W - w - 1), y = rand(1, H - h - 1);
+    if (rooms.some(r => x < r.x + r.w + 1 && x + w + 1 > r.x && y < r.y + r.h + 1 && y + h + 1 > r.y)) continue;
+    rooms.push({ x, y, w, h, cx: x + (w >> 1), cy: y + (h >> 1) });
+  }
+  for (const r of rooms) for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) map[y][x] = 1;
+  const connect = (a, b) => {
+    if (Math.random() < .5) { hTun(a.cx, b.cx, a.cy); vTun(a.cy, b.cy, b.cx); }
+    else { vTun(a.cy, b.cy, a.cx); hTun(a.cx, b.cx, b.cy); }
+  };
+  for (let i = 1; i < rooms.length; i++) connect(rooms[i - 1], rooms[i]);
+  for (let i = 0; i < 2; i++) connect(pick(rooms), pick(rooms)); // a few loops
+
+  P.x = rooms[0].cx; P.y = rooms[0].cy;
+  const last = rooms[rooms.length - 1];
+  if (depth < MAXD) map[last.cy][last.cx] = 2;
+  else spawn(BOSS, last.cx, last.cy);
+
+  const pool = MONSTERS.filter(m => m.min <= depth && m.max >= depth);
+  for (const r of rooms.slice(1)) {
+    const n = rand(0, 2) + (depth >= 3 ? 1 : 0);
+    for (let k = 0; k < n; k++) { const s = freeSpot(r); if (s) spawn(pick(pool), s.x, s.y); }
+    if (Math.random() < .3) { const s = freeSpot(r); if (s) items.push({ type: 'potion', ...s }); }
+    if (Math.random() < .45) { const s = freeSpot(r); if (s) items.push({ type: 'gold', amt: rand(5, 25) * depth, ...s }); }
+  }
+  if (Math.random() < .8) {
+    const s = freeSpot(pick(rooms.slice(1)));
+    if (s) items.push({ type: Math.random() < .5 ? 'weapon' : 'armor', ...s });
+  }
+}
+function hTun(x1, x2, y) { for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) if (!map[y][x]) map[y][x] = 1; }
+function vTun(y1, y2, x) { for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) if (!map[y][x]) map[y][x] = 1; }
+function freeSpot(r) {
+  for (let i = 0; i < 25; i++) {
+    const x = rand(r.x, r.x + r.w - 1), y = rand(r.y, r.y + r.h - 1);
+    if (map[y][x] === 1 && !(x === P.x && y === P.y) && !monAt(x, y) && !items.some(it => it.x === x && it.y === y)) return { x, y };
+  }
+  return null;
+}
+function spawn(def, x, y) { mons.push({ ...def, x, y, maxHp: def.hp, awake: false }); }
+const monAt = (x, y) => mons.find(m => m.hp > 0 && m.x === x && m.y === y);
+const passable = (x, y) => x >= 0 && y >= 0 && x < W && y < H && map[y][x] !== 0;
+
+// ---------- field of view ----------
+function los(x0, y0, x1, y1) {
+  let dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
+  while (true) {
+    if (x0 === x1 && y0 === y1) return true;
+    const e2 = 2 * err;
+    if (e2 >= dy) { err += dy; x0 += sx; }
+    if (e2 <= dx) { err += dx; y0 += sy; }
+    if (x0 === x1 && y0 === y1) return true;
+    if (map[y0][x0] === 0) return false;
+  }
+}
+function computeFOV() {
+  for (let y = 0; y < H; y++) vis[y].fill(false);
+  for (let dy = -FOV_R; dy <= FOV_R; dy++) for (let dx = -FOV_R; dx <= FOV_R; dx++) {
+    const x = P.x + dx, y = P.y + dy;
+    if (x < 0 || y < 0 || x >= W || y >= H || dx * dx + dy * dy > FOV_R * FOV_R + 1) continue;
+    if (los(P.x, P.y, x, y)) { vis[y][x] = true; seen[y][x] = true; }
+  }
+}
+
+// ---------- log ----------
+function say(text, cls = '') { logLines.unshift({ text, cls }); if (logLines.length > 120) logLines.pop(); }
+
+// ---------- combat ----------
+function playerAttack(m) {
+  const adv = P.hidden > 0 || !m.awake;
+  const rolls = adv ? [d20(), d20()] : [d20()];
+  const r = Math.max(...rolls), bonus = prof() + atkMod() + P.wpnBonus, crit = r === 20;
+  const hit = crit || (r !== 1 && r + bonus >= m.ac);
+  const rollTxt = `d20${adv ? '(adv)' : ''} ${rolls.join('/')} ${sgn(bonus)} = ${r + bonus} vs AC ${m.ac}`;
+  if (hit) {
+    const d = rollDice(P.c.weapon.dice, crit, atkMod() + P.wpnBonus);
+    let total = d.total, extra = '';
+    if (P.cls === 'rogue' && adv) {
+      const sa = rollDice(`${Math.ceil(P.level / 2)}d6`, crit);
+      total += sa.total; extra = ` + Sneak Attack ${sa.text}`;
+    }
+    say(`${crit ? 'CRITICAL! ' : ''}You hit the ${m.name} (${rollTxt}) for ${total} damage: ${d.text}${extra}.`, 'hit');
+    hurtMonster(m, total);
+  } else {
+    say(`You miss the ${m.name} (${rollTxt})${r === 1 ? ' — natural 1!' : '.'}`, 'miss');
+  }
+  m.awake = true;
+  if (P.hidden) { P.hidden = 0; say('You step out of the shadows.', 'info'); }
+}
+function hurtMonster(m, amt) {
+  m.hp -= amt; m.awake = true;
+  if (m.hp <= 0) {
+    P.kills++;
+    say(`The ${m.name} is slain! (+${m.xp} XP)`, 'good');
+    mons = mons.filter(o => o !== m);
+    gainXP(m.xp);
+    if (m.boss) { state = 'won'; showEnd(true); }
+  }
+}
+function gainXP(n) {
+  P.xp += n;
+  while (P.xp >= XP_TABLE[P.level]) {
+    P.level++;
+    const gain = Math.max(1, Math.floor(P.c.hitDie / 2) + 1 + mod(P.c.stats.CON));
+    P.maxHp += gain; P.hp += gain;
+    if (P.level % 2 === 0) { const s = P.cls === 'fighter' ? 'STR' : P.cls === 'rogue' ? 'DEX' : 'INT'; P.c.stats[s]++; }
+    say(`LEVEL UP! You are now level ${P.level}. (+${gain} max HP)`, 'info');
+  }
+}
+function monsterAttack(m) {
+  const r = d20(), crit = r === 20, tot = r + m.atk;
+  const rollTxt = `d20 ${r} ${sgn(m.atk)} = ${tot} vs AC ${ac()}`;
+  if (crit || (r !== 1 && tot >= ac())) {
+    const d = rollDice(m.dmg, crit);
+    P.hp -= d.total;
+    say(`${crit ? 'CRITICAL! ' : ''}The ${m.name} hits you (${rollTxt}) for ${d.total}: ${d.text}.`, 'hurt');
+    if (P.hp <= 0) { P.hp = 0; state = 'dead'; showEnd(false, m); }
+  } else say(`The ${m.name} misses you (${rollTxt}).`, 'miss');
+}
+
+// ---------- monster turn ----------
+function distMap() {
+  const d = grid(Infinity), q = [[P.x, P.y]]; d[P.y][P.x] = 0;
+  for (let i = 0; i < q.length; i++) {
+    const [x, y] = q[i];
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (passable(nx, ny) && d[ny][nx] === Infinity) { d[ny][nx] = d[y][x] + 1; q.push([nx, ny]); }
+    }
+  }
+  return d;
+}
+function monstersAct() {
+  const dist = distMap();
+  for (const m of [...mons]) {
+    if (state !== 'play') return;
+    if (m.hp <= 0) continue;
+    if (!m.awake) {
+      const chance = P.cls === 'rogue' ? .25 : .5;
+      if (vis[m.y][m.x] && !P.hidden && Math.random() < chance) {
+        m.awake = true; say(`The ${m.name} notices you!`, m.boss ? 'hurt' : '');
+      }
+      continue;
+    }
+    if (P.hidden) continue; // lost track of you
+    if (Math.abs(m.x - P.x) + Math.abs(m.y - P.y) === 1) { monsterAttack(m); continue; }
+    if (m.slow && turn % 2) continue;
+    const cur = dist[m.y][m.x];
+    if (cur > 24) continue;
+    let best = null;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]].sort(() => Math.random() - .5)) {
+      const nx = m.x + dx, ny = m.y + dy;
+      if (!passable(nx, ny) || monAt(nx, ny) || (nx === P.x && ny === P.y)) continue;
+      if (dist[ny][nx] < cur && (!best || dist[ny][nx] < dist[best[1]][best[0]])) best = [nx, ny];
+    }
+    if (best) { m.x = best[0]; m.y = best[1]; }
+  }
+}
+
+// ---------- player actions ----------
+function endTurn() {
+  turn++;
+  if (P.hideCd > 0) P.hideCd--;
+  computeFOV();
+  monstersAct();
+  if (P.hidden > 0 && --P.hidden === 0 && state === 'play') say('Your hiding place is no longer safe.', 'info');
+  computeFOV();
+  draw(); ui();
+}
+function move(dx, dy) {
+  const nx = P.x + dx, ny = P.y + dy, m = monAt(nx, ny);
+  if (m) { playerAttack(m); return endTurn(); }
+  if (!passable(nx, ny)) return;
+  P.x = nx; P.y = ny;
+  const i = items.findIndex(it => it.x === nx && it.y === ny);
+  if (i >= 0) {
+    const it = items.splice(i, 1)[0];
+    if (it.type === 'potion') { P.potions++; say('You find a Potion of Healing.', 'good'); }
+    if (it.type === 'gold') { P.gold += it.amt; say(`You pocket ${it.amt} gold pieces.`, 'info'); }
+    if (it.type === 'weapon') { P.wpnBonus++; say(`You find an enchanted ${P.c.weapon.name}! Weapon is now +${P.wpnBonus}.`, 'magic'); }
+    if (it.type === 'armor') { P.acBonus++; say(`You find enchanted armor! AC is now ${ac()}.`, 'magic'); }
+  }
+  if (map[ny][nx] === 2) say('A stairway leads deeper. Press Enter to descend.', 'info');
+  endTurn();
+}
+function drinkPotion() {
+  if (!P.potions) return say('You have no potions.', 'miss'), ui();
+  if (P.hp >= P.maxHp) return say('You are already at full health.', 'miss'), ui();
+  P.potions--;
+  const h = rollDice('2d4+2'); P.hp = Math.min(P.maxHp, P.hp + h.total);
+  say(`You drink a Potion of Healing and recover ${h.total} HP (${h.text}).`, 'good');
+  endTurn();
+}
+function visibleTargets() {
+  return mons.filter(m => m.hp > 0 && vis[m.y][m.x])
+    .sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y));
+}
+function useAbility() {
+  if (P.cls === 'fighter') {
+    if (P.windUsed) return say('Second Wind is spent until the next floor.', 'miss'), ui();
+    const h = rollDice('1d10', false, P.level);
+    P.hp = Math.min(P.maxHp, P.hp + h.total); P.windUsed = true;
+    say(`Second Wind! You recover ${h.total} HP (${h.text}).`, 'good');
+  } else if (P.cls === 'rogue') {
+    if (P.hideCd > 0) return say(`You can't hide again for ${P.hideCd} turns.`, 'miss'), ui();
+    P.hidden = 4; P.hideCd = 15;
+    say('You melt into the shadows. Foes lose track of you; your next strike has advantage.', 'magic');
+  } else {
+    if (P.slots <= 0) return say('No spell slots left. Use Fire Bolt (F) or descend to rest.', 'miss'), ui();
+    if (!visibleTargets().length) return say('No target in sight.', 'miss'), ui();
+    P.slots--;
+    const parts = [];
+    for (let i = 0; i < 3; i++) {
+      const t = visibleTargets()[0]; if (!t) break;
+      const d = rollDice('1d4+1'); parts.push(`${d.total} to the ${t.name}`);
+      flash(t, '#a9c4ff');
+      hurtMonster(t, d.total);
+    }
+    say(`Magic Missile! Three darts strike: ${parts.join(', ')}.`, 'magic');
+    if (P.hidden) P.hidden = 0;
+  }
+  if (state === 'play') endTurn();
+}
+function fireBolt() {
+  if (P.cls !== 'wizard') return;
+  const t = visibleTargets()[0];
+  if (!t) return say('No target in sight.', 'miss'), ui();
+  const adv = !t.awake || P.hidden > 0, rolls = adv ? [d20(), d20()] : [d20()];
+  const r = Math.max(...rolls), bonus = prof() + mod(P.c.stats.INT), crit = r === 20;
+  const rollTxt = `d20${adv ? '(adv)' : ''} ${rolls.join('/')} ${sgn(bonus)} = ${r + bonus} vs AC ${t.ac}`;
+  flash(t, '#ff9a4a');
+  if (crit || (r !== 1 && r + bonus >= t.ac)) {
+    const d = rollDice(P.level >= 5 ? '2d10' : '1d10', crit);
+    say(`Fire Bolt hits the ${t.name} (${rollTxt}) for ${d.total}: ${d.text}.`, 'magic');
+    hurtMonster(t, d.total);
+  } else { say(`Fire Bolt misses the ${t.name} (${rollTxt}).`, 'miss'); t.awake = true; }
+  P.hidden = 0;
+  if (state === 'play') endTurn();
+}
+function descend() {
+  if (map[P.y][P.x] !== 2) return say('There are no stairs here.', 'miss'), ui();
+  depth++;
+  const rest = rollDice(`1d${P.c.hitDie}`, false, mod(P.c.stats.CON));
+  P.hp = Math.min(P.maxHp, P.hp + rest.total); P.windUsed = false; P.slots = maxSlots(); P.hidden = 0;
+  genFloor(); computeFOV();
+  say(`You take a short rest (+${rest.total} HP) and descend to depth ${depth}.`, 'info');
+  if (depth === MAXD) say('A deep rumble shakes the stones. Something ancient waits here...', 'hurt');
+  draw(); ui();
+}
+function flash(t, color) { fx = { x: t.x, y: t.y, color, until: performance.now() + 220 }; setTimeout(draw, 240); }
+
+// ---------- rendering ----------
+const FONT = `bold ${T - 3}px ui-monospace,Menlo,Consolas,monospace`;
+function glyph(ch, x, y, col) { ctx.fillStyle = col; ctx.fillText(ch, x * T + T / 2, y * T + T / 2 + 1); }
+function draw() {
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (!map) return;
+  ctx.font = FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (!seen[y][x]) continue;
+    const v = vis[y][x], t = map[y][x], px = x * T, py = y * T;
+    if (t === 0) {
+      ctx.fillStyle = v ? '#5b4c6c' : '#2a2233'; ctx.fillRect(px, py, T, T);
+      ctx.fillStyle = v ? '#6d5c80' : '#312840'; ctx.fillRect(px, py, T, 3);
+      ctx.fillStyle = v ? '#463a54' : '#211b29'; ctx.fillRect(px + (y % 2 ? 0 : T / 2), py + T / 2, 1, T / 2);
+    } else {
+      ctx.fillStyle = v ? ((x + y) % 2 ? '#2f2839' : '#2a2433') : '#16121b'; ctx.fillRect(px, py, T, T);
+      if (t === 2) glyph('>', x, y, v ? '#ffd166' : '#7a6431');
+    }
+  }
+  for (const it of items) {
+    if (!vis[it.y][it.x]) continue;
+    const g = { potion: ['!', '#ff6b6b'], gold: ['$', '#ffd166'], weapon: ['/', '#7ee0ff'], armor: [']', '#7ee0ff'] }[it.type];
+    glyph(g[0], it.x, it.y, g[1]);
+  }
+  for (const m of mons) {
+    if (!vis[m.y][m.x]) continue;
+    ctx.fillStyle = m.boss ? 'rgba(120,20,10,.6)' : 'rgba(0,0,0,.45)';
+    ctx.beginPath(); ctx.arc(m.x * T + T / 2, m.y * T + T / 2, T / 2 - 1, 0, 7); ctx.fill();
+    glyph(m.g, m.x, m.y, m.col);
+    if (!m.awake) { ctx.font = `bold ${T / 2}px monospace`; glyph('z', m.x + .35, m.y - .3, '#9ab'); ctx.font = FONT; }
+    if (m.hp < m.maxHp) {
+      ctx.fillStyle = '#000'; ctx.fillRect(m.x * T + 2, m.y * T, T - 4, 3);
+      ctx.fillStyle = '#e0473c'; ctx.fillRect(m.x * T + 2, m.y * T, (T - 4) * Math.max(0, m.hp / m.maxHp), 3);
+    }
+  }
+  if (P) {
+    ctx.globalAlpha = P.hidden ? .45 : 1;
+    ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.arc(P.x * T + T / 2, P.y * T + T / 2, T / 2, 0, 7); ctx.fill();
+    glyph('@', P.x, P.y, P.c.color);
+    ctx.globalAlpha = 1;
+  }
+  if (fx && performance.now() < fx.until) {
+    ctx.strokeStyle = fx.color; ctx.lineWidth = 3; ctx.shadowColor = fx.color; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.moveTo(P.x * T + T / 2, P.y * T + T / 2); ctx.lineTo(fx.x * T + T / 2, fx.y * T + T / 2); ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+function ui() {
+  if (!P) return;
+  const c = P.c, next = XP_TABLE[P.level], prev = XP_TABLE[P.level - 1];
+  let ab;
+  if (P.cls === 'fighter') ab = `<b>Second Wind</b> (Space): ${P.windUsed ? 'spent' : 'ready'}`;
+  else if (P.cls === 'rogue') ab = `<b>Hide</b> (Space): ${P.hidden ? `hidden ${P.hidden} turns` : P.hideCd ? `${P.hideCd} turns` : 'ready'}`;
+  else ab = `<b>Magic Missile</b> (Space): ${P.slots}/${maxSlots()} slots<br><b>Fire Bolt</b> (F): at will`;
+  $('stats').innerHTML = `
+    <div class="who" style="color:${c.color}">${c.name} <small>— Level ${P.level}</small></div>
+    <div class="bar"><i style="width:${100 * P.hp / P.maxHp}%"></i><b>HP ${P.hp} / ${P.maxHp}</b></div>
+    <div class="bar xp"><i style="width:${Math.min(100, 100 * (P.xp - prev) / (next - prev))}%"></i><b>XP ${P.xp} / ${next}</b></div>
+    <div class="grid">
+      <div><em>Armor Class</em>${ac()}</div><div><em>Depth</em>${depth} / ${MAXD}</div>
+      <div><em>To hit</em>${sgn(prof() + atkMod() + P.wpnBonus)}</div><div><em>Damage</em>${c.weapon.dice}${sgn(atkMod() + P.wpnBonus)}</div>
+      <div><em>Potions</em>${P.potions}</div><div><em>Gold</em>${P.gold}</div>
+      <div><em>Weapon</em>${c.weapon.name}${P.wpnBonus ? ' +' + P.wpnBonus : ''}</div><div><em>Slain</em>${P.kills}</div>
+    </div>
+    <div class="scores">${Object.entries(c.stats).map(([k, v]) => `<div><b>${k}</b>${v} (${sgn(mod(v))})</div>`).join('')}</div>
+    <div class="ability">${ab}</div>`;
+  $('log').innerHTML = logLines.map(l => `<p class="${l.cls}">${l.text}</p>`).join('');
+  $('padAbility').textContent = c.ability;
+  $('padBolt').style.visibility = P.cls === 'wizard' ? 'visible' : 'hidden';
+}
+function showMenu() {
+  state = 'menu';
+  $('overlay').className = '';
+  $('overlay').innerHTML = `<div class="ov"><h2>Choose Your Hero</h2>
+    <p>Five floors of crypt lie below. At the bottom sleeps the Ancient Wyrm.</p>
+    <div class="classes">${Object.entries(CLASSES).map(([k, c]) => `
+      <button class="cls" data-cls="${k}"><h4 style="color:${c.color}">${c.name}</h4><div class="tag">${c.tag}</div>
+      <ul>${c.perks.map(p => `<li>${p}</li>`).join('')}<li>HP ${c.hitDie + mod(c.stats.CON)} · ${Object.entries(c.stats).map(([s, v]) => s + ' ' + v).join(' · ')}</li></ul></button>`).join('')}
+    </div></div>`;
+  $('overlay').querySelectorAll('.cls').forEach(b => b.onclick = () => start(b.dataset.cls));
+}
+function showEnd(won, killer) {
+  draw(); ui();
+  $('overlay').className = '';
+  $('overlay').innerHTML = `<div class="ov">
+    <h2>${won ? 'Victory!' : 'You Have Fallen'}</h2>
+    <p>${won ? 'The Ancient Wyrm lies dead. Bards will sing of this delve.' : `Slain by a ${killer.name} on depth ${depth}.`}</p>
+    <p>Level ${P.level} ${P.c.name} · ${P.kills} foes slain · ${P.gold} gold · ${turn} turns</p>
+    <button class="btn" id="again">Delve Again</button></div>`;
+  $('again').onclick = showMenu;
+}
+function start(cls) {
+  // fresh copy of class data so stat increases don't leak between runs
+  const base = CLASSES[cls];
+  P = newPlayer(cls); P.c = { ...base, stats: { ...base.stats } };
+  depth = 1; turn = 0; logLines = []; state = 'play';
+  genFloor(); computeFOV();
+  say(`You, a ${P.c.name}, descend into the crypt. Find the stairs (>) on each floor.`, 'info');
+  $('overlay').className = 'hidden';
+  draw(); ui();
+}
+
+// ---------- input ----------
+function act(a) {
+  if (state !== 'play') return;
+  ({ up: () => move(0, -1), down: () => move(0, 1), left: () => move(-1, 0), right: () => move(1, 0),
+     wait: () => endTurn(), ability: useAbility, bolt: fireBolt, potion: drinkPotion, descend })[a]?.();
+}
+const KEYS = { ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right',
+  '.': 'wait', ' ': 'ability', f: 'bolt', h: 'potion', Enter: 'descend', '>': 'descend' };
+addEventListener('keydown', e => {
+  const a = KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key] || KEYS[e.key];
+  if (!a || state !== 'play') return;
+  e.preventDefault(); act(a);
+});
+$('pad').querySelectorAll('button').forEach(b => b.addEventListener('click', () => act(b.dataset.a)));
+
+draw(); showMenu();
+</script>
+</body>
+</html>
