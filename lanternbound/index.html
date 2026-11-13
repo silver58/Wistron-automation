@@ -1,0 +1,1296 @@
+<title>Lanternbound</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<style>
+/* Layout: a brass handheld console centered on a dusk-blue page; single dark theme by design */
+:root{
+  color-scheme:dark;
+  --page:#1b1d2b; --shell:#e9b949; --shell-dark:#b9862a; --shell-light:#f7d77e;
+  --ink:#2a2230; --muted:#c9c3d9; --btn:#7a2f3a; --btn-dark:#4e1b24;
+  --pixel:"Press Start 2P", ui-monospace, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--page);color:var(--muted)}
+body{margin:0;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font:14px/1.5 system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+.console{max-width:700px;margin:0 auto;background:linear-gradient(160deg,var(--shell-light),var(--shell) 30%,var(--shell-dark));border-radius:18px 18px 56px 18px;padding:22px 22px 26px;box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 -6px 0 rgba(0,0,0,.15)}
+.bezel{background:#3a3346;border-radius:10px 10px 30px 10px;padding:16px 16px 12px}
+.bezel .lamp{display:flex;align-items:center;gap:8px;font:8px var(--pixel);color:#b9b1cc;margin:0 0 8px 4px;letter-spacing:1px}
+.bezel .lamp i{width:8px;height:8px;border-radius:50%;background:#ffcf4a;box-shadow:0 0 8px #ffcf4a}
+canvas{display:block;width:100%;max-width:640px;height:auto;margin:0 auto;image-rendering:pixelated;border-radius:2px;background:#000;touch-action:none}
+.brand{font:12px var(--pixel);color:var(--btn-dark);margin:12px 4px 0;letter-spacing:1px}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:12px}
+.dpad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px)}
+.dpad button{background:#2d2836;border:0;color:#8f86a6;font-size:16px;touch-action:none}
+.dpad .up{grid-area:1/2;border-radius:6px 6px 0 0}.dpad .left{grid-area:2/1;border-radius:6px 0 0 6px}
+.dpad .mid{grid-area:2/2;background:#2d2836;pointer-events:none}.dpad .right{grid-area:2/3;border-radius:0 6px 6px 0}
+.dpad .down{grid-area:3/2;border-radius:0 0 6px 6px}
+.ab{display:flex;gap:16px;transform:rotate(-20deg)}
+.ab button{width:62px;height:62px;border-radius:50%;background:var(--btn);border:0;color:#f3d0d5;font:14px var(--pixel);box-shadow:0 4px 0 var(--btn-dark);touch-action:none}
+.ab button:active,.dpad button:active,.start button:active{transform:translateY(2px)}
+.start{display:flex;flex-direction:column;align-items:center;gap:6px}
+.start button{width:64px;height:16px;border-radius:8px;background:#5f5868;border:0;transform:rotate(-20deg);touch-action:none}
+.start span{font:8px var(--pixel);color:var(--btn-dark)}
+button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.keys{max-width:700px;margin:16px auto 0;font-size:13px;text-align:center;color:var(--muted)}
+.keys kbd{font:10px var(--pixel);background:#2d2836;border-radius:4px;padding:3px 6px;color:#f0e6c8}
+@media (max-width:520px){
+  .console{padding:12px 12px 18px;border-radius:14px 14px 36px 14px}
+  .bezel{padding:10px 10px 8px}
+  .dpad{grid-template-columns:repeat(3,42px);grid-template-rows:repeat(3,42px)}
+  .ab button{width:54px;height:54px}
+  .keys{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="console">
+  <div class="bezel">
+    <div class="lamp"><i></i>POWER</div>
+    <canvas id="screen" width="640" height="576" tabindex="0" aria-label="Lanternbound game screen"></canvas>
+  </div>
+  <div class="brand">LANTERNBOUND</div>
+  <div class="controls">
+    <div class="dpad">
+      <button class="up" data-b="up" aria-label="Up">▲</button>
+      <button class="left" data-b="left" aria-label="Left">◀</button>
+      <span class="mid"></span>
+      <button class="right" data-b="right" aria-label="Right">▶</button>
+      <button class="down" data-b="down" aria-label="Down">▼</button>
+    </div>
+    <div class="start"><button data-b="start" aria-label="Menu"></button><span>MENU</span></div>
+    <div class="ab"><button data-b="b" aria-label="B">B</button><button data-b="a" aria-label="A">A</button></div>
+  </div>
+</div>
+<p class="keys"><kbd>Arrows</kbd>/<kbd>WASD</kbd> move · <kbd>Z</kbd>/<kbd>Space</kbd> A (talk, confirm) · <kbd>X</kbd>/<kbd>Esc</kbd> B (back) · <kbd>Enter</kbd> menu</p>
+
+<script>
+"use strict";
+// ================= basics =================
+const cv = document.getElementById('screen'), g = cv.getContext('2d');
+const FONT = '"Press Start 2P", ui-monospace, monospace';
+const rnd = Math.random, ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const DIRV = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+const OPP = { up: 'down', down: 'up', left: 'right', right: 'left' };
+const INK = '#2a2230';
+
+// ================= data: types, moves, kith =================
+const STRONG = { Ember: ['Bloom', 'Hush'], Tide: ['Ember', 'Stone'], Bloom: ['Tide', 'Stone'], Spark: ['Tide', 'Gale'],
+  Stone: ['Ember', 'Spark', 'Gale'], Gale: ['Bloom', 'Hush'], Hush: ['Spark', 'Plain'], Plain: [] };
+const TYPE_COL = { Ember: '#d9542a', Tide: '#3b7fd6', Bloom: '#3f8f35', Spark: '#c79400', Stone: '#85735c', Gale: '#2e9a92', Hush: '#6b5b9a', Plain: '#8a7f76' };
+const eff = (a, d) => STRONG[a].includes(d) ? 2 : STRONG[d].includes(a) ? .5 : 1;
+
+const MV = {
+  bump: { name: 'Bump', type: 'Plain', pow: 35, acc: 100 },
+  headlong: { name: 'Headlong', type: 'Plain', pow: 65, acc: 95 },
+  wickflick: { name: 'Wick Flick', type: 'Ember', pow: 40, acc: 100 },
+  cinderpounce: { name: 'Cinder Pounce', type: 'Ember', pow: 65, acc: 95 },
+  hearthglow: { name: 'Hearthglow', type: 'Ember', pow: 90, acc: 90 },
+  splashback: { name: 'Splashback', type: 'Tide', pow: 40, acc: 100 },
+  undertow: { name: 'Undertow', type: 'Tide', pow: 70, acc: 95 },
+  seedspit: { name: 'Seed Spit', type: 'Bloom', pow: 40, acc: 100 },
+  thornlash: { name: 'Thornlash', type: 'Bloom', pow: 70, acc: 95 },
+  staticnip: { name: 'Static Nip', type: 'Spark', pow: 40, acc: 100 },
+  arcbolt: { name: 'Arc Bolt', type: 'Spark', pow: 75, acc: 90 },
+  pebbletoss: { name: 'Pebble Toss', type: 'Stone', pow: 40, acc: 95 },
+  boulderroll: { name: 'Boulder Roll', type: 'Stone', pow: 70, acc: 90 },
+  gustsnip: { name: 'Gust Snip', type: 'Gale', pow: 40, acc: 100 },
+  squall: { name: 'Squall', type: 'Gale', pow: 70, acc: 95 },
+  hollowwhisper: { name: 'Hollow Whisper', type: 'Hush', pow: 45, acc: 100 },
+  silencefall: { name: 'Silence Fall', type: 'Hush', pow: 85, acc: 90 },
+  bristle: { name: 'Bristle', type: 'Plain', pow: 0, acc: 100, self: 'atk', amt: 1 },
+  glare: { name: 'Glare', type: 'Plain', pow: 0, acc: 100, foe: 'def', amt: -1 },
+  lullaby: { name: 'Lullaby', type: 'Hush', pow: 0, acc: 100, foe: 'atk', amt: -1 },
+};
+
+// look: plan (quad/biped/bird/blob/serpent), colors and features for the pixel generator
+const SP = {
+  pipwick: { name: 'Pipwick', type: 'Ember', base: [42, 52, 40, 62], xp: 62, rate: 0, evo: ['wickwyre', 16],
+    learn: [[1, 'bump'], [1, 'wickflick'], [7, 'bristle'], [11, 'cinderpounce'], [15, 'glare'], [19, 'hearthglow']],
+    look: { plan: 'quad', size: .85, body: '#f39a3d', belly: '#ffe2b0', ears: 'pointy', tail: 'flame', crest: 'wick' },
+    dex: 'A candle-tailed Kith. Its wick burns brighter around people it trusts.' },
+  wickwyre: { name: 'Wickwyre', type: 'Ember', base: [62, 78, 58, 88], xp: 150, rate: 0,
+    learn: [[1, 'bump'], [1, 'wickflick'], [1, 'cinderpounce'], [17, 'hearthglow']],
+    look: { plan: 'quad', size: 1.05, body: '#e8622c', belly: '#ffd29a', ears: 'pointy', tail: 'flame', crest: 'wick', spots: '#ffd23f' },
+    dex: 'Its flame can be seen from across the bay. Sailors once steered by it.' },
+  mossnip: { name: 'Mossnip', type: 'Bloom', base: [45, 48, 50, 42], xp: 58, rate: 190, evo: ['mosswarden', 16],
+    learn: [[1, 'bump'], [1, 'seedspit'], [8, 'bristle'], [13, 'thornlash']],
+    look: { plan: 'blob', size: .8, body: '#78b84a', belly: '#d8efb0', crest: 'leaf' }, dex: 'Naps in sunbeams. Moss regrows wherever it sleeps.' },
+  mosswarden: { name: 'Mosswarden', type: 'Bloom', base: [70, 72, 80, 50], xp: 150, rate: 60,
+    learn: [[1, 'bump'], [1, 'seedspit'], [1, 'thornlash'], [20, 'boulderroll']],
+    look: { plan: 'biped', size: 1.05, body: '#4f8f3a', belly: '#c9e59a', crest: 'leaf', tail: 'leaf', ears: 'none' }, dex: 'Guards old forests. Patient as a stone.' },
+  puddlepup: { name: 'Puddlepup', type: 'Tide', base: [48, 50, 45, 52], xp: 60, rate: 180, evo: ['tidehound', 16],
+    learn: [[1, 'bump'], [1, 'splashback'], [9, 'glare'], [14, 'undertow']],
+    look: { plan: 'quad', size: .85, body: '#4f9be0', belly: '#d8ecff', ears: 'round', tail: 'fin' }, dex: 'Shakes off water on everyone it likes.' },
+  tidehound: { name: 'Tidehound', type: 'Tide', base: [75, 80, 68, 75], xp: 155, rate: 60,
+    learn: [[1, 'bump'], [1, 'splashback'], [1, 'undertow'], [18, 'headlong']],
+    look: { plan: 'quad', size: 1.05, body: '#2f6fbf', belly: '#bfe0ff', ears: 'pointy', tail: 'fin', crest: 'fin' }, dex: 'Runs along the surf line at dawn, herding the waves.' },
+  zapling: { name: 'Zapling', type: 'Spark', base: [35, 50, 32, 72], xp: 56, rate: 160, evo: ['stormlark', 15],
+    learn: [[1, 'bump'], [1, 'staticnip'], [8, 'bristle'], [12, 'gustsnip'], [14, 'arcbolt']],
+    look: { plan: 'bird', size: .8, body: '#f2d23c', belly: '#fff3b0', accent: '#e08a1f', crest: 'bolt' }, dex: 'Its feathers crackle when it is excited. Often.' },
+  stormlark: { name: 'Stormlark', type: 'Spark', base: [58, 80, 52, 100], xp: 150, rate: 60,
+    learn: [[1, 'staticnip'], [1, 'gustsnip'], [1, 'arcbolt'], [18, 'squall']],
+    look: { plan: 'bird', size: 1.05, body: '#e6b820', belly: '#fff0a0', accent: '#3b3b6b', crest: 'bolt' }, dex: 'Sings right before lightning strikes.' },
+  pebblet: { name: 'Pebblet', type: 'Stone', base: [45, 55, 70, 25], xp: 60, rate: 190, evo: ['craghorn', 17],
+    learn: [[1, 'bump'], [1, 'pebbletoss'], [7, 'glare'], [13, 'boulderroll']],
+    look: { plan: 'blob', size: .8, body: '#9a8f80', belly: '#c8bfae', crest: 'horns', spots: '#776d60' }, dex: 'Mistaken for a rock until it sneezes.' },
+  craghorn: { name: 'Craghorn', type: 'Stone', base: [72, 88, 100, 35], xp: 160, rate: 60,
+    learn: [[1, 'pebbletoss'], [1, 'glare'], [1, 'boulderroll'], [19, 'headlong']],
+    look: { plan: 'quad', size: 1.1, body: '#857a6b', belly: '#b9ad99', crest: 'horns', ears: 'none', tail: 'none' }, dex: 'Its horns are worn smooth from pushing boulders for fun.' },
+  breezel: { name: 'Breezel', type: 'Gale', base: [40, 50, 38, 70], xp: 56, rate: 200, evo: ['galeferret', 15],
+    learn: [[1, 'bump'], [1, 'gustsnip'], [8, 'glare'], [13, 'squall']],
+    look: { plan: 'serpent', size: .85, body: '#9fd8d0', belly: '#e9fbf7', ears: 'long', tail: 'fluff' }, dex: 'Rides updrafts in loops. Never lands for long.' },
+  galeferret: { name: 'Galeferret', type: 'Gale', base: [65, 78, 58, 98], xp: 150, rate: 60,
+    learn: [[1, 'gustsnip'], [1, 'glare'], [1, 'squall'], [17, 'headlong']],
+    look: { plan: 'serpent', size: 1.05, body: '#5fb7b0', belly: '#dff7f3', ears: 'pointy', tail: 'fluff' }, dex: 'Moves so fast it leaves a whistle behind.' },
+  burrowbun: { name: 'Burrowbun', type: 'Plain', base: [44, 45, 40, 55], xp: 50, rate: 255, evo: ['thumpkin', 12],
+    learn: [[1, 'bump'], [5, 'glare'], [9, 'headlong']],
+    look: { plan: 'biped', size: .8, body: '#c9a27a', belly: '#f3e2c8', ears: 'long', tail: 'fluff' }, dex: 'Digs tunnels under gardens and leaves turnips as rent.' },
+  thumpkin: { name: 'Thumpkin', type: 'Plain', base: [70, 70, 60, 72], xp: 130, rate: 90,
+    learn: [[1, 'bump'], [1, 'glare'], [1, 'headlong'], [15, 'bristle'], [18, 'boulderroll']],
+    look: { plan: 'biped', size: 1, body: '#a87c55', belly: '#ecd6b5', ears: 'long', tail: 'fluff' }, dex: 'Thumps the ground to warn its warren. You can feel it a mile away.' },
+  coalcrab: { name: 'Coalcrab', type: 'Ember', base: [50, 62, 70, 35], xp: 70, rate: 150,
+    learn: [[1, 'bump'], [1, 'wickflick'], [10, 'bristle'], [13, 'cinderpounce'], [17, 'pebbletoss']],
+    look: { plan: 'blob', size: .9, body: '#4a4040', belly: '#e8622c', crest: 'flame', spots: '#ff9a3c' }, dex: 'Carries a glowing coal in its shell like a pearl.' },
+  glimmerfin: { name: 'Glimmerfin', type: 'Tide', base: [38, 40, 42, 66], xp: 60, rate: 170,
+    learn: [[1, 'splashback'], [6, 'lullaby'], [12, 'undertow'], [16, 'staticnip']],
+    look: { plan: 'serpent', size: .8, body: '#7fc7ff', belly: '#ffffff', tail: 'fin', crest: 'gem', ears: 'none' }, dex: 'Its scales flash like signal lamps under the water.' },
+  mothmurmur: { name: 'Mothmurmur', type: 'Hush', base: [42, 48, 40, 58], xp: 64, rate: 150, evo: ['hushwing', 17],
+    learn: [[1, 'bump'], [1, 'hollowwhisper'], [9, 'lullaby'], [14, 'gustsnip']],
+    look: { plan: 'bird', size: .8, body: '#8d7fb3', belly: '#d9d0ef', accent: '#5b4d86', ears: 'long' }, dex: 'Drawn to lanterns. It hums too quietly for most to hear.' },
+  hushwing: { name: 'Hushwing', type: 'Hush', base: [66, 82, 60, 90], xp: 160, rate: 50,
+    learn: [[1, 'hollowwhisper'], [1, 'lullaby'], [1, 'gustsnip'], [19, 'silencefall']],
+    look: { plan: 'bird', size: 1.05, body: '#5b4d86', belly: '#c0b3ea', accent: '#2f2650', crest: 'gem' }, dex: 'Flies without a sound. Its wingbeats swallow nearby noise.' },
+  bramblemaw: { name: 'Bramblemaw', type: 'Bloom', base: [68, 80, 72, 45], xp: 140, rate: 60,
+    learn: [[1, 'seedspit'], [1, 'bristle'], [1, 'thornlash'], [14, 'headlong']],
+    look: { plan: 'blob', size: 1.05, body: '#3f7a3a', belly: '#a8d77c', crest: 'horns', spots: '#c0446b' }, dex: 'A bramble with a big appetite. Its berries are delicious and also bite.' },
+  duskmastiff: { name: 'Duskmastiff', type: 'Hush', base: [80, 90, 70, 70], xp: 170, rate: 45,
+    learn: [[1, 'hollowwhisper'], [1, 'glare'], [1, 'headlong'], [18, 'silencefall']],
+    look: { plan: 'quad', size: 1.1, body: '#3c3557', belly: '#8f84b8', ears: 'pointy', crest: 'horns', tail: 'wisp' }, dex: 'Prowls at the edge of the fog. It was a lighthouse dog, once.' },
+  quietus: { name: 'Quietus', type: 'Hush', base: [110, 80, 95, 85], xp: 250, rate: 45, legend: true,
+    learn: [[1, 'hollowwhisper'], [1, 'lullaby'], [1, 'undertow'], [1, 'headlong']],
+    look: { plan: 'serpent', size: 1.3, body: '#e6e2f5', belly: '#ffffff', accent: '#9d8fd6', crest: 'horns', tail: 'wisp', spots: '#b7acdf', ears: 'none' },
+    dex: 'The old voice of the tides. When no one listened, its song became the Hush.' },
+};
+const DEX_ORDER = Object.keys(SP);
+
+const ITEMS = {
+  lantern: { name: 'Lantern', price: 200, catch: 1, desc: 'Offer to a wild Kith to bond.' },
+  bright: { name: 'Bright Lantern', price: 600, catch: 1.6, desc: 'A stronger glow. Better odds.' },
+  salve: { name: 'Salve', price: 300, heal: 20, desc: 'Restores 20 HP.' },
+  tonic: { name: 'Tonic', price: 700, heal: 60, desc: 'Restores 60 HP.' },
+  draught: { name: 'Ember Draught', price: 1500, revive: true, desc: 'Revives a fainted Kith.' },
+};
+
+// ================= kith instances =================
+const lvXP = L => L <= 1 ? 0 : L * L * L;
+const stageMul = s => s >= 0 ? (2 + s) / 2 : 2 / (2 - s);
+function calc(m) {
+  const b = SP[m.id].base, L = m.level, h = m.hushed ? 1.1 : 1;
+  m.maxHp = Math.floor(b[0] * 2 * L / 100) + L + 10;
+  m.atk = Math.floor((b[1] * 2 * L / 100 + 5) * h);
+  m.def = Math.floor((b[2] * 2 * L / 100 + 5) * h);
+  m.spd = Math.floor((b[3] * 2 * L / 100 + 5) * h);
+}
+function makeKith(id, level, opts = {}) {
+  const m = { id, name: SP[id].name, level, xp: lvXP(level), hushed: !!opts.hushed, moves: [], st: { atk: 0, def: 0 } };
+  for (const [lv, mv] of SP[id].learn) if (lv <= level && !m.moves.includes(mv)) m.moves.push(mv);
+  m.moves = m.moves.slice(-4);
+  calc(m); m.hp = m.maxHp; m.dispHp = m.hp;
+  return m;
+}
+
+// ================= pixel art: tiles =================
+const R = (x, c, X, Y, w = 1, h = 1) => { x.fillStyle = c; x.fillRect(X, Y, w, h); };
+function tile(fn) { const c = mk(16, 16); fn(c.getContext('2d')); return c; }
+const grassBase = x => { R(x, '#8ccf63', 0, 0, 16, 16); for (const [a, b] of [[2, 3], [11, 5], [6, 11], [13, 13]]) { R(x, '#76b850', a, b, 2, 1); R(x, '#76b850', a + 1, b - 1); } };
+const TILES = {
+  '.': tile(grassBase),
+  ',': tile(x => { R(x, '#5ea83f', 0, 0, 16, 16); for (const [a, b] of [[1, 2], [9, 1], [5, 8], [12, 9], [1, 12]]) { R(x, '#2f7a2c', a, b + 2, 1, 4); R(x, '#2f7a2c', a + 2, b + 1, 1, 5); R(x, '#2f7a2c', a + 4, b + 2, 1, 4); R(x, '#a6e27e', a + 2, b); } }),
+  'h': tile(x => { R(x, '#9e98b8', 0, 0, 16, 16); for (const [a, b] of [[1, 2], [9, 1], [5, 8], [12, 9], [1, 12]]) { R(x, '#615a85', a, b + 2, 1, 4); R(x, '#615a85', a + 2, b + 1, 1, 5); R(x, '#615a85', a + 4, b + 2, 1, 4); R(x, '#dcd7ee', a + 2, b); } }),
+  'T': tile(x => { grassBase(x); R(x, '#235f2f', 2, 9, 12, 3); R(x, '#2f7d3a', 2, 2, 12, 8); R(x, '#2f7d3a', 3, 1, 10, 1); R(x, '#2f7d3a', 1, 3, 1, 6); R(x, '#2f7d3a', 14, 3, 1, 6); R(x, '#4fa04a', 4, 2, 5, 3); R(x, '#6cc060', 5, 3, 2, 1); R(x, '#7a5230', 6, 11, 4, 4); R(x, '#5a3a20', 6, 14, 4, 1); }),
+  '=': tile(x => { R(x, '#e3cb93', 0, 0, 16, 16); for (const [a, b] of [[3, 2], [10, 6], [5, 12], [13, 13], [1, 8]]) R(x, '#cdb27a', a, b, 2, 1); }),
+  '*': tile(x => { grassBase(x); for (const [a, b, c] of [[3, 3, '#e85d6a'], [10, 5, '#fff2a8'], [5, 10, '#f5a3c7'], [12, 12, '#e85d6a']]) { R(x, c, a - 1, b, 3, 1); R(x, c, a, b - 1, 1, 3); R(x, '#ffd23f', a, b); } }),
+  's': tile(x => { R(x, '#f1dfa6', 0, 0, 16, 16); for (const [a, b] of [[3, 3], [11, 7], [6, 12], [14, 1]]) R(x, '#dcc68a', a, b); }),
+  '#': tile(x => { R(x, '#f3ead2', 0, 0, 16, 16); R(x, '#d8cbad', 0, 15, 16, 1); R(x, '#6b5a48', 4, 3, 8, 7); R(x, '#8fc7ef', 5, 4, 6, 5); R(x, '#c8e8fb', 5, 4, 2, 2); R(x, '#6b5a48', 7, 4, 1, 5); }),
+  'D': tile(x => { R(x, '#f3ead2', 0, 0, 16, 16); R(x, '#4e2f1a', 3, 2, 10, 14); R(x, '#7a4a2a', 4, 3, 8, 13); R(x, '#8f5a34', 5, 4, 2, 11); R(x, '#e3b14b', 10, 9, 1, 2); }),
+  'S': tile(x => { grassBase(x); R(x, '#5a3a20', 7, 9, 2, 6); R(x, '#5a3a20', 1, 2, 14, 8); R(x, '#c79a5b', 2, 3, 12, 6); R(x, '#a37a42', 4, 5, 8, 1); R(x, '#a37a42', 4, 7, 6, 1); }),
+  'H': tile(x => { R(x, '#cfcbe0', 0, 0, 16, 16); for (const [a, b] of [[1, 2], [7, 5], [3, 10], [10, 12], [11, 1]]) { R(x, '#b2aecb', a, b, 5, 2); R(x, '#eeedf6', a + 1, b - 1, 3, 1); } }),
+  'L': tile(x => { R(x, '#f7f4ee', 0, 0, 16, 16); R(x, '#d9534f', 0, 6, 16, 5); R(x, '#b33c39', 0, 10, 16, 1); R(x, '#d8d2c6', 0, 0, 1, 16); }),
+  'W': tile(x => { R(x, '#3a3346', 0, 0, 16, 16); R(x, '#5b5470', 2, 2, 12, 12); R(x, '#3a3346', 7, 2, 2, 12); }),
+};
+const roof = (a, b) => tile(x => { R(x, a, 0, 0, 16, 16); for (let y = 3; y < 16; y += 4) R(x, b, 0, y, 16, 1); R(x, b, 0, 15, 16, 1); });
+TILES['^'] = roof('#d9534f', '#a8393a'); TILES['v'] = roof('#4a78c9', '#30559a'); TILES['g'] = roof('#4f9a5a', '#356e3e'); TILES['n'] = roof('#a8693e', '#7e4a28');
+const WATER = [0, 1].map(f => tile(x => { R(x, '#4aa3df', 0, 0, 16, 16); for (const [a, b] of [[2, 3], [9, 7], [4, 12]]) { R(x, '#9fd8f7', (a + f * 2) % 16, b, 4, 1); R(x, '#2f86c4', (a + f * 2 + 1) % 16, b + 1, 3, 1); } }));
+const WALKABLE = new Set(['.', ',', 'h', '=', '*', 's']);
+
+// ================= pixel art: people & kith =================
+function outline(c, col = INK) {
+  const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height), W = c.width, H = c.height, a = d.data, mark = [];
+  for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) {
+    if (a[(y * W + i) * 4 + 3]) continue;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = i + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < W && ny < H && a[(ny * W + nx) * 4 + 3] > 200) { mark.push([i, y]); break; } }
+  }
+  x.fillStyle = col; for (const [i, y] of mark) x.fillRect(i, y, 1, 1);
+}
+function flipped(c) { const f = mk(c.width, c.height), x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f; }
+function personSprite(L, dir, fr) {
+  const c = mk(16, 16), x = c.getContext('2d'), d = dir === 'right' ? 'left' : dir;
+  if (d === 'left') { R(x, L.pants, 6, 12, 4, 3); if (fr) { R(x, L.pants, 5, 12, 2, 3); R(x, L.pants, 9, 12, 2, 2); } }
+  else { R(x, L.pants, 5, 12, 2, fr ? 2 : 3); R(x, L.pants, 9, 12, 2, fr ? 3 : 2); }
+  R(x, L.shirt, 4, 8, 8, 5);
+  if (d === 'left') { R(x, L.shirt, 6, 9, 3, 3); R(x, L.skin, 6, 12, 2, 1); }
+  else { R(x, L.shirt, 3, 9, 1, 3); R(x, L.shirt, 12, 9, 1, 3); R(x, L.skin, 3, 12); R(x, L.skin, 12, 12); }
+  R(x, L.skin, 4, 2, 8, 6);
+  if (d === 'down') { R(x, L.hair, 4, 1, 8, 2); R(x, L.hair, 4, 3, 1, 3); R(x, L.hair, 11, 3, 1, 3); R(x, INK, 6, 5, 1, 2); R(x, INK, 9, 5, 1, 2); }
+  if (d === 'up') R(x, L.hair, 4, 1, 8, 7);
+  if (d === 'left') { R(x, L.hair, 4, 1, 8, 2); R(x, L.hair, 8, 3, 4, 3); R(x, INK, 5, 5, 1, 2); }
+  if (L.hat) { R(x, L.hat, 4, 0, 8, 2); if (d === 'down') R(x, L.hat, 3, 2, 10, 1); if (d === 'left') R(x, L.hat, 2, 2, 6, 1); }
+  outline(c);
+  return dir === 'right' ? flipped(c) : c;
+}
+const personCache = new Map();
+function personImg(L, dir, fr) { const k = JSON.stringify(L) + dir + fr; if (!personCache.has(k)) personCache.set(k, personSprite(L, dir, fr)); return personCache.get(k); }
+
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16); let r = n >> 16, gg = n >> 8 & 255, b = n & 255; const t = f > 0 ? 255 : 0, p = Math.abs(f); r = Math.round(r + (t - r) * p); gg = Math.round(gg + (t - gg) * p); b = Math.round(b + (t - b) * p); return '#' + ((1 << 24) + (r << 16) + (gg << 8) + b).toString(16).slice(1); }
+function hash(s) { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; }
+function kithSprite(id) {
+  const L = SP[id].look, N = 32, G = Array.from({ length: N }, () => Array(N).fill(null)), s = L.size || 1;
+  let seed = hash(id); const rr = () => ((seed = Math.imul(seed ^ seed >>> 15, 2246822507) >>> 0) % 1000) / 1000;
+  const set = (x, y, c) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < N && y < N) G[y][x] = c; };
+  const ell = (cx, cy, rx, ry, c) => { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) set(x, y, c); } };
+  const tri = (a, b, c, col) => { const [x0, x1] = [Math.min(a[0], b[0], c[0]), Math.max(a[0], b[0], c[0])], [y0, y1] = [Math.min(a[1], b[1], c[1]), Math.max(a[1], b[1], c[1])];
+    const sg = (p, q, r) => (p[0] - r[0]) * (q[1] - r[1]) - (q[0] - r[0]) * (p[1] - r[1]);
+    for (let y = Math.floor(y0); y <= y1; y++) for (let x = Math.floor(x0); x <= x1; x++) { const p = [x + .5, y + .5], d1 = sg(p, a, b), d2 = sg(p, b, c), d3 = sg(p, c, a); if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) set(x, y, col); } };
+  const body = L.body, belly = L.belly || shade(body, .4), acc = L.accent || shade(body, -.3), dark = shade(body, -.25);
+  let head, tailAt, eyes;
+  const tailFirst = () => { // tails are drawn before the body so the body overlaps them
+    if (!tailAt) return; const [tx, ty] = tailAt;
+    if (L.tail === 'flame') { tri([tx - 2, ty + 3], [tx + 5, ty - 6], [tx + 3, ty + 4], '#f2762e'); tri([tx, ty + 2], [tx + 4, ty - 3], [tx + 3, ty + 3], '#ffd23f'); }
+    if (L.tail === 'leaf') ell(tx + 2, ty - 1, 3, 2, '#5aa83a');
+    if (L.tail === 'fin') tri([tx - 2, ty], [tx + 5, ty - 5], [tx + 5, ty + 4], acc);
+    if (L.tail === 'fluff') ell(tx + 1, ty, 3.5, 3, belly);
+    if (L.tail === 'wisp') { ell(tx + 2, ty - 2, 3, 2, shade(body, .3)); ell(tx + 4, ty - 5, 2, 1.5, shade(body, .5)); }
+  };
+  if (L.plan === 'quad') {
+    tailAt = [24 + 2 * s, 17]; tailFirst();
+    for (const lx of [11, 14, 20, 23]) { ell(lx, 25 + 2 * s, 1.6, 3, dark); }
+    ell(17, 20, 8.5 * s, 5.5 * s, body); ell(16, 22.5, 6 * s, 2.5 * s, belly);
+    head = [9.5, 13.5 - 1.5 * (s - 1) * 3, 5.5 * s]; ell(head[0], head[1], head[2], head[2] * .92, body); ell(head[0] - 3.5, head[1] + 2, 2.6, 2, belly);
+    eyes = [[head[0] - 3, head[1] - 1], [head[0] + 1, head[1] - 1]];
+  } else if (L.plan === 'biped') {
+    tailAt = [23, 24]; tailFirst();
+    ell(12, 28, 3, 1.6, dark); ell(20, 28, 3, 1.6, dark);
+    ell(16, 21, 6.5 * s, 7 * s, body); ell(15, 22, 4 * s, 4.5 * s, belly);
+    ell(9.5, 19, 1.6, 3, body); ell(22.5, 19, 1.6, 3, body);
+    head = [16, 10.5, 6 * s]; ell(16, 10.5, 6 * s, 5.5 * s, body);
+    eyes = [[12.5, 9.5], [17.5, 9.5]];
+  } else if (L.plan === 'bird') {
+    tri([22, 20], [30, 15], [29, 24], acc);
+    ell(14, 27, 1, 2, '#e08a1f'); ell(19, 27, 1, 2, '#e08a1f');
+    ell(17, 19, 7 * s, 6.5 * s, body); ell(15, 21.5, 4.5 * s, 4 * s, belly);
+    head = [11, 11, 4.8 * s]; ell(11, 11, 4.8 * s, 4.6 * s, body);
+    tri([7, 10.5], [2.5, 12.5], [7, 14], '#f0a030');
+    ell(21, 17.5, 5.5 * s, 3.5 * s, acc);
+    eyes = [[8.5, 9.5], [12.5, 9.5]];
+  } else if (L.plan === 'blob') {
+    ell(16, 20, 10.5 * s, 9 * s, body); ell(16, 24, 7 * s, 4 * s, belly);
+    ell(10, 28, 2.5, 1.5, dark); ell(22, 28, 2.5, 1.5, dark);
+    head = [16, 13, 7 * s];
+    eyes = [[12, 16], [18, 16]];
+  } else { // serpent
+    const segs = 7;
+    for (let i = segs; i >= 0; i--) { const t = i / segs, cx = 9 + i * 2.6, cy = 16 + Math.sin(i * .9) * 4 + i * .6, r = (5.2 - t * 2.4) * s; ell(cx, cy, r, r, i % 2 ? body : shade(body, -.08)); ell(cx - .5, cy + r * .45, r * .55, r * .35, belly); }
+    tailAt = [9 + segs * 2.6, 16 + Math.sin(segs * .9) * 4 + segs * .6]; tailFirst();
+    head = [8, 10.5, 5.2 * s]; ell(8, 10.5, 5.2 * s, 4.6 * s, body); ell(5, 13, 2.4, 1.6, belly);
+    eyes = [[5.5, 9.5], [9.5, 9.5]];
+  }
+  // ears & crests relative to the head
+  const [hx, hy, hr] = head, top = hy - hr * .85;
+  if (L.ears === 'pointy') { tri([hx - hr * .8, top + 2], [hx - hr * .55, top - 4], [hx - hr * .1, top + 1], body); tri([hx + hr * .1, top + 1], [hx + hr * .55, top - 4], [hx + hr * .8, top + 2], body); set(hx - hr * .5, top - 1, belly); set(hx + hr * .5, top - 1, belly); }
+  if (L.ears === 'round') { ell(hx - hr * .6, top, 2.2, 2.2, dark); ell(hx + hr * .6, top, 2.2, 2.2, dark); }
+  if (L.ears === 'long') { ell(hx - hr * .45, top - 3, 1.6, 4.5, body); ell(hx + hr * .45, top - 3, 1.6, 4.5, body); ell(hx - hr * .45, top - 3, .7, 3.2, belly); ell(hx + hr * .45, top - 3, .7, 3.2, belly); }
+  if (L.crest === 'wick') { R2(hx, top - 3, 1, 3, INK); tri([hx - 2, top - 3], [hx + .5, top - 9], [hx + 3, top - 3], '#f2762e'); tri([hx - .5, top - 3], [hx + .5, top - 6.5], [hx + 1.5, top - 3], '#ffd23f'); }
+  if (L.crest === 'leaf') { ell(hx + 1, top - 2, 3.5, 1.8, '#5aa83a'); set(hx, top, '#3f7a2a'); set(hx, top - 1, '#3f7a2a'); }
+  if (L.crest === 'flame') { tri([hx - 3, top + 1], [hx, top - 6], [hx + 3, top + 1], '#f2762e'); tri([hx - 1, top], [hx, top - 3], [hx + 1, top], '#ffd23f'); }
+  if (L.crest === 'horns') { tri([hx - hr * .7, top + 2], [hx - hr * .9, top - 4], [hx - hr * .3, top + 1], '#e9e2cf'); tri([hx + hr * .3, top + 1], [hx + hr * .9, top - 4], [hx + hr * .7, top + 2], '#e9e2cf'); }
+  if (L.crest === 'fin') tri([hx + 2, top + 2], [hx + 7, top - 3], [hx + 8, top + 4], acc);
+  if (L.crest === 'gem') ell(hx, top + 2.5, 1.3, 1.3, '#ff6fa8');
+  if (L.crest === 'bolt') { R2(hx, top - 4, 2, 2, '#ffd23f'); R2(hx - 1, top - 2, 2, 2, '#ffd23f'); R2(hx, top - 1, 2, 2, '#ffd23f'); }
+  function R2(x, y, w, h, c) { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) set(x + i, y + j, c); }
+  if (L.spots) for (let i = 0; i < 6; i++) { const x = 10 + rr() * 14, y = 17 + rr() * 7; if (G[Math.floor(y)][Math.floor(x)] === body) set(x, y, L.spots); }
+  // shading: highlight top edges, shadow bottom edges
+  const S = G.map(r => r.slice());
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const c = G[y][x]; if (!c) continue; if (y > 0 && !G[y - 1][x]) S[y][x] = shade(c, .28); else if (y < N - 1 && !G[y + 1][x]) S[y][x] = shade(c, -.22); }
+  for (const [ex, ey] of eyes) { const x = Math.floor(ex), y = Math.floor(ey); S[y][x] = '#ffffff'; S[y][x + 1] = '#ffffff'; S[y + 1][x] = INK; S[y + 1][x + 1] = '#ffffff'; S[y + 2] && (S[y + 2][x] = S[y + 2][x] || null); }
+  const c = mk(N, N), x = c.getContext('2d');
+  for (let y = 0; y < N; y++) for (let i = 0; i < N; i++) if (S[y][i]) R(x, S[y][i], i, y);
+  outline(c);
+  return c;
+}
+const kithCache = {};
+function kithImg(id, flip) { const k = id + (flip ? 'f' : ''); if (!kithCache[k]) kithCache[k] = flip ? flipped(kithImg(id)) : kithSprite(id); return kithCache[k]; }
+
+// ================= world map =================
+const MW = 32, MH = 100;
+let MAP;
+function buildMap() {
+  const m = Array.from({ length: MH }, () => Array(MW).fill('T'));
+  const fill = (x, y, w, h, c) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (m[j] && i >= 0 && i < MW) m[j][i] = c; };
+  const house = (x, y, w, h, rf, dx) => { fill(x, y, w, h - 2, rf); fill(x, y + h - 2, w, 2, '#'); m[y + h - 1][dx] = 'D'; };
+  // Emberlight Village (y 83-97)
+  fill(2, 83, 28, 15, '.'); fill(4, 84, 3, 2, '*'); fill(24, 95, 4, 2, '*');
+  fill(15, 78, 2, 19, '='); fill(4, 92, 24, 1, '=');
+  house(5, 86, 6, 4, 'n', 7); fill(7, 90, 1, 2, '=');
+  house(19, 85, 8, 5, 'v', 22); fill(22, 90, 1, 2, '=');
+  fill(4, 94, 5, 3, '~'); m[91][13] = 'S';
+  // Route 1 (y 61-80)
+  fill(2, 61, 28, 20, '.'); fill(15, 58, 2, 24, '=');
+  fill(2, 66, 28, 3, ','); fill(4, 73, 8, 5, ','); fill(19, 70, 9, 5, ',');
+  fill(3, 61, 3, 3, 'T'); fill(26, 61, 3, 3, 'T'); fill(11, 62, 3, 2, 'T'); fill(20, 75, 4, 2, 'T'); fill(3, 79, 5, 2, 'T'); fill(24, 79, 5, 2, 'T');
+  fill(8, 70, 3, 2, '*'); m[79][17] = 'S';
+  // Brindlewick Town (y 43-58)
+  fill(2, 43, 28, 16, '.'); fill(15, 40, 2, 22, '='); fill(3, 51, 26, 1, '=');
+  house(4, 45, 6, 4, '^', 6); fill(6, 49, 1, 2, '=');
+  house(22, 45, 6, 4, 'v', 24); fill(24, 49, 1, 2, '=');
+  house(20, 53, 8, 4, 'g', 23); fill(17, 57, 7, 1, '=');
+  house(4, 53, 5, 4, 'n', 6); fill(6, 57, 1, 1, '=');
+  fill(10, 44, 4, 3, '~'); m[50][13] = 'S'; fill(10, 55, 4, 2, '*');
+  // Murkwood (y 16-41)
+  fill(14, 34, 4, 6, '.'); fill(4, 29, 24, 6, ','); fill(4, 20, 4, 9, '.'); fill(4, 20, 22, 3, '.');
+  fill(10, 20, 10, 3, 'h'); fill(22, 22, 4, 7, 'h'); fill(20, 35, 8, 5, '.'); fill(22, 36, 4, 3, '~');
+  fill(15, 16, 2, 4, '.'); m[40][17] = 'S'; m[40][14] = '.';
+  if (!P.flags.fog) { m[18][15] = 'H'; m[18][16] = 'H'; }
+  // Hushpoint (y 1-15)
+  fill(2, 1, 28, 15, '~'); fill(7, 2, 18, 14, 's'); fill(8, 8, 6, 4, 'h'); fill(18, 9, 6, 4, 'h');
+  fill(13, 1, 6, 6, 'L'); fill(14, 1, 4, 1, 'W'); m[6][15] = 'D'; fill(15, 7, 2, 10, '=');
+  MAP = m;
+}
+const tileAt = (x, y) => (x < 0 || y < 0 || x >= MW || y >= MH) ? 'T' : MAP[y][x];
+function regionOf(y) { return y >= 82 ? 'Emberlight Village' : y >= 60 ? 'Route 1: Thistle Path' : y >= 42 ? 'Brindlewick Town' : y >= 17 ? 'Murkwood' : 'Hushpoint'; }
+
+const SIGNS = {
+  '13,91': 'EMBERLIGHT VILLAGE\nWhere the coast\'s first Lantern was lit.',
+  '17,79': 'ROUTE 1: THISTLE PATH\nTall grass ahead. Keep your Kith close.',
+  '13,50': 'BRINDLEWICK TOWN\nThe Warden\'s Hall is to the southeast.',
+  '17,40': 'MURKWOOD\nThe Hush runs thick here. Hushed Kith are restless and strong.',
+};
+const ENC = {
+  route1: [['burrowbun', 2, 4, 35], ['breezel', 3, 5, 25], ['mossnip', 3, 5, 15], ['puddlepup', 3, 5, 15], ['zapling', 4, 5, 10]],
+  murk: [['pebblet', 9, 12, 20], ['mossnip', 9, 12, 15], ['zapling', 9, 12, 15], ['burrowbun', 10, 12, 15], ['coalcrab', 10, 12, 15], ['puddlepup', 10, 12, 10], ['glimmerfin', 10, 12, 10]],
+  murkHush: [['mothmurmur', 11, 14, 40], ['breezel', 11, 13, 20], ['pebblet', 11, 13, 20], ['coalcrab', 11, 13, 15], ['duskmastiff', 13, 13, 5]],
+  hushpoint: [['mothmurmur', 15, 17, 35], ['glimmerfin', 15, 17, 25], ['pebblet', 15, 16, 20], ['duskmastiff', 15, 16, 10], ['zapling', 15, 17, 10]],
+};
+
+// ================= game state =================
+let P, mode = 'title', busy = false, NPCS = [], player, partnerEnt, banner = null, B = null, EVO = null, lastRegion = '';
+function newState(name) {
+  return { name, money: 300, bag: { lantern: 0, bright: 0, salve: 0, tonic: 0, draught: 0 }, party: [], archive: [], flags: {},
+    seen: [], caught: [], friend: 70, steps: 0, pos: { x: 7, y: 90, dir: 'down' }, lastHeal: { x: 7, y: 90 } };
+}
+const partnerMon = () => P.party.find(m => m.partner);
+const T = s => s.replace(/\{P\}/g, P ? P.name : '').replace(/\{K\}/g, (partnerMon() || { name: 'Pipwick' }).name);
+const markSeen = id => { if (!P.seen.includes(id)) P.seen.push(id); };
+const markCaught = id => { markSeen(id); if (!P.caught.includes(id)) P.caught.push(id); };
+const healAll = () => P.party.forEach(m => { m.hp = m.maxHp; m.dispHp = m.hp; m.st = { atk: 0, def: 0 }; });
+
+const LOOKS = {
+  player: { hair: '#5a3a22', shirt: '#e05a3a', pants: '#3b4f8a', skin: '#f2c79b', hat: '#f2c23c' },
+  odile: { hair: '#e8e4dc', shirt: '#6a5aa8', pants: '#4a3f6b', skin: '#e9b98f' },
+  sable: { hair: '#2a2230', shirt: '#3a8fa0', pants: '#2a2230', skin: '#c98d64' },
+  kid: { hair: '#c0542a', shirt: '#7ac05a', pants: '#3b4f8a', skin: '#f2c79b' },
+  elder: { hair: '#b8b2a8', shirt: '#8a6b4a', pants: '#5a4a3a', skin: '#d9a77c' },
+  picnic: { hair: '#e0b04a', shirt: '#e86a9a', pants: '#f3ead2', skin: '#f2c79b', hat: '#f3ead2' },
+  ranger: { hair: '#3a2a1a', shirt: '#4f7a3a', pants: '#5a4a3a', skin: '#b97a50', hat: '#4f7a3a' },
+  follower: { hair: '#4a4060', shirt: '#2f2650', pants: '#2f2650', skin: '#e2b48c', hat: '#5b4d86' },
+  vell: { hair: '#d8d2e8', shirt: '#24203a', pants: '#24203a', skin: '#d9a77c', hat: '#9d8fd6' },
+  warden: { hair: '#3f7a3a', shirt: '#7aa84a', pants: '#4a3a2a', skin: '#c98d64' },
+  towns: { hair: '#7a4a2a', shirt: '#4a78c9', pants: '#5a4a3a', skin: '#f2c79b' },
+};
+function buildNPCs() {
+  const F = P.flags, list = [];
+  const add = o => list.push({ dir: 'down', t: 1, fx: o.x, fy: o.y, fr: 0, ...o });
+  if (F.rival1) add({ id: 'odile', x: 21, y: 90, look: LOOKS.odile, lines: ['ODILE: The Warden in Brindlewick knows the old songs. Head north along Thistle Path.', 'ODILE: Remember: weaken a wild Kith first, then offer a Lantern.'] });
+  add({ id: 'fen', x: 10, y: 94, look: LOOKS.elder, lines: ['FEN: The lighthouse at Hushpoint used to sing on stormy nights. Low and long, like a whale.', 'FEN: Then it went dark, and the fog came. Funny, how quiet the world gets.'] });
+  add({ id: 'kid', x: 27, y: 91, dir: 'left', look: LOOKS.kid, lines: ['My Burrowbun stopped squeaking last week. Mom says it\'s the Hush.', 'If your Kith gets quiet... just keep talking to it, okay?'] });
+  add({ id: 'tobin', x: 12, y: 73, dir: 'right', look: LOOKS.kid, trainer: { name: 'KID TOBIN', team: [['burrowbun', 4], ['breezel', 4]], sight: 4,
+    pre: 'Hey! Your Kith isn\'t in a Lantern? That\'s so weird. Battle me!', post: 'Okay, okay. Maybe Lanterns aren\'t everything.' } });
+  add({ id: 'bea', x: 19, y: 64, dir: 'left', look: LOOKS.picnic, trainer: { name: 'PICNICKER BEA', team: [['mossnip', 5], ['zapling', 5]], sight: 4,
+    pre: 'A picnic without a battle is just lunch!', post: 'My sandwiches AND my pride. Both gone.' } });
+  add({ id: 'tip', x: 22, y: 78, look: LOOKS.towns, lines: ['Tip: a tired Kith is more willing to step into a Lantern. Knock its HP down first!', 'But careful. Knock it out, and it wanders off.'] });
+  add({ id: 'gossip', x: 12, y: 49, look: LOOKS.elder, lines: ['Warden Moss tends the Verdant Chord, one of the old songs.', 'They say the old songs held back the first Hush, centuries ago.'] });
+  add({ id: 'merchant', x: 20, y: 47, look: LOOKS.towns, lines: ['Keeper Vell used to come to market for lamp oil. Kind soul.', 'Lately Vell\'s followers buy up every Lantern in town. What do they need so many for?'] });
+  add({ id: 'nurse', x: 8, y: 52, look: LOOKS.picnic, lines: ['Hurt Kith can rest at the Hearth, just up the path. It\'s free!', 'Your Pipwick doesn\'t ride in a Lantern? Then it sees everything you see. Lucky.'] });
+  add({ id: 'ilse', x: 5, y: 27, look: LOOKS.ranger, trainer: { name: 'RANGER ILSE', team: [['pebblet', 11], ['puddlepup', 12]], sight: 3,
+    pre: 'Ranger\'s orders: no one goes deeper without being tested!', post: 'You\'ll do. Mind the grey grass; that\'s where the Hush lives.' } });
+  add({ id: 'vane', x: 21, y: 21, dir: 'left', look: LOOKS.follower, trainer: { name: 'LAMPLIGHTER VANE', team: [['mothmurmur', 12], ['coalcrab', 12]], sight: 4,
+    pre: 'The Keeper will keep every Kith safe in a Lantern, forever. Why let yours wander loose?', post: 'Your partner... it hummed at me. Why did that make me want to cry?' } });
+  add({ id: 'ranger', x: 14, y: 37, look: LOOKS.ranger, lines: ['Hushed Kith hide in the grey grass. The fog makes them silent, and stronger.', 'If one bonds with you, they say its voice comes back. That\'s worth a Lantern or two.'] });
+  add({ id: 'pilgrim', x: 11, y: 14, dir: 'right', look: LOOKS.follower, lines: P.flags.ending
+    ? ['The Lanterns are all open now. I keep hearing Kith singing on the wind.']
+    : ['Don\'t go in there. The Keeper hasn\'t slept in weeks.', 'Vell only wanted to protect them. We all did.'] });
+  NPCS = list;
+}
+const npcAt = (x, y) => NPCS.find(n => !n.gone && n.x === x && n.y === y);
+
+// ================= dialogue & menus =================
+const ui = { text: null, typed: 0, choice: null };
+let waiter = null;
+function wrap(s, max = 34) {
+  const out = [];
+  for (const para of s.split('\n')) { let line = ''; for (const w of para.split(' ')) { if ((line + (line ? ' ' : '') + w).length > max) { if (line) out.push(line); line = w; } else line += (line ? ' ' : '') + w; } out.push(line); }
+  return out;
+}
+function page(t) { return new Promise(r => { ui.text = t; ui.typed = 0; waiter = { kind: 'msg', resolve: () => { ui.text = null; r(); } }; }); }
+async function msg(s) { const lines = wrap(T(s)); for (let i = 0; i < lines.length; i += 3) await page(lines.slice(i, i + 3).join('\n')); }
+async function note(s, ms) { ui.text = wrap(T(s)).slice(0, 3).join('\n'); ui.typed = 999; await sleep(ms); ui.text = null; }
+function choose(opts, cfg = {}) {
+  return new Promise(r => {
+    ui.choice = { opts: opts.map(o => typeof o === 'string' ? { label: o } : o), idx: cfg.start || 0, cfg, scroll: 0 };
+    waiter = { kind: 'choice', resolve: i => { ui.choice = null; if (!cfg.keepText) ui.text = null; r(i); } };
+  });
+}
+async function ask(q, opts, cfg = {}) {
+  const lines = wrap(T(q));
+  let i = 0; for (; i + 3 < lines.length; i += 3) await page(lines.slice(i, i + 3).join('\n'));
+  ui.text = lines.slice(i).join('\n'); ui.typed = 0;
+  return choose(opts, cfg);
+}
+const yes = async q => (await ask(q, ['YES', 'NO'])) === 0;
+
+function press(btn) {
+  if (waiter) {
+    const w = waiter;
+    if (w.kind === 'msg') {
+      if (btn !== 'a' && btn !== 'b') return;
+      if (ui.typed < ui.text.length) { ui.typed = ui.text.length; return; }
+      waiter = null; w.resolve(); return;
+    }
+    const c = ui.choice, n = c.opts.length, grid = c.cfg.layout === 'cmd' || c.cfg.layout === 'moves';
+    const mv = d => { let i = c.idx + d; if (i >= 0 && i < n) c.idx = i; };
+    if (btn === 'up') mv(grid ? -2 : -1);
+    if (btn === 'down') mv(grid ? 2 : 1);
+    if (grid && btn === 'left' && c.idx % 2) mv(-1);
+    if (grid && btn === 'right' && !(c.idx % 2)) mv(1);
+    if (btn === 'a' && !c.opts[c.idx].disabled) { waiter = null; w.resolve(c.idx); }
+    if (btn === 'b' && c.cfg.cancel !== false) { waiter = null; w.resolve(-1); }
+    return;
+  }
+  if (mode === 'world' && !busy) {
+    if (btn === 'a') run(interact);
+    if (btn === 'start') run(startMenu);
+  }
+}
+function run(fn) {
+  if (busy) return;
+  busy = true;
+  Promise.resolve().then(fn).catch(e => { console.error(e); }).finally(() => { busy = false; dirStack.length = 0; });
+}
+
+// ================= input =================
+const dirStack = [];
+const KEYMAP = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right',
+  z: 'a', ' ': 'a', j: 'a', x: 'b', Escape: 'b', k: 'b', Backspace: 'b', Enter: 'start', m: 'start' };
+const holdDir = (b, on) => { const i = dirStack.indexOf(b); if (i >= 0) dirStack.splice(i, 1); if (on) dirStack.push(b); };
+addEventListener('keydown', e => {
+  const b = KEYMAP[e.key.length === 1 ? e.key.toLowerCase() : e.key]; if (!b) return;
+  e.preventDefault();
+  if (DIRV[b]) holdDir(b, true);
+  if (!e.repeat) press(b);
+});
+addEventListener('keyup', e => { const b = KEYMAP[e.key.length === 1 ? e.key.toLowerCase() : e.key]; if (b && DIRV[b]) holdDir(b, false); });
+addEventListener('blur', () => { dirStack.length = 0; });
+document.querySelectorAll('[data-b]').forEach(el => {
+  const b = el.dataset.b;
+  el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture?.(e.pointerId); if (DIRV[b]) holdDir(b, true); press(b); });
+  const up = () => { if (DIRV[b]) holdDir(b, false); };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('pointerleave', up);
+});
+
+// ================= world movement & events =================
+const STEP_MS = 170;
+function canWalk(x, y, ignore) {
+  if (!WALKABLE.has(tileAt(x, y))) return false;
+  if (npcAt(x, y)) return false;
+  return true;
+}
+function stepEnt(e, dx, dy, ms = STEP_MS) { e.fx = e.x; e.fy = e.y; e.x += dx; e.y += dy; e.t = 0; e.dur = ms; e.fr ^= 1; }
+async function walkEnt(e, dir, ms = STEP_MS) { e.dir = dir; const [dx, dy] = DIRV[dir]; stepEnt(e, dx, dy, ms); await sleep(ms + 10); }
+function partnerVisible() { const m = partnerMon(); return (P.flags.partner || P.flags.partnerShown) && m && m.hp > 0; }
+function placePartner() {
+  if (!partnerEnt) return;
+  const [bx, by] = DIRV[OPP[player.dir]];
+  let spots = [[player.x + bx, player.y + by], ...Object.values(DIRV).map(([a, b]) => [player.x + a, player.y + b])];
+  const s = spots.find(([x, y]) => canWalk(x, y)) || [player.x, player.y + 1];
+  Object.assign(partnerEnt, { x: s[0], y: s[1], fx: s[0], fy: s[1], t: 1, dir: player.dir });
+}
+let stepDone = false;
+function tryMove(dir) {
+  player.dir = dir;
+  const [dx, dy] = DIRV[dir], nx = player.x + dx, ny = player.y + dy, t = tileAt(nx, ny);
+  if (t === 'D') return run(() => door(nx, ny));
+  if (t === 'H') return run(fog);
+  const onPartner = partnerEnt && partnerVisible() && partnerEnt.x === nx && partnerEnt.y === ny;
+  if (!canWalk(nx, ny) && !onPartner) return;
+  const ox = player.x, oy = player.y;
+  stepEnt(player, dx, dy);
+  if (partnerEnt && partnerVisible()) {
+    if (Math.abs(partnerEnt.x - ox) + Math.abs(partnerEnt.y - oy) <= 1 || onPartner) {
+      const pdx = ox - partnerEnt.x, pdy = oy - partnerEnt.y;
+      if (pdx || pdy) { partnerEnt.dir = pdx > 0 ? 'right' : pdx < 0 ? 'left' : pdy > 0 ? 'down' : 'up'; stepEnt(partnerEnt, pdx, pdy); }
+    } else Object.assign(partnerEnt, { x: ox, y: oy, fx: ox, fy: oy, t: 1 });
+  }
+  stepDone = true;
+}
+function onStep() {
+  P.steps++;
+  if (P.flags.partner && P.steps % 20 === 0) P.friend = Math.min(255, P.friend + 1);
+  const reg = regionOf(player.y);
+  if (reg !== lastRegion) { lastRegion = reg; banner = { text: reg, until: performance.now() + 2200 }; }
+  // story triggers
+  if (!P.flags.partner && player.y <= 82) return run(introPartner);
+  if (!P.flags.rival2 && player.y <= 22 && player.y >= 19 && player.x >= 12 && player.x <= 19) return run(rival2);
+  // trainers spot you
+  for (const n of NPCS) {
+    if (!n.trainer || P.flags['t_' + n.id] || n.gone) continue;
+    const [dx, dy] = DIRV[n.dir];
+    for (let i = 1; i <= n.trainer.sight; i++) {
+      const x = n.x + dx * i, y = n.y + dy * i;
+      if (x === player.x && y === player.y) return run(() => trainerSpot(n));
+      if (!WALKABLE.has(tileAt(x, y)) || npcAt(x, y)) break;
+    }
+  }
+  // wild encounters
+  const t = tileAt(player.x, player.y);
+  if ((t === ',' || t === 'h') && P.flags.partner && rnd() < .1) {
+    const table = player.y >= 60 ? ENC.route1 : player.y >= 17 ? (t === 'h' ? ENC.murkHush : ENC.murk) : ENC.hushpoint;
+    let roll = rnd() * table.reduce((a, e) => a + e[3], 0), pick = table[0];
+    for (const e of table) { roll -= e[3]; if (roll <= 0) { pick = e; break; } }
+    const hushed = t === 'h' && !P.flags.ending;
+    run(() => wildBattle(makeKith(pick[0], ri(pick[1], pick[2]), { hushed })));
+  }
+}
+async function interact() {
+  const [dx, dy] = DIRV[player.dir], x = player.x + dx, y = player.y + dy, t = tileAt(x, y);
+  const n = npcAt(x, y);
+  if (n) return talk(n);
+  if (partnerEnt && partnerVisible() && partnerEnt.x === x && partnerEnt.y === y) return partnerMood();
+  if (t === 'S') return msg(SIGNS[x + ',' + y] || 'The sign is too weathered to read.');
+  if (t === 'D') return door(x, y);
+  if (t === 'H') return fog();
+  if (t === '~') return msg('The water is calm. Something glimmers beneath the surface.');
+  if (t === 'L' || t === 'W') return msg(P.flags.ending ? 'The lighthouse hums with warm light.' : 'The lighthouse is cold and silent.');
+}
+async function talk(n) {
+  n.dir = OPP[player.dir];
+  if (n.trainer && !P.flags['t_' + n.id]) return trainerBattle(n);
+  if (n.trainer) return msg(n.trainer.post);
+  for (const l of n.lines) await msg(l);
+}
+async function partnerMood() {
+  const m = partnerMon(), f = P.friend;
+  partnerEnt.dir = OPP[player.dir];
+  if (player.y < 17 && !P.flags.ending) return msg(`${m.name} stares at the dark lighthouse. Its flame trembles, but it doesn't look away.`);
+  if (m.hp < m.maxHp / 3) return msg(`${m.name} is tired. Its flame is small and blue.`);
+  if (f < 50) return msg(`${m.name} keeps a little distance and watches you carefully.`);
+  if (f < 100) return msg(`${m.name}'s flame flickers. It seems to be warming up to you.`);
+  if (f < 150) return msg(`${m.name} bumps against your leg. Its wick crackles happily!`);
+  return msg(`${m.name} hums a bright, old tune. Its flame is the exact color of your Lantern's light.`);
+}
+async function trainerSpot(n) {
+  n.bang = performance.now() + 700; await sleep(700);
+  while (Math.abs(n.x - player.x) + Math.abs(n.y - player.y) > 1) {
+    const dir = n.x < player.x ? 'right' : n.x > player.x ? 'left' : n.y < player.y ? 'down' : 'up';
+    await walkEnt(n, dir);
+  }
+  player.dir = n.x < player.x ? 'left' : n.x > player.x ? 'right' : n.y < player.y ? 'up' : 'down';
+  await trainerBattle(n);
+}
+async function trainerBattle(n) {
+  const t = n.trainer;
+  await msg(t.name + ': ' + t.pre);
+  const res = await battle({ foes: t.team.map(([id, lv, h]) => makeKith(id, lv, { hushed: h })), trainer: t });
+  if (res === 'win') { P.flags['t_' + n.id] = true; const pay = t.reward || Math.max(...t.team.map(x => x[1])) * 30; P.money += pay; await msg(`${t.name}: ${t.post}`); await msg(`You got $${pay} for winning!`); await afterBattle(); }
+  else await blackout();
+}
+async function wildBattle(mon) {
+  const res = await battle({ foes: [mon], canRun: true, canCatch: true });
+  if (res === 'lose') return blackout();
+  if (res === 'win' || res === 'caught') await afterBattle();
+}
+async function afterBattle() {
+  P.friend = Math.min(255, P.friend + 2);
+  for (const m of [...P.party]) if (m.evoPending) await evolve(m);
+}
+async function blackout() {
+  await msg('{P} has no Kith left that can fight...');
+  P.money = Math.floor(P.money / 2);
+  await msg('{P} hurried back to the last safe hearth, dropping some coins along the way.');
+  player.x = P.lastHeal.x; player.y = P.lastHeal.y; player.fx = player.x; player.fy = player.y; player.dir = 'down';
+  healAll(); placePartner(); lastRegion = '';
+  await msg('Your Kith are rested and ready again.');
+}
+async function evolve(m) {
+  m.evoPending = false;
+  const [to] = SP[m.id].evo;
+  if (m.partner && P.friend < 120) { await msg(`${m.name}'s flame flared up... then settled. It isn't ready to change yet. Maybe it needs to trust you more.`); return; }
+  await msg(`What? ${m.name} is changing!`);
+  const prevMode = mode; mode = 'evolve'; EVO = { from: m.id, to, t0: performance.now() };
+  await sleep(3200);
+  const old = m.name, hpLost = m.maxHp - m.hp;
+  m.id = to; m.name = SP[to].name; calc(m); m.hp = Math.max(1, m.maxHp - hpLost); m.dispHp = m.hp;
+  EVO.done = true; markCaught(to);
+  await msg(`${old} became ${m.name}!`);
+  mode = prevMode; EVO = null;
+}
+
+// ================= doors & story =================
+async function door(x, y) {
+  const k = x + ',' + y;
+  if (k === '7,89') {
+    await msg('MOM: There you are, {P}! You look worn out.');
+    if (P.flags.partner) { healAll(); P.lastHeal = { x: 7, y: 90 }; await msg('MOM: Sit by the stove a while. ...There. Everyone looks better.'); if (partnerVisible()) await msg('{K} curls up by the stove and purrs like a kettle.'); }
+    else await msg('MOM: Archivist Odile went out toward the north path. Go on, she\'s expecting you!');
+  } else if (k === '22,89') {
+    if (!P.flags.partner) await msg('The Observatory is locked. A note on the door: "Checking the north path. Back soon. O."');
+    else await msg('ODILE\'S ASSISTANT: The Archivist is outside. Your Journal fills itself in as you meet Kith, by the way!');
+  } else if (k === '6,48') {
+    await msg('HEARTHKEEPER: Welcome to the Hearth! Every traveler is welcome by the fire.');
+    if (await yes('Shall I rest your Kith?')) { healAll(); P.lastHeal = { x: 6, y: 49 }; await msg('The fire crackles warmly... Your Kith are fully rested!'); if (partnerVisible()) await msg('{K} pokes its wick into the hearth and comes back glowing.'); }
+    else await msg('HEARTHKEEPER: Come back any time.');
+  } else if (k === '24,48') await shop();
+  else if (k === '23,56') await warden();
+  else if (k === '6,56') await msg('Nobody answers. Through the window you can see a Burrowbun asleep in a teacup.');
+  else if (k === '15,6') await lighthouse();
+}
+async function shop() {
+  await msg('MARKET: Lanterns, salves, tonics! What\'ll it be?');
+  const stock = ['lantern', 'salve', 'tonic', 'draught']; if (P.flags.chord) stock.splice(1, 0, 'bright');
+  while (true) {
+    const i = await choose([...stock.map(id => ({ label: ITEMS[id].name, right: '$' + ITEMS[id].price })), { label: 'DONE' }], { layout: 'big', title: `MARKET   $${P.money}`, sub: j => j < stock.length ? ITEMS[stock[j]].desc : 'Leave the shop.' });
+    if (i < 0 || i === stock.length) break;
+    const it = ITEMS[stock[i]];
+    if (P.money < it.price) { await msg('You don\'t have enough money for that.'); continue; }
+    P.money -= it.price; P.bag[stock[i]]++;
+    await msg(`You bought a ${it.name}! You have ${P.bag[stock[i]]} now.`);
+  }
+  await msg('MARKET: Come again!');
+}
+async function introPartner() {
+  const ox = player.x === 15 ? 16 : 15;
+  const odile = { id: 'odile_tmp', x: ox, y: player.y + 3, fx: ox, fy: player.y + 3, t: 1, dir: 'up', fr: 0, look: LOOKS.odile };
+  NPCS.push(odile);
+  await msg('???: {P}! Stop right there!');
+  player.dir = 'down';
+  await walkEnt(odile, 'up'); await walkEnt(odile, 'up');
+  await msg('ODILE: The Hush has drifted onto Thistle Path. You can\'t go into the tall grass without a Kith!');
+  player.dir = 'up';
+  await msg('Rustle... rustle...');
+  partnerEnt = { x: player.x, y: player.y - 2, fx: player.x, fy: player.y - 2, t: 1, dir: 'down', fr: 0 };
+  P.party = [Object.assign(makeKith('pipwick', 5), { partner: true })]; markSeen('pipwick');
+  P.flags.partnerShown = true;
+  await msg('A small Kith tumbles out of the grass, a curl of grey fog drifting after it!');
+  await walkEnt(partnerEnt, 'down', 120);
+  await msg('ODILE: A Pipwick! The Hush must have spooked it. Quick, I\'ll offer it a Lantern!');
+  await msg('Odile offered a Lantern!');
+  await msg('...The flame inside sputtered out. Pipwick turned its back on the Lantern!');
+  await msg('ODILE: It refused? I\'ve never seen a Kith refuse a Lantern so plainly.');
+  Object.assign(partnerEnt, { x: player.x, y: player.y + 1, fx: player.x, fy: player.y + 1, t: 1, dir: 'up' });
+  await msg('Pipwick darts behind you and presses close against your ankles.');
+  await msg('ODILE: Well! It seems it chose you, Lantern or no Lantern.');
+  await msg('ODILE: Old stories say Kith who refuse Lanterns still remember the old songs. Come to the Observatory, both of you.');
+  // cut to the Observatory
+  NPCS = NPCS.filter(n => n !== odile);
+  Object.assign(player, { x: 22, y: 90, fx: 22, fy: 90, t: 1, dir: 'up' });
+  Object.assign(partnerEnt, { x: 22, y: 91, fx: 22, fy: 91, t: 1, dir: 'up' });
+  const od = { id: 'odile_tmp', x: 21, y: 90, fx: 21, fy: 90, t: 1, dir: 'right', fr: 0, look: LOOKS.odile };
+  const sb = { id: 'sable_tmp', x: 23, y: 90, fx: 23, fy: 90, t: 1, dir: 'left', fr: 0, look: LOOKS.sable };
+  NPCS.push(od, sb);
+  await msg('...');
+  await msg('SABLE: Grandma! You said I could pick first. I\'ve been waiting all morning!');
+  await msg('ODILE: Sable, {P} has a partner now. Go on, choose yours.');
+  await msg('SABLE: Then I\'ll take Breezel. Fast and sharp. Like me.');
+  await msg('Sable offered a Lantern. Breezel stepped right into the glow!');
+  player.dir = 'right';
+  await msg('SABLE: A Kith that won\'t even sit in a Lantern? Let\'s see if it can fight. {P}, battle me!');
+  const res = await battle({ foes: [makeKith('breezel', 5)], trainer: { name: 'SABLE' } });
+  healAll();
+  if (res === 'win') { P.friend += 5; await msg('SABLE: Hmph. Lucky gust.'); } else await msg('SABLE: Ha! Told you Lanterns are better.');
+  await msg('SABLE: I\'m going north. Someone has to find out what\'s wrong with that lighthouse, and it\'s going to be me.');
+  for (const d of ['down', 'down', 'right', 'right', 'right']) await walkEnt(sb, d, 120);
+  NPCS = NPCS.filter(n => n !== sb);
+  player.dir = 'left';
+  await msg('ODILE: That child. Here, {P}, take these.');
+  P.bag.lantern += 5; P.bag.salve += 2;
+  await msg('You received 5 Lanterns and 2 Salves!');
+  await msg('You received the Journal! It records every Kith you meet and bond with.');
+  await msg('ODILE: Weaken a wild Kith, then offer a Lantern. If it trusts your light, it will step inside.');
+  await msg('ODILE: Pipwick won\'t ride in one, so it will walk beside you instead. Talk to it now and then. Face it and press A.');
+  await msg('ODILE: The Warden in Brindlewick knows the old songs. Start there. And {P}... keep that little flame safe.');
+  NPCS = NPCS.filter(n => n !== od);
+  P.flags.partner = true; P.flags.rival1 = true;
+  buildNPCs(); save(true);
+}
+async function warden() {
+  if (P.flags.chord) return msg('WARDEN MOSS: Murkwood is north of town. Hum the Verdant Chord at the fog, and keep that flame lit.');
+  await msg('WARDEN MOSS: So you\'re the one walking with an unbonded Pipwick. Word travels fast in a quiet world.');
+  await msg('WARDEN MOSS: The Verdant Chord is one of the old songs. It was sung to calm the first Hush, long ago.');
+  if (!await yes('WARDEN MOSS: I\'ll teach it to your Pipwick, if you show me your bond is real. Ready?')) return msg('WARDEN MOSS: Then come back when you are.');
+  const res = await battle({ foes: [makeKith('mossnip', 10), makeKith('bramblemaw', 12)], trainer: { name: 'WARDEN MOSS' } });
+  if (res !== 'win') return blackout();
+  P.money += 1200;
+  await msg('WARDEN MOSS: You fight like a pair, not a trainer and a tool. Here.');
+  await msg('Moss hums a low, green melody. {K} listens, flame swaying... then hums it right back!');
+  P.flags.chord = true;
+  await msg('{K} learned the VERDANT CHORD! Hum it at the Hush, and the fog will part.');
+  await msg('You received $1200. The Market will now sell Bright Lanterns.');
+  await msg('WARDEN MOSS: The Hush is thickest in Murkwood, north of town. Whatever is at the bottom of it, I think it\'s waiting for you.');
+  await afterBattle();
+}
+async function fog() {
+  if (!P.flags.chord) return msg('A wall of grey fog. Sound dies inside it. Even {K}\'s crackle goes silent.');
+  await msg('{K} steps up to the fog and hums the Verdant Chord...');
+  await msg('The Hush shivers and draws back like the tide going out!');
+  P.flags.fog = true; MAP[18][15] = '.'; MAP[18][16] = '.';
+  P.friend = Math.min(255, P.friend + 10);
+}
+async function rival2() {
+  P.flags.rival2 = true;
+  const sb = { id: 'sable_tmp', x: 15, y: 19, fx: 15, fy: 19, t: 1, dir: 'down', fr: 0, look: LOOKS.sable };
+  if (sb.x === player.x && sb.y === player.y) sb.x = 16;
+  NPCS.push(sb);
+  await msg('SABLE: {P}. You made it this far.');
+  while (Math.abs(sb.x - player.x) + Math.abs(sb.y - player.y) > 1) await walkEnt(sb, sb.y < player.y - (sb.x === player.x ? 1 : 0) ? 'down' : sb.x < player.x ? 'right' : 'left');
+  player.dir = sb.x < player.x ? 'left' : sb.x > player.x ? 'right' : 'up';
+  await msg('SABLE: I went into the fog alone. My Galeferret... it can\'t make a sound anymore. It still fights. It just won\'t sing.');
+  await msg('SABLE: Vell\'s people say a Lantern keeps a Kith safe from the Hush forever. Maybe they\'re right. Maybe yours should be locked up too.');
+  await msg('SABLE: Prove your way is better. Battle me!');
+  const res = await battle({ foes: [makeKith('pebblet', 12), makeKith('zapling', 13), makeKith('galeferret', 15, { hushed: true })], trainer: { name: 'SABLE' } });
+  if (res !== 'win') { P.flags.rival2 = false; NPCS = NPCS.filter(n => n !== sb); return blackout(); }
+  P.money += 900;
+  await msg('SABLE: ...Your {K} hummed at Galeferret the whole fight. Did you see? Its ears twitched.');
+  await msg('SABLE: Go. If anyone can get through the Hush, it\'s you two. You got $900.');
+  for (const d of ['down', 'down', 'down']) { if (canWalk(sb.x, sb.y + 1)) await walkEnt(sb, d, 120); }
+  NPCS = NPCS.filter(n => n !== sb);
+  await afterBattle();
+}
+async function lighthouse() {
+  if (P.flags.ending) return msg('The door stands open. Light pours down the stairwell, and somewhere above, Kith are singing.');
+  if (!P.flags.vell) {
+    await msg('The door creaks open. Lanterns hang all the way up the stairwell. Inside each one, a Kith sleeps without a sound.');
+    const v = { id: 'vell', x: 16, y: 7, fx: 16, fy: 7, t: 1, dir: 'left', fr: 0, look: LOOKS.vell };
+    if (player.x === 16) v.x = 14 + 0, v.fx = v.x;
+    NPCS.push(v);
+    player.dir = v.x > player.x ? 'right' : 'left';
+    await msg('VELL: Another Lantern-carrier. Come to put out my work?');
+    await msg('VELL: Long ago, the great Kith Quietus sang the tides in and out. People stopped listening. Its song curdled into silence: the Hush.');
+    await msg('VELL: Every Kith the Hush touches loses its voice. So I keep them in Lanterns. Still. Safe. Where nothing can be lost.');
+    await msg('VELL: I darkened the lighthouse so Quietus would sleep. But your Pipwick hums. It\'s waking the old songs. I can\'t allow that.');
+    const res = await battle({ foes: [makeKith('hushwing', 18), makeKith('craghorn', 18), makeKith('duskmastiff', 20)], trainer: { name: 'KEEPER VELL', reward: 3000 } });
+    NPCS = NPCS.filter(n => n !== v);
+    if (res !== 'win') return blackout();
+    P.flags.vell = true; P.money += 3000;
+    await msg('VELL: ...Listen. Do you hear that? You got $3000.');
+    await msg('VELL: The Lanterns. They\'re humming along with your {K}. All of them.');
+    await afterBattle();
+  }
+  await msg('The sea heaves. A vast pale shape rises out of the fog behind the lighthouse!');
+  await msg('QUIETUS: ..................');
+  await msg('Its mouth opens, but no sound comes out. It is trying to sing.');
+  const q = makeKith('quietus', 21, { hushed: true });
+  const res = await battle({ foes: [q], canRun: false, canCatch: true, legend: true });
+  if (res === 'lose') return blackout();
+  if (res === 'caught') {
+    await msg('Inside your Lantern, Quietus\'s voice returns: one long, deep note that rolls across the entire coast.');
+  } else {
+    await msg('Quietus sinks low in the water, exhausted. It is still silent.');
+    const c = await ask('What will you do?', ['HUM THE CHORD', 'STAY QUIET'], { cancel: false });
+    if (c === 0) await msg('You and {K} hum the Verdant Chord together. Quietus listens... and answers.');
+    else await msg('You keep quiet. But {K} doesn\'t: it hums the Verdant Chord on its own, as loud as it can. Quietus listens... and answers.');
+    await msg('Its voice returns, deep as the tide, and it slides back into the sea, singing.');
+  }
+  await ending();
+}
+async function ending() {
+  P.flags.ending = true; P.friend = Math.min(255, P.friend + 30);
+  await msg('The lighthouse lamp flares to life. All along the coast, Lanterns crack open and hushed Kith cry out again.');
+  await msg('VELL: I was so afraid of losing them that I took away the very thing I loved about them.');
+  await msg('VELL: I\'ll open every Lantern in this tower. They can choose for themselves where they belong.');
+  await msg('SABLE: {P}! Galeferret just sang! Out of nowhere! Did you do this?');
+  await msg('{K}\'s flame burns bright gold.');
+  buildNPCs(); save(true);
+  mode = 'credits';
+  await choose(['CONTINUE EXPLORING'], { cancel: false, layout: 'none' });
+  mode = 'world';
+}
+
+// ================= battle =================
+const alive = m => m.hp > 0;
+function lab(m) { if (B.foes.includes(m)) return B.trainer ? `Foe ${m.name}` : `${m.hushed ? 'Hushed' : 'Wild'} ${m.name}`; return m.name; }
+async function battle(o) {
+  const prev = mode; mode = 'battle';
+  B = { foes: o.foes, foe: o.foes[0], me: null, trainer: o.trainer, canRun: !!o.canRun, canCatch: !!o.canCatch, fx: {}, foeShow: true, meShow: false, legend: o.legend };
+  for (const f of o.foes) { f.st = { atk: 0, def: 0 }; f.dispHp = f.hp; }
+  markSeen(B.foe.id);
+  B.foeShow = true;
+  if (o.trainer) { await msg(`${o.trainer.name} wants to battle!`); await msg(`${o.trainer.name} sent out ${B.foe.name}!`); }
+  else if (o.legend) await msg('QUIETUS rises from the fog!');
+  else await msg(`A ${B.foe.hushed ? 'hushed' : 'wild'} ${B.foe.name} appeared!${B.foe.hushed ? ' It makes no sound at all.' : ''}`);
+  B.me = P.party.find(alive); B.me.st = { atk: 0, def: 0 }; B.me.dispHp = B.me.hp; B.meShow = true;
+  B.part = new Set([B.me]);
+  await msg(`Go, ${B.me.name}!`);
+  let res = null;
+  while (!res) { const act = await chooseAction(); res = await doTurn(act); }
+  for (const m of P.party) m.st = { atk: 0, def: 0 };
+  mode = prev === 'battle' ? 'world' : prev; B = null;
+  return res;
+}
+async function chooseAction() {
+  while (true) {
+    ui.text = `What will\n${B.me.name} do?`; ui.typed = 999;
+    const c = await choose(['FIGHT', 'BAG', 'KITH', 'RUN'], { layout: 'cmd', cancel: false });
+    if (c === 0) {
+      const mi = await choose(B.me.moves.map(id => MV[id].name), { layout: 'moves', info: i => MV[B.me.moves[i]] });
+      if (mi < 0) continue;
+      return { kind: 'move', mv: B.me.moves[mi] };
+    }
+    if (c === 1) {
+      const it = await bagMenu(true); if (!it) continue;
+      if (ITEMS[it].catch) {
+        if (B.trainer) { await msg('You can\'t offer a Lantern to someone else\'s Kith!'); continue; }
+        return { kind: 'catch', item: it };
+      }
+      const tgt = await pickKith(`Use ${ITEMS[it].name} on which Kith?`); if (!tgt) continue;
+      if (!canUse(it, tgt)) { await msg('It won\'t have any effect.'); continue; }
+      return { kind: 'item', item: it, target: tgt };
+    }
+    if (c === 2) {
+      const m = await pickKith('Switch to which Kith?'); if (!m) continue;
+      if (m === B.me) { await msg(`${m.name} is already out there!`); continue; }
+      if (!alive(m)) { await msg(`${m.name} has no strength left to fight!`); continue; }
+      return { kind: 'switch', mon: m };
+    }
+    if (c === 3) {
+      if (B.trainer) { await msg('You can\'t run from a trainer battle!'); continue; }
+      if (!B.canRun) { await msg('Something holds you here. You can\'t look away.'); continue; }
+      return { kind: 'run' };
+    }
+  }
+}
+function aiPick(f) {
+  const scored = f.moves.map(id => { const mv = MV[id]; let s = mv.pow ? mv.pow * eff(mv.type, SP[B.me.id].type) * (SP[f.id].type === mv.type ? 1.5 : 1) : 30 - Math.abs(mv.self ? f.st[mv.self] : B.me.st[mv.foe]) * 15; return [id, s]; });
+  scored.sort((a, b) => b[1] - a[1]);
+  return rnd() < .65 ? scored[0][0] : scored[ri(0, scored.length - 1)][0];
+}
+async function doTurn(act) {
+  const foeMv = aiPick(B.foe);
+  if (act.kind !== 'move') {
+    if (act.kind === 'run') {
+      if (B.me.spd >= B.foe.spd || rnd() < .5) { await msg('Got away safely!'); return 'run'; }
+      await msg('Couldn\'t get away!');
+    }
+    if (act.kind === 'switch') {
+      await msg(`${B.me.name}, come back!`); B.meShow = false; await sleep(200);
+      B.me = act.mon; B.me.st = { atk: 0, def: 0 }; B.me.dispHp = B.me.hp; B.meShow = true; B.part.add(B.me);
+      await msg(`Go, ${B.me.name}!`);
+    }
+    if (act.kind === 'item') await useItem(act.item, act.target);
+    if (act.kind === 'catch') { if (await offerLantern(act.item)) return 'caught'; }
+    await attack(B.foe, B.me, foeMv);
+    return handleFaints();
+  }
+  const meFirst = B.me.spd > B.foe.spd || (B.me.spd === B.foe.spd && rnd() < .5);
+  const order = meFirst ? [[B.me, B.foe, act.mv], [B.foe, B.me, foeMv]] : [[B.foe, B.me, foeMv], [B.me, B.foe, act.mv]];
+  const snap = [B.me, B.foe];
+  for (const [a, d, mv] of order) {
+    if (B.me !== snap[0] || B.foe !== snap[1]) break;
+    await attack(a, d, mv);
+    const r = await handleFaints(); if (r) return r;
+  }
+  return null;
+}
+async function attack(a, d, id) {
+  const mv = MV[id], mine = a === B.me;
+  await msg(`${lab(a)} used ${mv.name}!`);
+  if (rnd() * 100 >= mv.acc) { await msg(`${lab(a)}'s attack missed!`); return; }
+  if (mv.pow) {
+    B.fx.lunge = { side: mine ? 'me' : 'foe', until: performance.now() + 220 }; await sleep(220);
+    const crit = rnd() < 1 / 16, e = eff(mv.type, SP[d.id].type);
+    const A = a.atk * stageMul(a.st.atk), D = d.def * stageMul(d.st.def);
+    let dmg = Math.max(1, Math.floor(((2 * a.level / 5 + 2) * mv.pow * A / D / 50 + 2) * (SP[a.id].type === mv.type ? 1.5 : 1) * e * (crit ? 1.5 : 1) * (.85 + rnd() * .15)));
+    let endured = false;
+    if (d.partner && dmg >= d.hp && d.hp > 1 && P.friend >= 150 && rnd() < .3) { dmg = d.hp - 1; endured = true; }
+    d.hp = Math.max(0, d.hp - dmg);
+    B.fx.flash = { side: mine ? 'foe' : 'me', until: performance.now() + 450 };
+    await sleep(450); await tweenHp(d);
+    if (crit) await msg('A critical hit!');
+    if (e > 1) await msg('It\'s super effective!');
+    if (e < 1) await msg('It\'s not very effective...');
+    if (endured) await msg(`${d.name} held on for you!`);
+  } else {
+    const tgt = mv.self ? a : d, key = mv.self || mv.foe, nm = key === 'atk' ? 'Attack' : 'Defense';
+    const nv = Math.max(-4, Math.min(4, tgt.st[key] + mv.amt));
+    if (nv === tgt.st[key]) await msg(`${lab(tgt)}'s ${nm} won't go any ${mv.amt > 0 ? 'higher' : 'lower'}!`);
+    else { tgt.st[key] = nv; await msg(`${lab(tgt)}'s ${nm} ${mv.amt > 0 ? 'rose' : 'fell'}!`); }
+  }
+}
+function tweenHp(m) { return new Promise(r => { const iv = setInterval(() => { if (Math.abs(m.dispHp - m.hp) < .5) { m.dispHp = m.hp; clearInterval(iv); r(); } }, 30); }); }
+async function handleFaints() {
+  if (B.foe.hp <= 0) {
+    await msg(`${lab(B.foe)} fainted!`); B.foeShow = false;
+    const share = [...B.part].filter(alive), base = Math.floor(SP[B.foe.id].xp * B.foe.level / 5 * (B.trainer ? 1.5 : 1) * (B.foe.hushed ? 1.3 : 1));
+    for (const m of share) await gainXp(m, Math.max(1, Math.floor(base / share.length)));
+    const next = B.foes.find(alive);
+    if (next && B.trainer) {
+      B.foe = next; markSeen(next.id); next.dispHp = next.hp;
+      await msg(`${B.trainer.name} sent out ${next.name}!`); B.foeShow = true; B.part = new Set([B.me]); return null;
+    }
+    return 'win';
+  }
+  if (B.me.hp <= 0) {
+    await msg(`${B.me.name} fainted!`); B.meShow = false;
+    if (B.me.partner) P.friend = Math.max(0, P.friend - 8);
+    if (!P.party.some(alive)) return 'lose';
+    let m; do { m = await pickKith('Choose your next Kith.', true); } while (!m || !alive(m));
+    B.me = m; m.st = { atk: 0, def: 0 }; m.dispHp = m.hp; B.part.add(m); B.meShow = true;
+    await msg(`Go, ${m.name}!`);
+  }
+  return null;
+}
+async function gainXp(m, amt) {
+  m.xp += amt; await msg(`${m.name} gained ${amt} XP!`);
+  while (m.level < 50 && m.xp >= lvXP(m.level + 1)) {
+    const oldMax = m.maxHp; m.level++; calc(m); m.hp += m.maxHp - oldMax; m.dispHp = m.hp;
+    await msg(`${m.name} grew to level ${m.level}!`);
+    for (const [lv, mv] of SP[m.id].learn) if (lv === m.level && !m.moves.includes(mv)) await learnMove(m, mv);
+    const evo = SP[m.id].evo; if (evo && m.level >= evo[1]) m.evoPending = true;
+  }
+}
+async function learnMove(m, mv) {
+  if (m.moves.length < 4) { m.moves.push(mv); return msg(`${m.name} learned ${MV[mv].name}!`); }
+  const i = await ask(`${m.name} wants to learn ${MV[mv].name}. Forget which move?`, [...m.moves.map(id => MV[id].name), 'KEEP OLD MOVES'], { cancel: false, layout: 'big', title: `Learn ${MV[mv].name} (${MV[mv].type} ${MV[mv].pow || '-'})` });
+  if (i >= 4) return msg(`${m.name} did not learn ${MV[mv].name}.`);
+  const old = MV[m.moves[i]].name; m.moves[i] = mv;
+  await msg(`${m.name} forgot ${old} and learned ${MV[mv].name}!`);
+}
+async function offerLantern(id) {
+  P.bag[id]--;
+  const f = B.foe, sp = SP[f.id];
+  await msg(`{P} offered a ${ITEMS[id].name}!`);
+  B.fx.lantern = { t0: performance.now() }; B.foeShow = false;
+  const a = Math.min(1, ((3 * f.maxHp - 2 * f.hp) / (3 * f.maxHp)) * (sp.rate / 255) * ITEMS[id].catch * (f.hushed ? 1.25 : 1));
+  const p3 = Math.cbrt(a); let shakes = 0;
+  for (let i = 0; i < 3; i++) { await sleep(450); if (rnd() < p3) { shakes++; B.fx.lantern.shake = performance.now(); await note('...the light flickers' + '.'.repeat(i + 1), 650); } else break; }
+  if (shakes === 3) {
+    B.fx.lantern.done = true;
+    await msg(`${f.name} stepped into the light! You and ${f.name} are now bonded!`);
+    if (f.hushed) { f.hushed = false; calc(f); f.hp = Math.min(f.hp, f.maxHp); await msg(`Its voice comes back all at once: a bright, ringing cry!`); }
+    markCaught(f.id); f.st = { atk: 0, def: 0 };
+    if (P.party.length < 6) P.party.push(f); else { P.archive.push(f); await msg(`Your party is full. ${f.name} was sent to Odile's Archive.`); }
+    if (partnerVisible()) await msg(`${partnerMon().name} gives the Lantern a curious sniff.`);
+    B.fx.lantern = null;
+    return true;
+  }
+  B.fx.lantern = null; B.foeShow = true;
+  await msg(['It turned away from the glow!', 'It hesitated... then backed off!', 'So close! It almost stepped in!'][shakes]);
+  return false;
+}
+const canUse = (it, m) => ITEMS[it].revive ? m.hp <= 0 : ITEMS[it].heal ? (m.hp > 0 && m.hp < m.maxHp) : false;
+async function useItem(it, m) {
+  P.bag[it]--;
+  if (ITEMS[it].revive) { m.hp = Math.floor(m.maxHp / 2); m.dispHp = m.hp; await msg(`${m.name} was revived!`); return; }
+  const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + ITEMS[it].heal); if (B) await tweenHp(m); else m.dispHp = m.hp;
+  await msg(`${m.name} recovered ${m.hp - before} HP!`);
+}
+
+// ================= menus =================
+async function bagMenu(inBattle) {
+  const ids = Object.keys(ITEMS).filter(id => P.bag[id] > 0);
+  if (!ids.length) { await msg('Your bag is empty.'); return null; }
+  const i = await choose(ids.map(id => ({ label: ITEMS[id].name, right: 'x' + P.bag[id] })), { layout: 'big', title: 'BAG', sub: j => ITEMS[ids[j]].desc });
+  return i < 0 ? null : ids[i];
+}
+async function pickKith(title, force) {
+  const opts = P.party.map(m => ({ label: m.name, right: `Lv${m.level} ${m.hp}/${m.maxHp}`, faint: m.hp <= 0 }));
+  const i = await choose(opts, { layout: 'big', title, cancel: !force, sub: j => { const m = P.party[j]; return `${SP[m.id].type} type${m.partner ? ' · your partner' : ''}${m.hushed ? ' · hushed' : ''}`; } });
+  return i < 0 ? null : P.party[i];
+}
+async function startMenu() {
+  const opts = ['KITH', 'BAG', 'JOURNAL', 'ARCHIVE', 'SAVE', 'CLOSE'];
+  while (true) {
+    const i = await choose(opts.map(o => o === 'KITH' && !P.party.length ? { label: o, disabled: true } : o), { layout: 'box', pos: 'top' });
+    if (i < 0 || i === 5) return;
+    if (i === 0) await partyMenu();
+    if (i === 1) { const it = await bagMenu(false); if (it) await useItemWorld(it); }
+    if (i === 2) await journal();
+    if (i === 3) await archiveMenu();
+    if (i === 4) { save(); await msg('Your journey was saved. (Saved in this browser only.)'); }
+  }
+}
+async function useItemWorld(it) {
+  if (ITEMS[it].catch) return msg('Lanterns are for offering to wild Kith during a battle.');
+  const m = await pickKith(`Use ${ITEMS[it].name} on which Kith?`); if (!m) return;
+  if (!canUse(it, m)) return msg('It won\'t have any effect.');
+  await useItem(it, m);
+}
+async function partyMenu() {
+  while (true) {
+    const m = await pickKith('YOUR KITH'); if (!m) return;
+    const acts = ['SUMMARY', 'MAKE LEAD', 'SEND TO ARCHIVE', 'BACK'];
+    const a = await choose(acts, { layout: 'box' });
+    if (a === 0) {
+      const sp = SP[m.id];
+      await msg(`${m.name}  Lv ${m.level}  ${sp.type}${m.hushed ? ' (hushed)' : ''}\nHP ${m.hp}/${m.maxHp}  ATK ${m.atk}\nDEF ${m.def}  SPD ${m.spd}`);
+      await msg(`Moves: ${m.moves.map(id => MV[id].name).join(', ')}.`);
+      await msg(m.level >= 50 ? 'Max level.' : `${lvXP(m.level + 1) - m.xp} XP to level ${m.level + 1}.`);
+      if (m.partner) await msg(`Bond with you: ${P.friend >= 150 ? 'unbreakable' : P.friend >= 100 ? 'close' : P.friend >= 50 ? 'friendly' : 'cautious'}.`);
+    }
+    if (a === 1) { P.party.splice(P.party.indexOf(m), 1); P.party.unshift(m); await msg(`${m.name} will lead in battle.`); }
+    if (a === 2) {
+      if (m.partner) await msg(`${m.name} refuses to leave your side. (And it won't go in a Lantern anyway.)`);
+      else if (P.party.length <= 1) await msg('You need at least one Kith with you.');
+      else { P.party.splice(P.party.indexOf(m), 1); P.archive.push(m); await msg(`${m.name} was sent to Odile's Archive.`); }
+    }
+  }
+}
+async function archiveMenu() {
+  if (!P.archive.length) return msg('Odile\'s Archive is empty. Kith you bond with while your party is full are sent here.');
+  const i = await choose(P.archive.map(m => ({ label: m.name, right: `Lv${m.level}` })), { layout: 'big', title: 'ODILE\'S ARCHIVE', sub: () => 'Choose a Kith to bring along.' });
+  if (i < 0) return;
+  if (P.party.length >= 6) return msg('Your party is full. Send someone to the Archive first.');
+  const m = P.archive.splice(i, 1)[0]; healMon(m); P.party.push(m);
+  await msg(`${m.name} rejoined your party, fully rested.`);
+}
+const healMon = m => { m.hp = m.maxHp; m.dispHp = m.hp; };
+async function journal() {
+  const list = DEX_ORDER.filter(id => !SP[id].legend || P.seen.includes(id));
+  const i = await choose(list.map(id => ({ label: P.seen.includes(id) ? SP[id].name : '??????', right: P.caught.includes(id) ? 'BONDED' : P.seen.includes(id) ? 'SEEN' : '' })),
+    { layout: 'big', title: `JOURNAL  seen ${P.seen.length}  bonded ${P.caught.length}`, sub: j => P.seen.includes(list[j]) ? `${SP[list[j]].type}. ${SP[list[j]].dex}` : 'Not yet encountered.' });
+  if (i >= 0 && P.seen.includes(list[i])) await msg(`${SP[list[i]].name} (${SP[list[i]].type}): ${SP[list[i]].dex}`);
+}
+
+// ================= save / load =================
+const SAVE_KEY = 'lanternbound-save-v1';
+function save(quiet) {
+  P.pos = { x: player.x, y: player.y, dir: player.dir };
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); } catch (e) { if (!quiet) console.warn('save failed', e); }
+}
+function loadSave() { try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function enterWorld() {
+  buildMap(); buildNPCs();
+  player = { x: P.pos.x, y: P.pos.y, fx: P.pos.x, fy: P.pos.y, t: 1, dir: P.pos.dir, fr: 0 };
+  partnerEnt = { x: player.x, y: player.y + 1, fx: 0, fy: 0, t: 1, dir: 'down', fr: 0 };
+  placePartner();
+  lastRegion = regionOf(player.y); banner = { text: lastRegion, until: performance.now() + 2200 };
+  mode = 'world';
+}
+
+// ================= title =================
+async function title() {
+  mode = 'title';
+  const existing = loadSave();
+  const opts = existing ? ['CONTINUE', 'NEW GAME'] : ['NEW GAME'];
+  const i = await choose(opts, { layout: 'title', cancel: false });
+  if (existing && i === 0) { P = existing; P.party.concat(P.archive).forEach(m => { m.dispHp = m.hp; m.st = { atk: 0, def: 0 }; }); enterWorld(); return; }
+  P = newState('');
+  mode = 'intro';
+  await msg('Welcome to the Lumen Coast.');
+  await msg('Here, people live alongside creatures called Kith, and share their light with them.');
+  await msg('When a Kith chooses you, it steps into your Lantern, and the two of you are bonded.');
+  await msg('But this spring, the great lighthouse at Hushpoint went dark.');
+  await msg('A silent fog called the Hush now drifts south from it. Kith caught inside lose their voices, and their way home.');
+  const n = await ask('Now, what is your name?', ['ROWAN', 'JUNO', 'ASH', 'MIRA', 'KIT'], { cancel: false, layout: 'box' });
+  P.name = ['ROWAN', 'JUNO', 'ASH', 'MIRA', 'KIT'][n];
+  await msg('{P}! Today you\'re old enough for your first Lantern. Archivist Odile will be waiting.');
+  await msg('Your adventure on the Lumen Coast begins now!');
+  enterWorld(); save(true);
+}
+
+// ================= rendering =================
+function box(x, y, w, h) {
+  g.fillStyle = '#fffaf0'; g.fillRect(x, y, w, h);
+  g.strokeStyle = INK; g.lineWidth = 4; g.strokeRect(x + 2, y + 2, w - 4, h - 4);
+  g.strokeStyle = '#e3a83b'; g.lineWidth = 2; g.strokeRect(x + 9, y + 9, w - 18, h - 18);
+}
+function txt(s, x, y, col = INK, size = 16, align = 'left') { g.font = `${size}px ${FONT}`; g.fillStyle = col; g.textBaseline = 'top'; g.textAlign = align; g.fillText(s, x, y); g.textAlign = 'left'; }
+function cursor(x, y) { g.fillStyle = INK; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10, y + 7); g.lineTo(x, y + 14); g.fill(); }
+function hpBar(x, y, w, m) {
+  const f = Math.max(0, m.dispHp / m.maxHp);
+  g.fillStyle = INK; g.fillRect(x - 2, y - 2, w + 4, 14);
+  g.fillStyle = '#e9e0c8'; g.fillRect(x, y, w, 10);
+  g.fillStyle = f > .5 ? '#4cbf5a' : f > .2 ? '#e8b130' : '#e0473c'; g.fillRect(x, y, w * f, 10);
+}
+function drawEnt(e, img, now) {
+  const p = e.t >= 1 ? 1 : e.t, rx = e.fx + (e.x - e.fx) * p, ry = e.fy + (e.y - e.fy) * p;
+  return [rx, ry];
+}
+function entPos(e) { const p = Math.min(1, e.t); return [e.fx + (e.x - e.fx) * p, e.fy + (e.y - e.fy) * p]; }
+function drawWorld(now) {
+  const [px, py] = entPos(player), camX = px - 4.5 + .5, camY = py - 4;
+  g.imageSmoothingEnabled = false;
+  const x0 = Math.floor(camX), y0 = Math.floor(camY), wf = Math.floor(now / 600) % 2;
+  for (let ty = y0; ty <= y0 + 10; ty++) for (let tx = x0; tx <= x0 + 11; tx++) {
+    const t = tileAt(tx, ty), sx = Math.round((tx - camX) * 64), sy = Math.round((ty - camY) * 64);
+    g.drawImage(t === '~' ? WATER[wf] : TILES[t] || TILES['T'], sx, sy, 64, 64);
+    if (t === 'W' && P.flags.ending) { g.fillStyle = 'rgba(255,214,90,.75)'; g.fillRect(sx + 8, sy + 8, 48, 48); }
+  }
+  // entities sorted by y
+  const ents = [];
+  for (const n of NPCS) if (!n.gone) ents.push({ e: n, img: personImg(n.look, n.dir, n.t < 1 ? n.fr : 0) });
+  if (partnerEnt && partnerVisible()) {
+    const m = partnerMon(); ents.push({ e: partnerEnt, kith: kithImg(m.id, partnerEnt.dir === 'right') });
+  }
+  ents.push({ e: player, img: personImg(LOOKS.player, player.dir, player.t < 1 ? player.fr : 0) });
+  ents.sort((a, b) => entPos(a.e)[1] - entPos(b.e)[1]);
+  for (const o of ents) {
+    const [ex, ey] = entPos(o.e), sx = Math.round((ex - camX) * 64), sy = Math.round((ey - camY) * 64);
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(sx + 32, sy + 58, 20, 6, 0, 0, 7); g.fill();
+    if (o.kith) { const bob = o.e.t < 1 ? Math.round(Math.sin(o.e.t * Math.PI) * -4) : 0; g.drawImage(o.kith, sx, sy - 6 + bob, 64, 64); }
+    else g.drawImage(o.img, sx, sy - 8, 64, 64);
+    if (o.e.bang && now < o.e.bang) { box(sx + 12, sy - 58, 40, 44); txt('!', sx + 25, sy - 44, '#d9534f'); }
+  }
+  // Hush tint near the fog
+  if (!P.flags.ending && py < 42) { const a = py < 17 ? .22 : .12; g.fillStyle = `rgba(150,140,180,${a})`; g.fillRect(0, 0, 640, 576); }
+  if (banner && now < banner.until) { box(8, 8, Math.min(624, banner.text.length * 16 + 48), 56); txt(banner.text, 32, 28); }
+}
+function drawBattle(now) {
+  const grd = g.createLinearGradient(0, 0, 0, 416); grd.addColorStop(0, '#fbf3d8'); grd.addColorStop(1, '#efe0b2');
+  g.fillStyle = grd; g.fillRect(0, 0, 640, 416);
+  if (B.foe && B.foe.hushed) { g.fillStyle = 'rgba(140,130,175,.25)'; g.fillRect(0, 0, 640, 416); }
+  g.fillStyle = '#d6c48c'; g.beginPath(); g.ellipse(500, 196, 130, 26, 0, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(170, 392, 150, 28, 0, 0, 7); g.fill();
+  g.imageSmoothingEnabled = false;
+  const lung = B.fx.lunge && now < B.fx.lunge.until ? B.fx.lunge.side : null;
+  const fl = B.fx.flash && now < B.fx.flash.until && Math.floor(now / 70) % 2 ? B.fx.flash.side : null;
+  if (B.foeShow && B.foe && fl !== 'foe') {
+    if (B.foe.hushed) g.filter = 'grayscale(.75) brightness(1.05)';
+    const sz = B.legend ? 200 : 160;
+    g.drawImage(kithImg(B.foe.id), 420 - (lung === 'foe' ? 24 : 0) - (sz - 160) / 2, 196 - sz + 20, sz, sz);
+    g.filter = 'none';
+  }
+  if (B.fx.lantern) { // the offered lantern
+    const sh = B.fx.lantern.shake && now - B.fx.lantern.shake < 300 ? Math.sin((now - B.fx.lantern.shake) / 30) * 8 : 0;
+    const x = 480 + sh, y = 110;
+    g.fillStyle = 'rgba(255,214,90,.35)'; g.beginPath(); g.arc(x + 20, y + 40, 44 + Math.sin(now / 120) * 4, 0, 7); g.fill();
+    g.fillStyle = INK; g.fillRect(x + 12, y, 16, 8); g.fillRect(x, y + 8, 40, 56);
+    g.fillStyle = '#ffd65a'; g.fillRect(x + 6, y + 14, 28, 44); g.fillStyle = '#fff4c2'; g.fillRect(x + 14, y + 26, 12, 20);
+  }
+  if (B.meShow && B.me && fl !== 'me') g.drawImage(kithImg(B.me.id, true), 70 + (lung === 'me' ? 24 : 0), 210, 192, 192);
+  if (B.foe && B.foeShow) {
+    box(16, 16, 300, 92); txt(B.foe.name, 36, 34, B.foe.hushed ? '#6b5b9a' : INK); txt('Lv' + B.foe.level, 300, 34, INK, 16, 'right');
+    txt('HP', 36, 70, '#c0392b', 12); hpBar(76, 70, 220, B.foe);
+    if (!B.trainer && P.caught.includes(B.foe.id)) { g.fillStyle = '#e3a83b'; g.fillRect(36, 88, 8, 8); }
+  }
+  if (B.me && B.meShow) {
+    box(324, 280, 300, 124); txt(B.me.name, 344, 298); txt('Lv' + B.me.level, 608, 298, INK, 16, 'right');
+    txt('HP', 344, 334, '#c0392b', 12); hpBar(384, 334, 220, B.me);
+    txt(`${Math.ceil(B.me.dispHp)}/${B.me.maxHp}`, 604, 354, INK, 14, 'right');
+    const xf = B.me.level >= 50 ? 1 : (B.me.xp - lvXP(B.me.level)) / (lvXP(B.me.level + 1) - lvXP(B.me.level));
+    g.fillStyle = INK; g.fillRect(342, 380, 264, 8); g.fillStyle = '#5aa0e8'; g.fillRect(344, 382, 260 * Math.max(0, Math.min(1, xf)), 4);
+  }
+}
+function drawTitle(now) {
+  const grd = g.createLinearGradient(0, 0, 0, 576); grd.addColorStop(0, '#2b2a4a'); grd.addColorStop(1, '#6b4a6a');
+  g.fillStyle = grd; g.fillRect(0, 0, 640, 576);
+  for (let i = 0; i < 40; i++) { const x = (i * 97) % 640, y = (i * 53) % 260, tw = (Math.sin(now / 400 + i) + 1) / 2; g.fillStyle = `rgba(255,240,200,${.2 + tw * .6})`; g.fillRect(x, y, 3, 3); }
+  // lighthouse silhouette
+  g.fillStyle = '#1d1b30'; g.fillRect(470, 220, 60, 240); g.fillRect(455, 200, 90, 24); g.fillRect(480, 160, 40, 40);
+  const beam = (Math.sin(now / 900) + 1) / 2; g.fillStyle = `rgba(255,214,90,${.15 + beam * .2})`; g.beginPath(); g.moveTo(500, 180); g.lineTo(0, 100 + beam * 80); g.lineTo(0, 200 + beam * 80); g.fill();
+  g.fillStyle = '#ffd65a'; g.fillRect(486, 168, 28, 24);
+  g.fillStyle = '#1a2340'; g.fillRect(0, 440, 640, 136);
+  txt('LANTERNBOUND', 320, 70, '#ffd65a', 34, 'center');
+  txt('A tale of the Lumen Coast', 320, 124, '#e8dcf5', 14, 'center');
+  g.imageSmoothingEnabled = false;
+  g.drawImage(kithImg('pipwick'), 120, 230 + Math.sin(now / 300) * 6, 192, 192);
+}
+function drawEvolve(now) {
+  g.fillStyle = '#1d1b30'; g.fillRect(0, 0, 640, 576);
+  const t = now - EVO.t0, rate = Math.max(60, 400 - t / 8), showTo = EVO.done || Math.floor(t / rate) % 2;
+  g.imageSmoothingEnabled = false;
+  if (!EVO.done) g.filter = 'brightness(3) saturate(0)';
+  g.drawImage(kithImg(showTo ? EVO.to : EVO.from), 192, 120, 256, 256);
+  g.filter = 'none';
+}
+function drawCredits() {
+  g.fillStyle = '#1d1b30'; g.fillRect(0, 0, 640, 576);
+  txt('THE LIGHT RETURNS', 320, 60, '#ffd65a', 24, 'center');
+  g.imageSmoothingEnabled = false;
+  const m = partnerMon(); if (m) g.drawImage(kithImg(m.id), 256, 110, 128, 128);
+  const lines = [`${P.name} and ${m ? m.name : 'Pipwick'}`, `Kith seen: ${P.seen.length}   Bonded: ${P.caught.length}`, `Steps walked: ${P.steps}`, '', 'Thank you for playing', 'LANTERNBOUND'];
+  lines.forEach((l, i) => txt(l, 320, 270 + i * 32, '#e8dcf5', 14, 'center'));
+}
+function drawUI(now) {
+  const c = ui.choice;
+  if (c && c.cfg.layout === 'big') {
+    box(0, 0, 640, 576); txt(c.cfg.title || '', 32, 30, INK, 14);
+    const vis = 10; if (c.idx < c.scroll) c.scroll = c.idx; if (c.idx >= c.scroll + vis) c.scroll = c.idx - vis + 1;
+    c.opts.slice(c.scroll, c.scroll + vis).forEach((o, k) => {
+      const i = k + c.scroll, y = 76 + k * 38, col = o.disabled ? '#a89f94' : o.faint ? '#c0392b' : INK;
+      if (i === c.idx) cursor(32, y);
+      txt(o.label, 56, y, col); if (o.right) txt(o.right, 604, y, col, 14, 'right');
+    });
+    if (c.scroll > 0) txt('▲', 600, 52, INK, 12); if (c.scroll + vis < c.opts.length) txt('▼', 600, 452, INK, 12);
+    g.fillStyle = INK; g.fillRect(24, 470, 592, 3);
+    if (c.cfg.sub) wrap(c.cfg.sub(c.idx), 40).slice(0, 3).forEach((l, i) => txt(l, 32, 486 + i * 26, '#5a4f60', 12));
+  }
+  if (ui.text != null && !(c && c.cfg.layout === 'big')) {
+    box(0, 416, 640, 160);
+    ui.text.slice(0, Math.floor(ui.typed)).split('\n').forEach((l, i) => txt(l, 32, 446 + i * 36));
+    if (waiter && waiter.kind === 'msg' && ui.typed >= ui.text.length && Math.floor(now / 400) % 2) { g.fillStyle = INK; g.beginPath(); g.moveTo(596, 540); g.lineTo(612, 540); g.lineTo(604, 550); g.fill(); }
+  }
+  if (!c) return;
+  const L = c.cfg.layout || 'box';
+  if (L === 'cmd') {
+    box(320, 416, 320, 160);
+    c.opts.forEach((o, i) => { const x = 360 + (i % 2) * 136, y = 452 + Math.floor(i / 2) * 52; if (i === c.idx) cursor(x - 22, y); txt(o.label, x, y); });
+  } else if (L === 'moves') {
+    box(0, 416, 640, 160);
+    c.opts.forEach((o, i) => { const x = 52 + (i % 2) * 300, y = 444 + Math.floor(i / 2) * 40; if (i === c.idx) cursor(x - 22, y); txt(o.label, x, y, INK, 14); });
+    const mv = c.cfg.info(c.idx); g.fillStyle = TYPE_COL[mv.type]; g.fillRect(28, 528, 120, 26);
+    txt(mv.type.toUpperCase(), 88, 534, '#fff', 12, 'center');
+    txt(mv.pow ? `POWER ${mv.pow}  ACC ${mv.acc}` : 'STATUS MOVE', 164, 534, INK, 12);
+    if (B && mv.pow) { const e = eff(mv.type, SP[B.foe.id].type); if (e !== 1) txt(e > 1 ? 'STRONG!' : 'WEAK', 610, 534, e > 1 ? '#2e8b3e' : '#c0392b', 12, 'right'); }
+  } else if (L === 'title') {
+    c.opts.forEach((o, i) => { const y = 470 + i * 40; if (i === c.idx) { g.fillStyle = '#ffd65a'; g.beginPath(); g.moveTo(220, y); g.lineTo(230, y + 7); g.lineTo(220, y + 14); g.fill(); } txt(o.label, 250, y, i === c.idx ? '#ffd65a' : '#e8dcf5'); });
+  } else if (L === 'none') {
+    txt('Press A', 320, 520, '#ffd65a', 14, 'center');
+  } else if (L === 'box') {
+    const w = Math.max(...c.opts.map(o => o.label.length)) * 16 + 76, h = c.opts.length * 40 + 40;
+    const x = 640 - w, y = c.cfg.pos === 'top' ? 0 : (ui.text != null ? 416 - h : 576 - h);
+    box(x, y, w, h);
+    c.opts.forEach((o, i) => { const yy = y + 26 + i * 40; if (i === c.idx) cursor(x + 22, yy); txt(o.label, x + 44, yy, o.disabled ? '#a89f94' : INK); });
+  }
+}
+
+// ================= main loop =================
+let last = performance.now();
+function update(dt, now) {
+  if (ui.text != null && ui.typed < ui.text.length) ui.typed += dt * .09;
+  const ents = [player, partnerEnt, ...NPCS].filter(Boolean);
+  for (const e of ents) if (e.t < 1) e.t = Math.min(1, e.t + dt / (e.dur || STEP_MS));
+  const tw = m => { if (m && m.dispHp !== m.hp) { const s = m.maxHp * dt / 900; m.dispHp = Math.abs(m.hp - m.dispHp) <= s ? m.hp : m.dispHp + Math.sign(m.hp - m.dispHp) * s; } };
+  if (B) { tw(B.foe); tw(B.me); }
+  if (mode === 'world' && player) {
+    if (player.t >= 1 && stepDone) { stepDone = false; onStep(); }
+    if (!busy && !waiter && player.t >= 1 && !stepDone && dirStack.length) tryMove(dirStack[dirStack.length - 1]);
+  }
+}
+function render(now) {
+  g.imageSmoothingEnabled = false;
+  if (mode === 'title') drawTitle(now);
+  else if (mode === 'intro') { g.fillStyle = '#1d1b30'; g.fillRect(0, 0, 640, 576); g.drawImage(kithImg('quietus'), 160, 60, 320, 320); g.fillStyle = 'rgba(29,27,48,.55)'; g.fillRect(0, 0, 640, 576); }
+  else if (mode === 'battle' && B) drawBattle(now);
+  else if (mode === 'evolve' && EVO) drawEvolve(now);
+  else if (mode === 'credits') drawCredits();
+  else if (player) drawWorld(now);
+  drawUI(now);
+}
+function frame(now) { const dt = Math.min(50, now - last); last = now; update(dt, now); render(now); requestAnimationFrame(frame); }
+addEventListener('visibilitychange', () => { if (document.hidden && P && player && mode === 'world') save(true); });
+
+Promise.race([document.fonts ? document.fonts.load(`16px ${FONT}`) : 0, sleep(1500)]).catch(() => {}).then(() => {
+  requestAnimationFrame(frame);
+  run(title);
+});
+</script>
