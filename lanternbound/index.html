@@ -131,71 +131,126 @@ const MV = {
 
 // look: plan (quad/biped/bird/blob/serpent), colors and features for the pixel generator
 const SP = {
+  // ---- Ember ----
   pipwick: { name: 'Pipwick', type: 'Ember', base: [42, 52, 40, 62], xp: 62, rate: 0, evo: ['wickwyre', 16],
     learn: [[1, 'bump'], [1, 'wickflick'], [7, 'bristle'], [11, 'cinderpounce'], [15, 'glare'], [19, 'hearthglow']],
-    look: { plan: 'quad', size: .85, body: '#f39a3d', belly: '#ffe2b0', ears: 'pointy', tail: 'flame', crest: 'wick' },
-    dex: 'A candle-tailed Kith. Its wick burns brighter around people it trusts.' },
+    look: { plan: 'fox', body: '#f39a3d', belly: '#ffe2b0' }, dex: 'A candle-tailed Kith. Its wick burns brighter around people it trusts.' },
   wickwyre: { name: 'Wickwyre', type: 'Ember', base: [62, 78, 58, 88], xp: 150, rate: 0,
     learn: [[1, 'bump'], [1, 'wickflick'], [1, 'cinderpounce'], [17, 'hearthglow']],
-    look: { plan: 'quad', size: 1.05, body: '#e8622c', belly: '#ffd29a', ears: 'pointy', tail: 'flame', crest: 'wick', spots: '#ffd23f' },
-    dex: 'Its flame can be seen from across the bay. Sailors once steered by it.' },
-  mossnip: { name: 'Mossnip', type: 'Bloom', base: [45, 48, 50, 42], xp: 58, rate: 190, evo: ['mosswarden', 16],
-    learn: [[1, 'bump'], [1, 'seedspit'], [8, 'bristle'], [13, 'thornlash']],
-    look: { plan: 'blob', size: .8, body: '#78b84a', belly: '#d8efb0', crest: 'leaf' }, dex: 'Naps in sunbeams. Moss regrows wherever it sleeps.' },
-  mosswarden: { name: 'Mosswarden', type: 'Bloom', base: [70, 72, 80, 50], xp: 150, rate: 60,
-    learn: [[1, 'bump'], [1, 'seedspit'], [1, 'thornlash'], [20, 'boulderroll']],
-    look: { plan: 'biped', size: 1.05, body: '#4f8f3a', belly: '#c9e59a', crest: 'leaf', tail: 'leaf', ears: 'none' }, dex: 'Guards old forests. Patient as a stone.' },
-  puddlepup: { name: 'Puddlepup', type: 'Tide', base: [48, 50, 45, 52], xp: 60, rate: 180, evo: ['tidehound', 16],
-    learn: [[1, 'bump'], [1, 'splashback'], [9, 'glare'], [14, 'undertow']],
-    look: { plan: 'quad', size: .85, body: '#4f9be0', belly: '#d8ecff', ears: 'round', tail: 'fin' }, dex: 'Shakes off water on everyone it likes.' },
-  tidehound: { name: 'Tidehound', type: 'Tide', base: [75, 80, 68, 75], xp: 155, rate: 60,
-    learn: [[1, 'bump'], [1, 'splashback'], [1, 'undertow'], [18, 'headlong']],
-    look: { plan: 'quad', size: 1.05, body: '#2f6fbf', belly: '#bfe0ff', ears: 'pointy', tail: 'fin', crest: 'fin' }, dex: 'Runs along the surf line at dawn, herding the waves.' },
-  zapling: { name: 'Zapling', type: 'Spark', base: [35, 50, 32, 72], xp: 56, rate: 160, evo: ['stormlark', 15],
-    learn: [[1, 'bump'], [1, 'staticnip'], [8, 'bristle'], [12, 'gustsnip'], [14, 'arcbolt']],
-    look: { plan: 'bird', size: .8, body: '#f2d23c', belly: '#fff3b0', accent: '#e08a1f', crest: 'bolt' }, dex: 'Its feathers crackle when it is excited. Often.' },
-  stormlark: { name: 'Stormlark', type: 'Spark', base: [58, 80, 52, 100], xp: 150, rate: 60,
-    learn: [[1, 'staticnip'], [1, 'gustsnip'], [1, 'arcbolt'], [18, 'squall']],
-    look: { plan: 'bird', size: 1.05, body: '#e6b820', belly: '#fff0a0', accent: '#3b3b6b', crest: 'bolt' }, dex: 'Sings right before lightning strikes.' },
-  pebblet: { name: 'Pebblet', type: 'Stone', base: [45, 55, 70, 25], xp: 60, rate: 190, evo: ['craghorn', 17],
-    learn: [[1, 'bump'], [1, 'pebbletoss'], [7, 'glare'], [13, 'boulderroll']],
-    look: { plan: 'blob', size: .8, body: '#9a8f80', belly: '#c8bfae', crest: 'horns', spots: '#776d60' }, dex: 'Mistaken for a rock until it sneezes.' },
-  craghorn: { name: 'Craghorn', type: 'Stone', base: [72, 88, 100, 35], xp: 160, rate: 60,
-    learn: [[1, 'pebbletoss'], [1, 'glare'], [1, 'boulderroll'], [19, 'headlong']],
-    look: { plan: 'quad', size: 1.1, body: '#857a6b', belly: '#b9ad99', crest: 'horns', ears: 'none', tail: 'none' }, dex: 'Its horns are worn smooth from pushing boulders for fun.' },
-  breezel: { name: 'Breezel', type: 'Gale', base: [40, 50, 38, 70], xp: 56, rate: 200, evo: ['galeferret', 15],
-    learn: [[1, 'bump'], [1, 'gustsnip'], [8, 'glare'], [13, 'squall']],
-    look: { plan: 'serpent', size: .85, body: '#9fd8d0', belly: '#e9fbf7', ears: 'long', tail: 'fluff' }, dex: 'Rides updrafts in loops. Never lands for long.' },
-  galeferret: { name: 'Galeferret', type: 'Gale', base: [65, 78, 58, 98], xp: 150, rate: 60,
-    learn: [[1, 'gustsnip'], [1, 'glare'], [1, 'squall'], [17, 'headlong']],
-    look: { plan: 'serpent', size: 1.05, body: '#5fb7b0', belly: '#dff7f3', ears: 'pointy', tail: 'fluff' }, dex: 'Moves so fast it leaves a whistle behind.' },
-  burrowbun: { name: 'Burrowbun', type: 'Plain', base: [44, 45, 40, 55], xp: 50, rate: 255, evo: ['thumpkin', 12],
-    learn: [[1, 'bump'], [5, 'glare'], [9, 'headlong']],
-    look: { plan: 'biped', size: .8, body: '#c9a27a', belly: '#f3e2c8', ears: 'long', tail: 'fluff' }, dex: 'Digs tunnels under gardens and leaves turnips as rent.' },
-  thumpkin: { name: 'Thumpkin', type: 'Plain', base: [70, 70, 60, 72], xp: 130, rate: 90,
-    learn: [[1, 'bump'], [1, 'glare'], [1, 'headlong'], [15, 'bristle'], [18, 'boulderroll']],
-    look: { plan: 'biped', size: 1, body: '#a87c55', belly: '#ecd6b5', ears: 'long', tail: 'fluff' }, dex: 'Thumps the ground to warn its warren. You can feel it a mile away.' },
+    look: { plan: 'fox', big: true, body: '#e8622c', belly: '#ffd29a' }, dex: 'A flame mane runs down its back. Sailors once steered by its glow.' },
+  smolderhog: { name: 'Smolderhog', type: 'Ember', base: [44, 56, 46, 48], xp: 62, rate: 170, evo: ['pyrequill', 18],
+    learn: [[1, 'bump'], [1, 'wickflick'], [8, 'bristle'], [13, 'cinderpounce'], [17, 'flaredash']],
+    look: { plan: 'hog', body: '#b0703f', belly: '#f3d2a6', acc: '#7a3a1e' }, dex: 'Curls into a ball of smoldering quills when startled. Toasts acorns for fun.' },
+  pyrequill: { name: 'Pyrequill', type: 'Ember', base: [70, 88, 70, 62], xp: 160, rate: 50,
+    learn: [[1, 'wickflick'], [1, 'cinderpounce'], [1, 'flaredash'], [24, 'sunforge']],
+    look: { plan: 'hog', big: true, body: '#8e4a2a', belly: '#f0c08a', acc: '#d9542a' }, dex: 'Each quill is a tiny torch. An angry Pyrequill lights up a whole valley.' },
   coalcrab: { name: 'Coalcrab', type: 'Ember', base: [50, 62, 70, 35], xp: 70, rate: 150,
     learn: [[1, 'bump'], [1, 'wickflick'], [10, 'bristle'], [13, 'cinderpounce'], [17, 'pebbletoss']],
-    look: { plan: 'blob', size: .9, body: '#4a4040', belly: '#e8622c', crest: 'flame', spots: '#ff9a3c' }, dex: 'Carries a glowing coal in its shell like a pearl.' },
+    look: { plan: 'crab', body: '#5a4646', belly: '#8a6a5a', acc: '#e8622c' }, dex: 'Carries a glowing coal in its shell like a pearl. Waves its claws to say hello.' },
+  // ---- Tide ----
+  puddlepup: { name: 'Puddlepup', type: 'Tide', base: [48, 50, 45, 52], xp: 60, rate: 180, evo: ['tidehound', 16],
+    learn: [[1, 'bump'], [1, 'splashback'], [9, 'glare'], [14, 'undertow']],
+    look: { plan: 'dog', body: '#5aa6e8', belly: '#e0f0ff', acc: '#3a7cc4', ears: 'flop', tail: 'fin', spots: '#e0f0ff' }, dex: 'Shakes off water on everyone it likes. Its floppy ears double as paddles.' },
+  tidehound: { name: 'Tidehound', type: 'Tide', base: [75, 80, 68, 75], xp: 155, rate: 60,
+    learn: [[1, 'bump'], [1, 'splashback'], [1, 'undertow'], [18, 'headlong']],
+    look: { plan: 'dog', size: 1.08, body: '#2f6fbf', belly: '#bfe0ff', acc: '#7fc7ff', ears: 'pointy', tail: 'fin', back: 'fin' }, dex: 'Runs along the surf line at dawn, herding the waves like sheep.' },
   glimmerfin: { name: 'Glimmerfin', type: 'Tide', base: [38, 40, 42, 66], xp: 60, rate: 170,
     learn: [[1, 'splashback'], [6, 'lullaby'], [12, 'undertow'], [16, 'staticnip']],
-    look: { plan: 'serpent', size: .8, body: '#7fc7ff', belly: '#ffffff', tail: 'fin', crest: 'gem', ears: 'none' }, dex: 'Its scales flash like signal lamps under the water.' },
-  mothmurmur: { name: 'Mothmurmur', type: 'Hush', base: [42, 48, 40, 58], xp: 64, rate: 150, evo: ['hushwing', 17],
-    learn: [[1, 'bump'], [1, 'hollowwhisper'], [9, 'lullaby'], [14, 'gustsnip']],
-    look: { plan: 'bird', size: .8, body: '#8d7fb3', belly: '#d9d0ef', accent: '#5b4d86', ears: 'long' }, dex: 'Drawn to lanterns. It hums too quietly for most to hear.' },
-  hushwing: { name: 'Hushwing', type: 'Hush', base: [66, 82, 60, 90], xp: 160, rate: 50,
-    learn: [[1, 'hollowwhisper'], [1, 'lullaby'], [1, 'gustsnip'], [19, 'silencefall']],
-    look: { plan: 'bird', size: 1.05, body: '#5b4d86', belly: '#c0b3ea', accent: '#2f2650', crest: 'gem' }, dex: 'Flies without a sound. Its wingbeats swallow nearby noise.' },
+    look: { plan: 'fish', body: '#4fb6c9', belly: '#e9fbff', acc: '#f28a5a' }, dex: 'The lamp on its brow blinks in patterns. Fishers say it is telling jokes.' },
+  bubbloon: { name: 'Bubbloon', type: 'Tide', base: [50, 38, 46, 44], xp: 60, rate: 180, evo: ['tidecrown', 18],
+    learn: [[1, 'splashback'], [5, 'lullaby'], [10, 'mistshell'], [14, 'brinelash']],
+    look: { plan: 'jelly', body: '#b7a6f0', belly: '#efeaff', acc: '#8f7ad6' }, dex: 'Drifts in on warm tides. Popping noises mean it is happy.' },
+  tidecrown: { name: 'Tidecrown', type: 'Tide', base: [80, 70, 72, 60], xp: 155, rate: 50,
+    learn: [[1, 'splashback'], [1, 'lullaby'], [1, 'brinelash'], [22, 'riptidecrash']],
+    look: { plan: 'jelly', big: true, body: '#7c6ad6', belly: '#d9d0ff', acc: '#5a48b0', acc2: '#ffd65a' }, dex: 'Wears a crown of hardened sea-glass. Schools of fish follow it like a queen.' },
+  bogshell: { name: 'Bogshell', type: 'Tide', base: [60, 50, 80, 24], xp: 66, rate: 160,
+    learn: [[1, 'bump'], [1, 'splashback'], [9, 'mistshell'], [15, 'undertow'], [19, 'shalespike']],
+    look: { plan: 'turtle', body: '#7fae7a', acc: '#4f6f4a' }, dex: 'Moss and flowers grow on its shell. It naps for whole seasons at a time.' },
+  // ---- Bloom ----
+  mossnip: { name: 'Mossnip', type: 'Bloom', base: [45, 48, 50, 42], xp: 58, rate: 190, evo: ['mosswarden', 16],
+    learn: [[1, 'bump'], [1, 'seedspit'], [8, 'bristle'], [13, 'thornlash']],
+    look: { plan: 'sprout', body: '#8ccf63', belly: '#e2f6c0' }, dex: 'Naps in sunbeams with its leaves spread wide. Moss regrows wherever it sleeps.' },
+  mosswarden: { name: 'Mosswarden', type: 'Bloom', base: [70, 72, 80, 50], xp: 150, rate: 60,
+    learn: [[1, 'bump'], [1, 'seedspit'], [1, 'thornlash'], [20, 'boulderroll']],
+    look: { plan: 'treant', body: '#7a5a3a' }, dex: 'An old tree that decided to walk. Guards forests with endless patience.' },
+  capsprout: { name: 'Capsprout', type: 'Bloom', base: [48, 52, 48, 40], xp: 60, rate: 180,
+    learn: [[1, 'bump'], [1, 'seedspit'], [7, 'lullaby'], [12, 'rootdown'], [16, 'vinesnare']],
+    look: { plan: 'mushroom', body: '#d9534f', belly: '#f6ead2' }, dex: 'Puffs sleepy spores when it yawns. Do not nap under one.' },
+  petalfly: { name: 'Petalfly', type: 'Bloom', base: [40, 46, 38, 76], xp: 62, rate: 170,
+    learn: [[1, 'gustsnip'], [1, 'seedspit'], [10, 'vinesnare'], [16, 'petalgale']],
+    look: { plan: 'butterfly', body: '#f5a3c7', belly: '#ffd9e8', acc: '#e86a9a', acc2: '#fff2a8' }, dex: 'Its wings are real petals. It trades them with flowers every spring.' },
   bramblemaw: { name: 'Bramblemaw', type: 'Bloom', base: [68, 80, 72, 45], xp: 140, rate: 60,
     learn: [[1, 'seedspit'], [1, 'bristle'], [1, 'thornlash'], [14, 'headlong']],
-    look: { plan: 'blob', size: 1.05, body: '#3f7a3a', belly: '#a8d77c', crest: 'horns', spots: '#c0446b' }, dex: 'A bramble with a big appetite. Its berries are delicious and also bite.' },
+    look: { plan: 'maw', body: '#3f7a3a', acc: '#a8d77c', spots: '#c0446b' }, dex: 'A hedge with a big appetite. Its berries are delicious and also bite back.' },
+  // ---- Spark ----
+  zapling: { name: 'Zapling', type: 'Spark', base: [35, 50, 32, 72], xp: 56, rate: 160, evo: ['stormlark', 15],
+    learn: [[1, 'bump'], [1, 'staticnip'], [8, 'bristle'], [12, 'gustsnip'], [14, 'arcbolt']],
+    look: { plan: 'chick', body: '#f2d23c', belly: '#fff3b0', acc: '#e0a020', acc2: '#3b3b6b' }, dex: 'A round chick whose crest crackles when it is excited. Often.' },
+  stormlark: { name: 'Stormlark', type: 'Spark', base: [58, 80, 52, 100], xp: 150, rate: 60,
+    learn: [[1, 'staticnip'], [1, 'gustsnip'], [1, 'arcbolt'], [18, 'squall']],
+    look: { plan: 'lark', body: '#3d4580', belly: '#dfe3ff', acc: '#2a2f5c', acc2: '#ffd23f' }, dex: 'Sings right before lightning strikes. Its wings carry the storm\'s pattern.' },
+  joltoad: { name: 'Joltoad', type: 'Spark', base: [58, 60, 52, 50], xp: 66, rate: 160,
+    learn: [[1, 'bump'], [1, 'staticnip'], [8, 'glare'], [13, 'joltring'], [18, 'splashback']],
+    look: { plan: 'frog', body: '#3f9a8a', belly: '#d8f5e8', acc2: '#fff27a' }, dex: 'Charges up by sitting in puddles during thunderstorms. Croaks in sparks.' },
+  coilbug: { name: 'Coilbug', type: 'Spark', base: [46, 58, 62, 46], xp: 64, rate: 170,
+    learn: [[1, 'bump'], [1, 'staticnip'], [9, 'bristle'], [14, 'joltring'], [18, 'pebbletoss']],
+    look: { plan: 'beetle', body: '#2f5a8a', acc2: '#e3a83b', eyeCol: '#fff27a' }, dex: 'Its copper horn is wound like a spring. It hums near anything metal.' },
+  // ---- Stone ----
+  pebblet: { name: 'Pebblet', type: 'Stone', base: [45, 55, 70, 25], xp: 60, rate: 190, evo: ['craghorn', 17],
+    learn: [[1, 'bump'], [1, 'pebbletoss'], [7, 'glare'], [13, 'boulderroll']],
+    look: { plan: 'rock', body: '#9a8f80' }, dex: 'Mistaken for a rock until it sneezes. Moss grows on its sunny side.' },
+  craghorn: { name: 'Craghorn', type: 'Stone', base: [72, 88, 100, 35], xp: 160, rate: 60,
+    learn: [[1, 'pebbletoss'], [1, 'glare'], [1, 'boulderroll'], [19, 'headlong']],
+    look: { plan: 'dog', size: 1.12, body: '#857a6b', belly: '#b9ad99', acc: '#5e5548', horns: true, back: 'mane', tail: 'stub' }, dex: 'Pushes boulders around for fun. Its horns are worn smooth from it.' },
+  geodillo: { name: 'Geodillo', type: 'Stone', base: [55, 58, 78, 40], xp: 66, rate: 150,
+    learn: [[1, 'bump'], [1, 'pebbletoss'], [10, 'stoneskin'], [14, 'shalespike']],
+    look: { plan: 'armadillo', body: '#a87e5a', belly: '#e8cfae', acc2: '#8fe0f0' }, dex: 'Grows crystals on its back. It rolls downhill whenever it gets the chance.' },
+  cairnguard: { name: 'Cairnguard', type: 'Stone', base: [85, 95, 105, 30], xp: 180, rate: 35,
+    learn: [[1, 'pebbletoss'], [1, 'boulderroll'], [1, 'stoneskin'], [22, 'landslide']],
+    look: { plan: 'golem', body: '#8a8a96', acc: '#6a6a78', acc2: '#7ff0ff' }, dex: 'Built itself from trail markers. Its runes glow to guide lost travelers.' },
+  // ---- Gale ----
+  breezel: { name: 'Breezel', type: 'Gale', base: [40, 50, 38, 70], xp: 56, rate: 200, evo: ['galeferret', 15],
+    learn: [[1, 'bump'], [1, 'gustsnip'], [8, 'glare'], [13, 'squall']],
+    look: { plan: 'ferret', body: '#9fd8d0', belly: '#effcf9' }, dex: 'Rides updrafts in loops with its cloud-puff tail. Never lands for long.' },
+  galeferret: { name: 'Galeferret', type: 'Gale', base: [65, 78, 58, 98], xp: 150, rate: 60,
+    learn: [[1, 'gustsnip'], [1, 'glare'], [1, 'squall'], [17, 'headlong']],
+    look: { plan: 'ferret', big: true, body: '#4fa8a0', belly: '#dff7f3' }, dex: 'Its fur flares into wings at full speed. It leaves a whistle behind.' },
+  plumowl: { name: 'Plumowl', type: 'Gale', base: [52, 52, 46, 58], xp: 62, rate: 170,
+    learn: [[1, 'gustsnip'], [6, 'glare'], [11, 'lullaby'], [15, 'feathercut']],
+    look: { plan: 'owl', body: '#9a7a5a', belly: '#f0e2c8', acc: '#6e5236', acc2: '#ffd65a' }, dex: 'Turns its head all the way around to watch you. Very judgmental.' },
+  skyray: { name: 'Skyray', type: 'Gale', base: [55, 62, 50, 82], xp: 70, rate: 140,
+    learn: [[1, 'gustsnip'], [1, 'splashback'], [12, 'feathercut'], [17, 'squall']],
+    look: { plan: 'ray', body: '#5a7ac9', belly: '#eef2ff', acc: '#9fc0ff' }, dex: 'Glides between sea and sky without ever choosing one.' },
+  // ---- Hush ----
+  mothmurmur: { name: 'Mothmurmur', type: 'Hush', base: [42, 48, 40, 58], xp: 64, rate: 150, evo: ['hushwing', 17],
+    learn: [[1, 'bump'], [1, 'hollowwhisper'], [9, 'lullaby'], [14, 'gustsnip']],
+    look: { plan: 'moth', body: '#a99bd0', belly: '#ece6fa', acc: '#7d6db0', acc2: '#ffd65a' }, dex: 'Drawn to lanterns. It hums too quietly for most to hear.' },
+  hushwing: { name: 'Hushwing', type: 'Hush', base: [66, 82, 60, 90], xp: 160, rate: 50,
+    learn: [[1, 'hollowwhisper'], [1, 'lullaby'], [1, 'gustsnip'], [19, 'silencefall']],
+    look: { plan: 'moth', big: true, body: '#4e4280', belly: '#c0b3ea', acc: '#2f2650', acc2: '#ff8fd0', eyeCol: '#ff8fd0' }, dex: 'Flies without a sound. Its wingbeats swallow nearby noise.' },
+  wispet: { name: 'Wispet', type: 'Hush', base: [40, 52, 40, 66], xp: 64, rate: 150,
+    learn: [[1, 'hollowwhisper'], [7, 'lullaby'], [12, 'gloombite'], [16, 'muffle']],
+    look: { plan: 'wisp', body: '#7fd6e0', belly: '#e8fdff', eyeCol: '#2a6f7a' }, dex: 'A stray flicker of fog that learned to giggle. Follows lanterns home.' },
   duskmastiff: { name: 'Duskmastiff', type: 'Hush', base: [80, 90, 70, 70], xp: 170, rate: 45,
     learn: [[1, 'hollowwhisper'], [1, 'glare'], [1, 'headlong'], [18, 'silencefall']],
-    look: { plan: 'quad', size: 1.1, body: '#3c3557', belly: '#8f84b8', ears: 'pointy', crest: 'horns', tail: 'wisp' }, dex: 'Prowls at the edge of the fog. It was a lighthouse dog, once.' },
+    look: { plan: 'dog', size: 1.15, body: '#3c3557', belly: '#8f84b8', acc: '#25203a', horns: true, back: 'mane', tail: 'wisp', collar: true, fang: true, eye: 'glow', eyeCol: '#c9b8ff' }, dex: 'Still wears the lighthouse keeper\'s lantern collar. It waits for a master who left.' },
+  // ---- Plain ----
+  burrowbun: { name: 'Burrowbun', type: 'Plain', base: [44, 45, 40, 55], xp: 50, rate: 255, evo: ['thumpkin', 12],
+    learn: [[1, 'bump'], [5, 'glare'], [9, 'headlong']],
+    look: { plan: 'bunny', body: '#c9a27a', belly: '#f3e2c8' }, dex: 'Digs tunnels under gardens and leaves turnips as rent.' },
+  thumpkin: { name: 'Thumpkin', type: 'Plain', base: [70, 70, 60, 72], xp: 130, rate: 90,
+    learn: [[1, 'bump'], [1, 'glare'], [1, 'headlong'], [15, 'bristle'], [18, 'boulderroll']],
+    look: { plan: 'bunny', big: true, body: '#9a7050', belly: '#ecd6b5' }, dex: 'Thumps the ground to warn its warren. You can feel it a mile away.' },
+  trundle: { name: 'Trundle', type: 'Plain', base: [60, 40, 70, 20], xp: 58, rate: 200,
+    learn: [[1, 'bump'], [6, 'glare'], [11, 'catnap'], [16, 'headlong']],
+    look: { plan: 'snail', body: '#e8c9a0', belly: '#fff0dc', acc: '#c07a4a' }, dex: 'Never in a hurry. It has crossed the whole coast, very slowly, twice.' },
+  mumbleboar: { name: 'Mumbleboar', type: 'Plain', base: [66, 72, 56, 48], xp: 68, rate: 150,
+    learn: [[1, 'bump'], [7, 'bristle'], [12, 'headlong'], [18, 'haymaker']],
+    look: { plan: 'boar', body: '#8a6a6a', belly: '#d9c0b0', acc: '#4a3434' }, dex: 'Grumbles constantly but shares its truffles with anyone who listens.' },
+  // ---- Legend ----
   quietus: { name: 'Quietus', type: 'Hush', base: [110, 80, 95, 85], xp: 250, rate: 45, legend: true,
     learn: [[1, 'hollowwhisper'], [1, 'lullaby'], [1, 'undertow'], [1, 'headlong']],
-    look: { plan: 'serpent', size: 1.3, body: '#e6e2f5', belly: '#ffffff', accent: '#9d8fd6', crest: 'horns', tail: 'wisp', spots: '#b7acdf', ears: 'none' },
+    look: { plan: 'leviathan', body: '#e6e2f5', belly: '#ffffff', acc: '#9d8fd6', acc2: '#8fe0ff', eye: 'glow' },
     dex: 'The old voice of the tides. When no one listened, its song became the Hush.' },
 };
 const DEX_ORDER = Object.keys(SP);
@@ -203,7 +258,9 @@ const DEX_ORDER = Object.keys(SP);
 const ALSO = { pipwick: ['Spark'], wickwyre: ['Spark'], mossnip: ['Stone'], mosswarden: ['Stone'], puddlepup: ['Hush'], tidehound: ['Hush'],
   zapling: ['Gale'], stormlark: ['Gale'], pebblet: ['Ember'], craghorn: ['Ember'], breezel: ['Bloom'], galeferret: ['Bloom'],
   burrowbun: ['Stone', 'Bloom'], thumpkin: ['Stone', 'Bloom'], coalcrab: ['Stone'], glimmerfin: ['Spark'], mothmurmur: ['Gale'],
-  hushwing: ['Gale'], bramblemaw: ['Hush'], duskmastiff: ['Ember'], quietus: ['Tide', 'Gale'] };
+  hushwing: ['Gale'], bramblemaw: ['Hush'], duskmastiff: ['Ember'], quietus: ['Tide', 'Gale'],
+  smolderhog: ['Stone'], pyrequill: ['Stone'], bubbloon: ['Spark'], tidecrown: ['Spark'], bogshell: ['Bloom', 'Stone'], capsprout: ['Hush'], petalfly: ['Gale'],
+  joltoad: ['Tide'], coilbug: ['Stone'], geodillo: ['Ember'], cairnguard: ['Ember'], plumowl: ['Hush'], skyray: ['Tide'], wispet: ['Gale'], trundle: ['Tide', 'Bloom'], mumbleboar: ['Stone'] };
 const canLearn = (m, mv) => MV[mv].type === 'Plain' || MV[mv].type === SP[m.id].type || (ALSO[m.id] || []).includes(MV[mv].type);
 // natural late learnsets for evolved and sturdier Kith
 for (const [id, extra] of Object.entries({ pipwick: [[13, 'quickjab']], wickwyre: [[22, 'flaredash'], [28, 'sunforge']], mosswarden: [[18, 'vinesnare'], [26, 'petalgale']],
@@ -309,75 +366,328 @@ function personImg(L, dir, fr) { const k = JSON.stringify(L) + dir + fr; if (!pe
 
 function shade(hex, f) { const n = parseInt(hex.slice(1), 16); let r = n >> 16, gg = n >> 8 & 255, b = n & 255; const t = f > 0 ? 255 : 0, p = Math.abs(f); r = Math.round(r + (t - r) * p); gg = Math.round(gg + (t - gg) * p); b = Math.round(b + (t - b) * p); return '#' + ((1 << 24) + (r << 16) + (gg << 8) + b).toString(16).slice(1); }
 function hash(s) { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; }
+// Each body plan is drawn by hand from shapes on a 32x32 grid, facing left.
+const PLANS = {
+  fox(K, L) {
+    const { ell, tri, line, rect, set, B, Be, Dk, big } = K, s = big ? 1.12 : 1;
+    line(23, 21, 27, 13, 1.6 * s, B); tri([24, 14], [30, big ? 1 : 4], [31, 15], '#f2762e'); tri([26, 13], [30, big ? 5 : 8], [30, 14], '#ffd23f');
+    for (const lx of [11, 14, 20, 23]) { rect(lx, 23, 2, big ? 7 : 6, Dk); rect(lx, big ? 29 : 28, 2, 1, Be); }
+    ell(17, 20, 8.5 * s, 5 * s, B); ell(16, 22.5, 6 * s, 2.2, Be);
+    if (big) for (let i = 0; i < 4; i++) { tri([12 + i * 3, 17], [14 + i * 3, 9 - (i % 2) * 2], [16 + i * 3, 17], '#f2762e'); set(14 + i * 3, 11 - (i % 2) * 2, '#ffd23f'); }
+    ell(9, 13, 5.5 * s, 5 * s, B); ell(5, 15.5, 3, 2, Be); set(2, 15, INK);
+    tri([4, 11], [5, 3], [9, 9], B); tri([10, 9], [13, 3], [14, 10], B); set(6, 7, '#ffb37a'); set(12, 6, '#ffb37a');
+    line(9, 8, 9, 6, .5, INK); tri([7, 6], [9, 0], [11, 6], '#f2762e'); tri([8, 6], [9, 2], [10, 6], '#ffd23f');
+    K.eyes.push([6, 12], [10, 12]);
+  },
+  dog(K, L) {
+    const { ell, tri, line, rect, set, B, Be, A, A2, Dk } = K, s = L.size || 1;
+    if (L.tail === 'fin') tri([23, 18], [31, 11], [30, 22], A);
+    if (L.tail === 'wisp') { line(24, 18, 27, 13, 1.3, B); ell(28, 10, 3, 2.4, shade(B, .3)); ell(30, 6, 1.8, 1.6, shade(B, .5)); }
+    if (L.tail === 'stub') ell(25, 16, 2.2, 2, B);
+    for (const lx of [9, 13, 20, 24]) { rect(lx, 23, 3, s > 1 ? 7 : 6, Dk); rect(lx, s > 1 ? 29 : 28, 3, 1, Be); }
+    ell(17, 19.5, 9 * s, 6 * s, B); ell(16, 22, 6 * s, 2.6, Be);
+    if (L.back === 'fin') tri([14, 15], [19, 6], [23, 15], A);
+    if (L.back === 'mane') { ell(13, 15, 6, 5.5, A); for (let i = 0; i < 4; i++) tri([9 + i * 3, 13], [10 + i * 3, 7], [12 + i * 3, 13], A); }
+    if (L.spots) for (const [x, y] of [[19, 17], [23, 19], [15, 18]]) ell(x, y, 1.3, 1.1, L.spots);
+    ell(9, 13, 6 * s, 5.5 * s, B); ell(5, 16, 3.4, 2.5, Be); rect(2, 15, 2, 1, INK);
+    if (L.ears === 'flop') { ell(12, 13, 2, 4.5, Dk); ell(7, 11, 1.8, 4, Dk); }
+    if (L.ears === 'pointy') { tri([5, 10], [6, 2], [9, 9], B); tri([10, 9], [13, 2], [14, 10], B); set(7, 6, Be); set(12, 6, Be); }
+    if (L.horns) { tri([6, 9], [3, 2], [9, 8], '#e9e2cf'); tri([11, 8], [13, 1], [14, 9], '#e9e2cf'); }
+    if (L.collar) { rect(9, 18, 7, 2, '#7a4a2a'); ell(12, 21.5, 1.6, 1.8, '#ffd65a'); K.glow(12, 21, '#fff6c0'); }
+    if (L.fang) { set(4, 18, '#ffffff'); set(7, 18, '#ffffff'); }
+    K.eyes.push([6, 12], [10, 12]);
+  },
+  crab(K) {
+    const { ell, line, set, B, Be, A, Dk } = K;
+    for (let i = 0; i < 3; i++) { line(11 + i * 3, 22, 7 + i * 2, 29, .7, Dk); line(21 - i * 3, 22, 25 - i * 2, 29, .7, Dk); }
+    line(8, 19, 4, 13, 1.3, B); ell(4, 10, 3.6, 3, A); set(1, 9, null); set(2, 9, null); set(1, 10, null);
+    line(24, 19, 28, 13, 1.3, B); ell(28, 10, 3.6, 3, A); set(30, 9, null); set(31, 10, null); set(30, 10, null);
+    line(13, 15, 12, 8, .6, B); line(18, 15, 19, 8, .6, B);
+    ell(16, 19, 11, 6.5, B); ell(16, 23, 8, 2, Be);
+    ell(16, 14.5, 4.5, 2.4, '#2a1c1c'); for (const [x, y] of [[14, 14], [16, 13], [17, 15], [18, 14], [15, 15]]) K.glow(x, y, ['#ff9a3c', '#ffd23f'][(x + y) % 2]);
+    K.eyes.push([11, 7, 'dot'], [18, 7, 'dot']); K.mouth = [15, 20, 'smile'];
+  },
+  hog(K) {
+    const { ell, tri, set, B, Be, A, Dk, big } = K, cx = 17, cy = big ? 18 : 20, rb = big ? 9.5 : 8, n = big ? 9 : 7, len = big ? 8 : 6;
+    for (let i = 0; i < n; i++) {
+      const a = Math.PI * (1.05 + i / (n - 1) * .95), b1 = a - .18, b2 = a + .18;
+      const tip = [cx + Math.cos(a) * (rb + len), cy + Math.sin(a) * (rb + len)];
+      tri([cx + Math.cos(b1) * rb, cy + Math.sin(b1) * rb], tip, [cx + Math.cos(b2) * rb, cy + Math.sin(b2) * rb], A);
+      set(tip[0], tip[1], '#ffd23f'); set(tip[0] - Math.cos(a), tip[1] - Math.sin(a), '#ff9a3c');
+    }
+    ell(12, 29, 2.6, 1.4, Dk); ell(21, 29, 2.6, 1.4, Dk);
+    ell(cx, cy, rb + 1, rb, B); ell(12, cy + 3, 5, 4.5, Be);
+    if (big) { ell(9, cy + 4, 2, 3.4, B); }
+    ell(7, cy + 1, 3.2, 2.4, Be); set(4, cy + 1, INK);
+    K.eyes.push([8, cy - 2], [12, cy - 2]); K.mouth = [6, cy + 3, 'smile'];
+  },
+  fish(K) {
+    const { ell, tri, line, B, Be, A, Dk } = K;
+    tri([23, 16], [31, 8], [31, 24], A); tri([25, 16], [30, 12], [30, 20], shade(A, .3));
+    tri([11, 11], [17, 3], [22, 11], A); tri([13, 19], [17, 26], [19, 19], A);
+    ell(15, 16, 10, 6.5, B); ell(14, 19.5, 7.5, 2.6, Be);
+    line(16, 10, 16, 21, .5, shade(B, .3)); line(20, 11, 20, 20, .5, shade(B, .3));
+    line(8, 10, 6, 4, .5, Dk); K.glow(5, 3, '#fff6a0'); K.glow(6, 3, '#fff6a0'); K.glow(5, 4, '#ffe066'); K.glow(6, 4, '#ffffff');
+    K.eyes.push([8, 13, 'big']); K.mouth = [5, 17, 'smile'];
+  },
+  jelly(K) {
+    const { ell, tri, set, B, Be, A, A2, big } = K, n = big ? 7 : 5, r = big ? 12 : 10;
+    for (let i = 0; i < n; i++) { const x = 16 - (n - 1) * 1.7 + i * 3.4; for (let y = 19; y < (big ? 31 : 29); y++) { const xo = Math.round(Math.sin(y * .7 + i) * 1.2); set(x + xo, y, A); set(x + xo + 1, y, shade(A, .25)); } }
+    ell(16, 15, r, big ? 10 : 8.5, B); ell(13, 12, r * .5, 4, Be);
+    for (const [x, y] of [[20, 10], [23, 15], [10, 17]]) ell(x, y, 1.2, 1.2, '#ffffff');
+    for (let x = 16 - r + 1; x <= 16 + r - 1; x += 2) set(x, 20 + (x % 4 ? 0 : 1), A);
+    if (big) for (let i = 0; i < 3; i++) { tri([10 + i * 6, 6], [12 + i * 6, -1], [14 + i * 6, 6], A2); set(12 + i * 6, 3, '#ffffff'); }
+    K.eyes.push([12, 15], [18, 15]); K.mouth = [15, 18, 'smile'];
+  },
+  turtle(K) {
+    const { ell, tri, line, set, B, A, Dk } = K;
+    tri([25, 21], [30, 23], [25, 24], B);
+    ell(9, 26, 2.6, 3, B); ell(22, 26, 2.6, 3, B); ell(9, 28.5, 2.6, 1, Dk); ell(22, 28.5, 2.6, 1, Dk);
+    line(10, 21, 6, 18, 2, B); ell(5, 16, 3.8, 3.3, B);
+    ell(17, 19, 10.5, 8, A);
+    for (const x of [12, 17, 22]) line(x, 12, x, 23, .5, Dk); line(8, 17, 26, 17, .5, Dk);
+    line(6, 23, 28, 23, 1, shade(A, -.3));
+    ell(15, 11.5, 4, 1.4, '#5aa83a'); ell(21, 12, 2.6, 1.2, '#7ccf5a'); set(13, 10, '#f5a3c7');
+    K.eyes.push([4, 15]); K.mouth = [2, 18, 'smile'];
+  },
+  sprout(K) {
+    const { ell, tri, line, B, Be, Dk } = K;
+    ell(12, 28.5, 2.4, 1.3, Dk); ell(20, 28.5, 2.4, 1.3, Dk);
+    line(16, 15, 16, 10, .6, '#3f7a2a');
+    tri([16, 14], [4, 6], [11, 16], '#5aa83a'); tri([16, 14], [28, 5], [22, 16], '#7ccf5a'); line(15, 14, 7, 8, .4, '#3f8f35'); line(17, 14, 25, 7, .4, '#4fa04a');
+    ell(16, 9, 2, 2, '#f5a3c7'); ell(16, 8.5, .8, .8, '#fff2a8');
+    ell(16, 22, 8.5, 7, B); ell(16, 24.5, 5, 3.5, Be);
+    K.eyes.push([12, 20], [18, 20]); K.mouth = [15, 24, 'smile'];
+  },
+  treant(K) {
+    const { ell, tri, line, rect, set, B, Dk } = K;
+    tri([10, 29], [12, 24], [15, 29], Dk); tri([17, 29], [20, 24], [23, 29], Dk);
+    line(12, 18, 4, 12, 1.3, B); line(20, 18, 27, 11, 1.3, B); ell(4, 10, 3, 2.4, '#5aa83a'); ell(27, 9, 3, 2.4, '#5aa83a');
+    rect(10, 13, 12, 14, B); for (const x of [12, 16, 19]) line(x, 14, x + (x % 2 ? 1 : -1), 26, .4, Dk);
+    ell(16, 8, 10, 5.5, '#3f8f35'); ell(9, 10, 5, 3.5, '#4fa04a'); ell(23, 9, 5, 3.5, '#4fa04a'); ell(16, 5, 6, 3, '#5aa83a');
+    for (const [x, y] of [[11, 5], [20, 6], [15, 3], [24, 11]]) set(x, y, '#f5a3c7');
+    K.eyes.push([12, 17, 'sleepy'], [17, 17, 'sleepy']); K.mouth = [14, 22, 'line'];
+  },
+  mushroom(K) {
+    const { ell, line, B, Be, Dk } = K;
+    ell(12, 29, 2.4, 1.3, Dk); ell(20, 29, 2.4, 1.3, Dk);
+    ell(16, 12.5, 12, 7, B); line(6, 18, 26, 18, .7, shade(B, -.35));
+    ell(16, 23.5, 5.5, 6, Be);
+    for (const [x, y, r] of [[10, 10, 1.8], [17, 7, 2.2], [23, 11, 1.6], [13, 15, 1.2], [21, 15, 1.2]]) ell(x, y, r, r * .85, '#fff8ec');
+    K.eyes.push([13, 21], [18, 21]); K.mouth = [15, 25, 'smile'];
+  },
+  maw(K, L) {
+    const { ell, tri, line, set, B, A, Dk } = K;
+    line(5, 29, 9, 22, 1, '#3f7a2a'); line(27, 29, 23, 22, 1, '#3f7a2a'); for (const [x, y] of [[6, 26], [26, 26], [7, 24]]) set(x, y, A);
+    for (let i = 0; i < 5; i++) tri([7 + i * 4, 8], [9 + i * 4, 1 + (i % 2) * 2], [11 + i * 4, 8], '#4fa04a');
+    ell(16, 17, 11.5, 10, B);
+    ell(14, 20, 8.5, 4.8, '#4a1428');
+    for (let x = 7; x <= 19; x += 3) { tri([x, 15.5], [x + 1, 18.5], [x + 2, 15.5], '#ffffff'); tri([x, 24.5], [x + 1, 21.5], [x + 2, 24.5], '#ffffff'); }
+    for (const [x, y] of [[23, 10], [26, 16], [24, 22], [20, 9]]) ell(x, y, 1.5, 1.5, L.spots || '#c0446b');
+    K.eyes.push([9, 11, 'angry'], [16, 10, 'angry']);
+  },
+  butterfly(K) {
+    const { ell, line, B, Be, A, A2, Dk } = K;
+    ell(22, 10, 7, 7, A); ell(22, 21, 5.5, 4.5, shade(A, .2));
+    ell(11, 10, 7, 7, B); ell(12, 21, 5, 4.5, Be);
+    ell(11, 10, 3, 3, A2); ell(11, 10, 1.2, 1.2, '#ffffff'); ell(22, 9, 2.4, 2.4, A2); ell(12, 21, 1.6, 1.6, A2);
+    line(16, 9, 17, 25, 1.3, Dk); ell(15.5, 7, 2.6, 2.4, Dk);
+    line(14, 5, 10, 0, .4, INK); line(17, 5, 21, 0, .4, INK); ell(10, 0.5, .9, .9, '#ffd23f'); ell(21, .5, .9, .9, '#ffd23f');
+    K.eyes.push([13.5, 6]);
+  },
+  chick(K) {
+    const { ell, tri, line, rect, B, Be, A, A2 } = K;
+    rect(12, 26, 1, 3, '#e08a1f'); rect(18, 26, 1, 3, '#e08a1f'); rect(11, 28, 3, 1, '#e08a1f'); rect(17, 28, 3, 1, '#e08a1f');
+    tri([22, 18], [28, 14], [27, 21], A);
+    ell(16, 19, 8.5, 8, B); ell(13, 21, 5, 4.5, Be); ell(21, 19, 3.6, 2.8, A);
+    tri([8, 17], [3, 18.5], [8, 20], '#f0a030');
+    line(16, 11, 14, 8, .7, A2); line(14, 8, 18, 6, .7, A2); line(18, 6, 15, 2, .7, A2);
+    K.eyes.push([10, 15, 'big']);
+  },
+  lark(K) {
+    const { ell, tri, line, B, Be, A, A2 } = K;
+    tri([21, 20], [31, 28], [29, 17], A); tri([22, 19], [31, 22], [30, 15], shade(A, .2));
+    tri([14, 16], [21, 0], [26, 14], A); line(19, 7, 22, 4, .6, A2); line(22, 4, 21, 9, .6, A2); line(21, 9, 24, 7, .6, A2);
+    ell(17, 18, 7.5, 5.5, B); ell(15, 20.5, 5, 2.6, Be);
+    ell(10, 12, 4.8, 4.3, B); tri([6, 11], [1, 12.5], [6, 14], '#f0a030');
+    tri([12, 9], [17, 5], [14, 11], A); tri([13, 10], [19, 8], [15, 12], A);
+    line(15, 23, 14, 28, .5, '#e08a1f'); line(19, 23, 19, 28, .5, '#e08a1f');
+    K.eyes.push([8, 11, 'angry']);
+  },
+  frog(K) {
+    const { ell, line, B, Be, A2, Dk } = K;
+    ell(23, 25, 5.5, 3.5, Dk); ell(25, 28.5, 3, 1, Be);
+    line(10, 22, 8, 28, 1, Dk); ell(7, 28.5, 2.4, 1, Be);
+    ell(16, 22, 10.5, 6.5, B); ell(13, 24.5, 7, 2.8, Be);
+    ell(9, 15, 3.4, 3.2, B); ell(17, 14, 3.4, 3.2, B);
+    line(17, 19, 20, 21, .6, A2); line(20, 21, 23, 18, .6, A2); line(23, 18, 26, 21, .6, A2);
+    for (const [x, y] of [[13, 18], [21, 24]]) K.glow(x, y, A2);
+    line(4, 21, 13, 22.5, .45, INK);
+    K.eyes.push([8, 14, 'big'], [16, 13, 'big']);
+  },
+  beetle(K) {
+    const { ell, line, set, B, Dk, A2 } = K;
+    for (let i = 0; i < 3; i++) { line(12 + i * 5, 24, 9 + i * 5, 29, .6, INK); }
+    ell(18, 19, 10, 7, B); line(10, 18, 27, 18, .4, shade(B, -.35)); ell(16, 14.5, 5, 1.4, shade(B, .55));
+    ell(8, 20, 4.2, 3.8, Dk);
+    line(6, 17, 4, 11, .7, A2); ell(4, 9, 2.4, 2.4, A2); set(4, 9, null); set(4, 8, null);
+    line(7, 17, 2, 14, .4, INK);
+    for (const [x, y] of [[21, 15], [24, 18], [18, 21]]) K.glow(x, y, '#fff27a');
+    K.eyes.push([6, 19, 'glow']);
+  },
+  rock(K) {
+    const { ell, line, B, Dk } = K;
+    ell(11, 28.5, 2.6, 1.4, Dk); ell(21, 28.5, 2.6, 1.4, Dk);
+    ell(16, 21, 9.5, 7.5, B); ell(11, 17, 5.5, 5, B); ell(21, 15, 5.5, 5, B); ell(16, 14, 4, 3.5, B);
+    line(14, 13, 16, 17, .45, Dk); line(16, 17, 14, 20, .45, Dk); line(23, 19, 25, 22, .45, Dk);
+    ell(21, 10.5, 3, 1.2, '#5aa83a'); ell(19, 10, 1.5, .8, '#7ccf5a');
+    K.eyes.push([10, 19], [16, 19]); K.mouth = [12, 23, 'smile'];
+  },
+  golem(K) {
+    const { ell, rect, line, B, A, A2, Dk } = K;
+    rect(9, 24, 5, 6, Dk); rect(18, 24, 5, 6, Dk);
+    ell(4, 21, 4, 5, B); ell(28, 20, 4, 5, B); ell(4, 25, 3, 2, Dk);
+    rect(7, 12, 18, 13, B); ell(16, 12, 9, 3, B);
+    ell(7, 13, 4, 3.2, A); ell(25, 13, 4, 3.2, A);
+    ell(14, 7, 5, 4.2, B); ell(15, 3.5, 3, 1.1, '#5aa83a');
+    for (const [x, y] of [[15, 15], [15, 16], [15, 17], [14, 18], [16, 18], [15, 19], [12, 21], [18, 21]]) K.glow(x, y, A2);
+    line(9, 23, 23, 23, .4, shade(B, -.3));
+    K.eyes.push([11, 6, 'glow'], [15, 6, 'glow']);
+  },
+  armadillo(K) {
+    const { ell, tri, line, B, Be, A2, Dk } = K;
+    tri([26, 22], [31, 26], [25, 25], Dk);
+    for (const lx of [10, 14, 20, 24]) ell(lx, 27, 1.6, 2.4, Dk);
+    ell(18, 20, 10, 7.5, B); for (const x of [12, 16, 20, 24]) line(x, 13, x, 26, .5, shade(B, -.3));
+    tri([12, 14], [13, 6], [16, 13], A2); tri([17, 13], [19, 4], [21, 13], A2); tri([21, 14], [24, 8], [25, 15], A2);
+    tri([13, 12], [13.5, 8], [15, 12], '#ffffff');
+    ell(7, 22, 4.5, 3.4, Be); tri([4, 21], [0, 24], [4, 24.5], Be); set(1, 23, INK);
+    tri([8, 19], [9, 15], [11, 19], Be);
+    K.eyes.push([6, 20]);
+    function set(x, y, c) { K.set(x, y, c); }
+  },
+  ferret(K) {
+    const { ell, tri, B, Be, big } = K, pts = [[9, 13], [12, 16], [15, 20], [19, 22], [23, 21], [26, 17]];
+    pts.forEach(([x, y], i) => ell(x, y, (big ? 4.4 : 3.8) - i * .25, (big ? 4.4 : 3.8) - i * .25, B));
+    pts.forEach(([x, y], i) => i > 0 && i < 5 && ell(x - .5, y + 1.8, 2, 1.2, Be));
+    ell(27, 12, 3.6, 3, '#ffffff'); ell(29.5, 9, 2.6, 2.3, '#f4fbff'); ell(25, 9.5, 2.4, 2.2, '#ffffff');
+    if (big) { // wind-wings unfurl from its back
+      tri([12, 16], [15, 1], [21, 17], Be); tri([17, 19], [24, 3], [26, 19], shade(Be, -.08));
+      for (const [x0, y0, x1, y1] of [[15, 4, 16, 15], [17, 8, 18, 16], [23, 6, 22, 17]]) K.line(x0, y0, x1, y1, .4, shade(B, -.2));
+    }
+    ell(13, 23, 1.5, 1.2, shade(B, -.3)); ell(20, 26, 1.5, 1.2, shade(B, -.3));
+    ell(8, 10, 4.6, 4, B); ell(4.5, 12, 2.2, 1.6, Be); K.set(2, 12, INK);
+    if (big) { tri([4, 8], [4, 1], [8, 7], B); tri([9, 7], [12, 1], [12, 8], B); K.line(2, 12, 0, 10, .4, '#ffffff'); K.eyes.push([6, 9, 'angry'], [10, 9, 'angry']); }
+    else { ell(7, 4, 1.5, 3.6, B); ell(11, 4.5, 1.5, 3.6, B); ell(7, 4, .6, 2.4, '#f5c6d6'); ell(11, 4.5, .6, 2.4, '#f5c6d6'); K.eyes.push([6, 9], [10, 9]); }
+  },
+  owl(K) {
+    const { ell, tri, rect, B, Be, A, A2, Dk } = K;
+    rect(12, 28, 2, 2, '#e08a1f'); rect(18, 28, 2, 2, '#e08a1f');
+    tri([8, 9], [7, 2], [12, 8], A); tri([19, 8], [24, 2], [23, 9], A);
+    ell(16, 19, 9, 10, B); ell(22, 20, 4, 7.5, A);
+    ell(15, 13, 7.5, 5.5, Be);
+    for (const [x, y] of [[13, 22], [17, 23], [15, 26], [11, 25]]) { K.set(x, y, Dk); K.set(x + 1, y + 1, Dk); }
+    ell(12, 13, 2.8, 2.8, A2); ell(18, 13, 2.8, 2.8, A2);
+    tri([14, 15], [15, 18], [16, 15], '#f0a030');
+    K.eyes.push([11, 12, 'big'], [17, 12, 'big']);
+  },
+  ray(K) {
+    const { ell, tri, line, B, Be, A, Dk } = K;
+    line(17, 20, 28, 30, .5, Dk); K.set(28, 30, A);
+    tri([1, 17], [16, 7], [16, 22], B); tri([31, 17], [16, 7], [16, 22], B);
+    ell(16, 17, 6.5, 4, Be);
+    tri([11, 13], [9, 8], [14, 12], Dk); tri([21, 13], [23, 8], [18, 12], Dk);
+    for (const [x, y] of [[6, 16], [8, 14], [25, 16], [23, 14]]) ell(x, y, 1, 1, A);
+    line(14, 18, 18, 18, .4, INK);
+    K.eyes.push([12, 14], [19, 14]);
+  },
+  moth(K) {
+    const { ell, line, set, B, Be, A, A2, Dk, big } = K;
+    ell(22, 12, big ? 9 : 7.5, big ? 9 : 7.5, A); ell(19, 19, big ? 9 : 7.5, big ? 7 : 6, B);
+    ell(21, 17, 2.8, 2.8, A2); ell(21, 17, 1.2, 1.2, INK); ell(24, 10, 2, 2, A2);
+    if (big) { ell(30, 4, 1.8, 1.4, shade(A, .45)); ell(31, 1, 1.2, 1, shade(A, .6)); ell(29, 26, 1.6, 1.2, shade(B, .4)); }
+    ell(12, 19, 3.6, 6, Be); for (const y of [16, 19, 22]) line(9, y, 15, y, .4, shade(Be, -.2));
+    ell(9, 13, 3.4, 3.1, Be);
+    line(8, 10, 4, 2, .5, Dk); line(10, 10, 12, 2, .5, Dk); for (const [x, y] of [[5, 4], [6, 6], [11, 4], [11, 6]]) set(x, y, Dk);
+    K.eyes.push([7, 12, big ? 'glow' : 'big']);
+  },
+  wisp(K) {
+    const { ell, tri, line, B, Be } = K;
+    line(16, 24, 22, 28, 1.6, B); line(22, 28, 26, 24, 1.1, B); ell(26, 22, 1.4, 1.4, Be);
+    ell(15, 16, 7.5, 8.5, B); tri([8, 14], [16, 0], [22, 14], B); tri([12, 10], [17, 3], [19, 11], shade(B, .25));
+    ell(15, 17, 4.5, 5.5, Be);
+    ell(7, 18, 1.8, 1.2, B); ell(23, 18, 1.8, 1.2, B);
+    K.eyes.push([11, 14, 'glow'], [17, 14, 'glow']); K.mouth = [14, 20, 'open'];
+  },
+  leviathan(K) {
+    const { ell, tri, line, B, Be, A, A2 } = K, pts = [[8, 11], [10, 17], [14, 22], [20, 25], [26, 22], [28, 16], [25, 10], [21, 8]];
+    for (let i = pts.length - 1; i >= 0; i--) { const [x, y] = pts[i], r = 6.2 - i * .5; ell(x, y, r, r, i % 2 ? B : shade(B, -.06)); ell(x - .6, y + r * .45, r * .5, r * .32, Be); }
+    for (let i = 1; i < 7; i++) { const [x, y] = pts[i], r = 6.2 - i * .5; tri([x - 2, y - r + 1], [x + 1, y - r - 4], [x + 2.5, y - r + 1], A); }
+    ell(8, 11, 6.5, 5.6, B); ell(4, 14.5, 3, 2, Be); tri([12, 8], [17, 4], [14, 12], A);
+    tri([7, 6], [3, 0], [9, 5], '#e9e2cf'); tri([10, 6], [12, -1], [12, 7], '#e9e2cf');
+    line(3, 14, 0, 18, .4, A); line(5, 15, 3, 20, .4, A);
+    for (const [x, y] of [[13, 21], [19, 24], [25, 21], [27, 15], [24, 9]]) { K.glow(x, y, A2); K.glow(x + 1, y, shade(A2, .4)); }
+    K.eyes.push([5, 9, 'glow'], [9, 9, 'glow']);
+  },
+  bunny(K) {
+    const { ell, line, B, Be, Dk, big } = K;
+    ell(10, 28.5, big ? 4.6 : 3.6, 1.8, Dk); ell(19, 28.5, big ? 4.6 : 3.6, 1.8, Dk);
+    ell(22, 24, 2.6, 2.6, '#ffffff');
+    ell(15, 21, big ? 7.5 : 6.5, big ? 7 : 6.5, B); ell(14, 22, 4, 4.5, Be);
+    if (big) { ell(20, 20, 2.6, 3.8, B); ell(9, 21, 2.4, 3.4, B); }
+    ell(13, 11, 5.5, 5, B); ell(10.5, 13.5, 2.4, 1.8, Be);
+    ell(10, 3, 1.7, 5, B); ell(10, 3, .7, 3.6, '#f5a3c7');
+    if (big) { line(15, 7, 21, 3, 1.6, B); line(15, 7, 20, 3.5, .6, '#f5a3c7'); } else { ell(15, 3, 1.7, 5, B); ell(15, 3, .7, 3.6, '#f5a3c7'); }
+    K.eyes.push([10, 10], [14, 10]); K.mouth = [9, 14, 'smile'];
+  },
+  snail(K) {
+    const { ell, line, B, Be, A } = K;
+    ell(15, 26.5, 12, 3, B); ell(13, 27.5, 9, 1.2, Be);
+    ell(5, 22, 3.4, 3.4, B); line(4, 20, 2, 14, .55, B); line(7, 20, 8, 14, .55, B);
+    ell(18, 17, 8.5, 8.5, A); ell(18, 17, 6, 6, shade(A, .28)); ell(18.5, 17.5, 3.6, 3.6, A); ell(19, 18, 1.4, 1.4, shade(A, -.3));
+    K.eyes.push([1, 12], [7, 12]); K.mouth = [3, 24, 'smile'];
+  },
+  boar(K) {
+    const { ell, tri, rect, line, set, B, Be, A, Dk } = K;
+    for (const lx of [10, 14, 20, 24]) { rect(lx, 23, 3, 6, Dk); rect(lx, 28, 3, 1, INK); }
+    line(26, 17, 29, 15, .5, B); set(29, 14, B); set(30, 15, B);
+    ell(17, 19, 10, 6.5, B); ell(16, 22, 7, 2.4, Be);
+    for (let i = 0; i < 6; i++) tri([10 + i * 2.6, 14], [11 + i * 2.6, 8 - (i % 2) * 2], [13 + i * 2.6, 14], A);
+    ell(8, 17, 5.6, 5, B); ell(3.5, 19, 2.6, 2.3, Be); set(2, 19, INK); set(4, 19, INK);
+    tri([5, 21], [2, 15], [7, 20], '#fff8e0');
+    tri([9, 13], [11, 8], [12, 13], B);
+    K.eyes.push([7, 15, 'angry']);
+  },
+};
 function kithSprite(id) {
-  const L = SP[id].look, N = 32, G = Array.from({ length: N }, () => Array(N).fill(null)), s = L.size || 1;
-  let seed = hash(id); const rr = () => ((seed = Math.imul(seed ^ seed >>> 15, 2246822507) >>> 0) % 1000) / 1000;
+  const L = SP[id].look, N = 32, G = Array.from({ length: N }, () => Array(N).fill(null)), NOSHADE = new Set();
   const set = (x, y, c) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < N && y < N) G[y][x] = c; };
   const ell = (cx, cy, rx, ry, c) => { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) set(x, y, c); } };
-  const tri = (a, b, c, col) => { const [x0, x1] = [Math.min(a[0], b[0], c[0]), Math.max(a[0], b[0], c[0])], [y0, y1] = [Math.min(a[1], b[1], c[1]), Math.max(a[1], b[1], c[1])];
-    const sg = (p, q, r) => (p[0] - r[0]) * (q[1] - r[1]) - (q[0] - r[0]) * (p[1] - r[1]);
-    for (let y = Math.floor(y0); y <= y1; y++) for (let x = Math.floor(x0); x <= x1; x++) { const p = [x + .5, y + .5], d1 = sg(p, a, b), d2 = sg(p, b, c), d3 = sg(p, c, a); if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) set(x, y, col); } };
-  const body = L.body, belly = L.belly || shade(body, .4), acc = L.accent || shade(body, -.3), dark = shade(body, -.25);
-  let head, tailAt, eyes;
-  const tailFirst = () => { // tails are drawn before the body so the body overlaps them
-    if (!tailAt) return; const [tx, ty] = tailAt;
-    if (L.tail === 'flame') { tri([tx - 2, ty + 3], [tx + 5, ty - 6], [tx + 3, ty + 4], '#f2762e'); tri([tx, ty + 2], [tx + 4, ty - 3], [tx + 3, ty + 3], '#ffd23f'); }
-    if (L.tail === 'leaf') ell(tx + 2, ty - 1, 3, 2, '#5aa83a');
-    if (L.tail === 'fin') tri([tx - 2, ty], [tx + 5, ty - 5], [tx + 5, ty + 4], acc);
-    if (L.tail === 'fluff') ell(tx + 1, ty, 3.5, 3, belly);
-    if (L.tail === 'wisp') { ell(tx + 2, ty - 2, 3, 2, shade(body, .3)); ell(tx + 4, ty - 5, 2, 1.5, shade(body, .5)); }
-  };
-  if (L.plan === 'quad') {
-    tailAt = [24 + 2 * s, 17]; tailFirst();
-    for (const lx of [11, 14, 20, 23]) { ell(lx, 25 + 2 * s, 1.6, 3, dark); }
-    ell(17, 20, 8.5 * s, 5.5 * s, body); ell(16, 22.5, 6 * s, 2.5 * s, belly);
-    head = [9.5, 13.5 - 1.5 * (s - 1) * 3, 5.5 * s]; ell(head[0], head[1], head[2], head[2] * .92, body); ell(head[0] - 3.5, head[1] + 2, 2.6, 2, belly);
-    eyes = [[head[0] - 3, head[1] - 1], [head[0] + 1, head[1] - 1]];
-  } else if (L.plan === 'biped') {
-    tailAt = [23, 24]; tailFirst();
-    ell(12, 28, 3, 1.6, dark); ell(20, 28, 3, 1.6, dark);
-    ell(16, 21, 6.5 * s, 7 * s, body); ell(15, 22, 4 * s, 4.5 * s, belly);
-    ell(9.5, 19, 1.6, 3, body); ell(22.5, 19, 1.6, 3, body);
-    head = [16, 10.5, 6 * s]; ell(16, 10.5, 6 * s, 5.5 * s, body);
-    eyes = [[12.5, 9.5], [17.5, 9.5]];
-  } else if (L.plan === 'bird') {
-    tri([22, 20], [30, 15], [29, 24], acc);
-    ell(14, 27, 1, 2, '#e08a1f'); ell(19, 27, 1, 2, '#e08a1f');
-    ell(17, 19, 7 * s, 6.5 * s, body); ell(15, 21.5, 4.5 * s, 4 * s, belly);
-    head = [11, 11, 4.8 * s]; ell(11, 11, 4.8 * s, 4.6 * s, body);
-    tri([7, 10.5], [2.5, 12.5], [7, 14], '#f0a030');
-    ell(21, 17.5, 5.5 * s, 3.5 * s, acc);
-    eyes = [[8.5, 9.5], [12.5, 9.5]];
-  } else if (L.plan === 'blob') {
-    ell(16, 20, 10.5 * s, 9 * s, body); ell(16, 24, 7 * s, 4 * s, belly);
-    ell(10, 28, 2.5, 1.5, dark); ell(22, 28, 2.5, 1.5, dark);
-    head = [16, 13, 7 * s];
-    eyes = [[12, 16], [18, 16]];
-  } else { // serpent
-    const segs = 7;
-    for (let i = segs; i >= 0; i--) { const t = i / segs, cx = 9 + i * 2.6, cy = 16 + Math.sin(i * .9) * 4 + i * .6, r = (5.2 - t * 2.4) * s; ell(cx, cy, r, r, i % 2 ? body : shade(body, -.08)); ell(cx - .5, cy + r * .45, r * .55, r * .35, belly); }
-    tailAt = [9 + segs * 2.6, 16 + Math.sin(segs * .9) * 4 + segs * .6]; tailFirst();
-    head = [8, 10.5, 5.2 * s]; ell(8, 10.5, 5.2 * s, 4.6 * s, body); ell(5, 13, 2.4, 1.6, belly);
-    eyes = [[5.5, 9.5], [9.5, 9.5]];
-  }
-  // ears & crests relative to the head
-  const [hx, hy, hr] = head, top = hy - hr * .85;
-  if (L.ears === 'pointy') { tri([hx - hr * .8, top + 2], [hx - hr * .55, top - 4], [hx - hr * .1, top + 1], body); tri([hx + hr * .1, top + 1], [hx + hr * .55, top - 4], [hx + hr * .8, top + 2], body); set(hx - hr * .5, top - 1, belly); set(hx + hr * .5, top - 1, belly); }
-  if (L.ears === 'round') { ell(hx - hr * .6, top, 2.2, 2.2, dark); ell(hx + hr * .6, top, 2.2, 2.2, dark); }
-  if (L.ears === 'long') { ell(hx - hr * .45, top - 3, 1.6, 4.5, body); ell(hx + hr * .45, top - 3, 1.6, 4.5, body); ell(hx - hr * .45, top - 3, .7, 3.2, belly); ell(hx + hr * .45, top - 3, .7, 3.2, belly); }
-  if (L.crest === 'wick') { R2(hx, top - 3, 1, 3, INK); tri([hx - 2, top - 3], [hx + .5, top - 9], [hx + 3, top - 3], '#f2762e'); tri([hx - .5, top - 3], [hx + .5, top - 6.5], [hx + 1.5, top - 3], '#ffd23f'); }
-  if (L.crest === 'leaf') { ell(hx + 1, top - 2, 3.5, 1.8, '#5aa83a'); set(hx, top, '#3f7a2a'); set(hx, top - 1, '#3f7a2a'); }
-  if (L.crest === 'flame') { tri([hx - 3, top + 1], [hx, top - 6], [hx + 3, top + 1], '#f2762e'); tri([hx - 1, top], [hx, top - 3], [hx + 1, top], '#ffd23f'); }
-  if (L.crest === 'horns') { tri([hx - hr * .7, top + 2], [hx - hr * .9, top - 4], [hx - hr * .3, top + 1], '#e9e2cf'); tri([hx + hr * .3, top + 1], [hx + hr * .9, top - 4], [hx + hr * .7, top + 2], '#e9e2cf'); }
-  if (L.crest === 'fin') tri([hx + 2, top + 2], [hx + 7, top - 3], [hx + 8, top + 4], acc);
-  if (L.crest === 'gem') ell(hx, top + 2.5, 1.3, 1.3, '#ff6fa8');
-  if (L.crest === 'bolt') { R2(hx, top - 4, 2, 2, '#ffd23f'); R2(hx - 1, top - 2, 2, 2, '#ffd23f'); R2(hx, top - 1, 2, 2, '#ffd23f'); }
-  function R2(x, y, w, h, c) { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) set(x + i, y + j, c); }
-  if (L.spots) for (let i = 0; i < 6; i++) { const x = 10 + rr() * 14, y = 17 + rr() * 7; if (G[Math.floor(y)][Math.floor(x)] === body) set(x, y, L.spots); }
-  // shading: highlight top edges, shadow bottom edges
+  const tri = (a, b, c, col) => { const xs = [a[0], b[0], c[0]], ys = [a[1], b[1], c[1]], sg = (p, q, r) => (p[0] - r[0]) * (q[1] - r[1]) - (q[0] - r[0]) * (p[1] - r[1]);
+    for (let y = Math.floor(Math.min(...ys)); y <= Math.max(...ys); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.max(...xs); x++) { const p = [x + .5, y + .5], d1 = sg(p, a, b), d2 = sg(p, b, c), d3 = sg(p, c, a); if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) set(x, y, col); } };
+  const rect = (x, y, w, h, c) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) set(x + i, y + j, c); };
+  const line = (x0, y0, x1, y1, r, c) => { const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2) + 1; for (let i = 0; i <= n; i++) { const t = i / n; ell(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, Math.max(.55, r), Math.max(.55, r), c); } };
+  const glow = (x, y, c) => { set(x, y, c); NOSHADE.add(Math.floor(y) * N + Math.floor(x)); };
+  const B = L.body, Be = L.belly || shade(B, .45), A = L.acc || shade(B, -.3), A2 = L.acc2 || '#ffd23f', Dk = shade(B, -.3);
+  const K = { set, ell, tri, rect, line, glow, B, Be, A, A2, Dk, eyes: [], mouth: null, big: !!L.big };
+  PLANS[L.plan](K, L);
+  // shading: light from the top-left
   const S = G.map(r => r.slice());
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const c = G[y][x]; if (!c) continue; if (y > 0 && !G[y - 1][x]) S[y][x] = shade(c, .28); else if (y < N - 1 && !G[y + 1][x]) S[y][x] = shade(c, -.22); }
-  for (const [ex, ey] of eyes) { const x = Math.floor(ex), y = Math.floor(ey); S[y][x] = '#ffffff'; S[y][x + 1] = '#ffffff'; S[y + 1][x] = INK; S[y + 1][x + 1] = '#ffffff'; S[y + 2] && (S[y + 2][x] = S[y + 2][x] || null); }
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const c = G[y][x]; if (!c || NOSHADE.has(y * N + x)) continue;
+    if ((y > 0 && !G[y - 1][x]) || (x > 0 && !G[y][x - 1] && y < N / 2)) S[y][x] = shade(c, .3);
+    else if ((y < N - 1 && !G[y + 1][x]) || (x < N - 1 && !G[y][x + 1])) S[y][x] = shade(c, -.22);
+  }
+  const put = (x, y, c) => { if (x >= 0 && y >= 0 && x < N && y < N) S[y][x] = c; };
+  for (const [ex, ey, st = L.eye || 'dot'] of K.eyes) {
+    const x = Math.floor(ex), y = Math.floor(ey);
+    if (st === 'big') { for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) put(x + i - 1, y + j - 1, '#ffffff'); put(x - 1, y, INK); put(x, y, INK); put(x - 1, y + 1, INK); put(x, y + 1, INK); put(x, y, '#ffffff'); }
+    else if (st === 'glow') { const c = L.eyeCol || A2; put(x, y, c); put(x + 1, y, c); put(x, y + 1, shade(c, -.2)); put(x + 1, y + 1, shade(c, -.2)); put(x, y, '#ffffff'); }
+    else if (st === 'sleepy') { put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x - 1, y, INK); }
+    else if (st === 'angry') { put(x, y, INK); put(x + 1, y, INK); put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x, y, '#ffffff'); put(x - 1, y - 2, INK); put(x, y - 1, INK); put(x + 1, y - 1, INK); }
+    else { put(x, y, INK); put(x + 1, y, INK); put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x, y, '#ffffff'); }
+  }
+  if (K.mouth) { const [mx, my, st] = K.mouth; if (st === 'smile') { put(mx, my, INK); put(mx + 1, my + 1, INK); put(mx + 2, my, INK); } else if (st === 'open') { put(mx, my, '#4a1428'); put(mx + 1, my, '#4a1428'); put(mx, my + 1, '#4a1428'); put(mx + 1, my + 1, '#4a1428'); } else { put(mx, my, INK); put(mx + 1, my, INK); put(mx + 2, my, INK); } }
   const c = mk(N, N), x = c.getContext('2d');
   for (let y = 0; y < N; y++) for (let i = 0; i < N; i++) if (S[y][i]) R(x, S[y][i], i, y);
   outline(c);
@@ -431,10 +741,11 @@ const SIGNS = {
   '17,40': 'MURKWOOD\nThe Hush runs thick here. Hushed Kith are restless and strong.',
 };
 const ENC = {
-  route1: [['burrowbun', 2, 4, 35], ['breezel', 3, 5, 25], ['mossnip', 3, 5, 15], ['puddlepup', 3, 5, 15], ['zapling', 4, 5, 10]],
-  murk: [['pebblet', 9, 12, 20], ['mossnip', 9, 12, 15], ['zapling', 9, 12, 15], ['burrowbun', 10, 12, 15], ['coalcrab', 10, 12, 15], ['puddlepup', 10, 12, 10], ['glimmerfin', 10, 12, 10]],
-  murkHush: [['mothmurmur', 11, 14, 40], ['breezel', 11, 13, 20], ['pebblet', 11, 13, 20], ['coalcrab', 11, 13, 15], ['duskmastiff', 13, 13, 5]],
-  hushpoint: [['mothmurmur', 15, 17, 35], ['glimmerfin', 15, 17, 25], ['pebblet', 15, 16, 20], ['duskmastiff', 15, 16, 10], ['zapling', 15, 17, 10]],
+  route1: [['burrowbun', 2, 4, 22], ['breezel', 3, 5, 15], ['mossnip', 3, 5, 12], ['puddlepup', 3, 5, 12], ['zapling', 4, 5, 9], ['trundle', 3, 5, 12], ['capsprout', 3, 5, 10], ['plumowl', 4, 5, 8]],
+  murk: [['pebblet', 9, 12, 9], ['mossnip', 9, 12, 7], ['zapling', 9, 12, 7], ['coalcrab', 10, 12, 8], ['puddlepup', 10, 12, 6], ['capsprout', 9, 12, 8], ['coilbug', 10, 12, 9], ['smolderhog', 10, 12, 9],
+    ['joltoad', 10, 12, 8], ['geodillo', 10, 12, 8], ['mumbleboar', 10, 12, 8], ['petalfly', 10, 12, 8], ['bogshell', 10, 12, 5]],
+  murkHush: [['mothmurmur', 11, 14, 30], ['wispet', 11, 14, 25], ['breezel', 11, 13, 10], ['plumowl', 11, 13, 12], ['coalcrab', 11, 13, 10], ['duskmastiff', 13, 13, 5], ['capsprout', 11, 13, 8]],
+  hushpoint: [['mothmurmur', 15, 17, 16], ['glimmerfin', 15, 17, 14], ['bubbloon', 15, 17, 14], ['bogshell', 15, 16, 10], ['skyray', 15, 17, 12], ['wispet', 15, 17, 12], ['pebblet', 15, 16, 8], ['duskmastiff', 15, 16, 7], ['cairnguard', 16, 17, 4], ['zapling', 15, 17, 3]],
 };
 
 // ================= game state =================
@@ -468,18 +779,18 @@ function buildNPCs() {
   if (F.rival1) add({ id: 'odile', x: 21, y: 90, look: LOOKS.odile, lines: ['ODILE: The Warden in Brindlewick knows the old songs. Head north along Thistle Path.', 'ODILE: Remember: weaken a wild Kith first, then offer a Lantern.'] });
   add({ id: 'fen', x: 10, y: 94, look: LOOKS.elder, lines: ['FEN: The lighthouse at Hushpoint used to sing on stormy nights. Low and long, like a whale.', 'FEN: Then it went dark, and the fog came. Funny, how quiet the world gets.'] });
   add({ id: 'kid', x: 27, y: 91, dir: 'left', look: LOOKS.kid, lines: ['My Burrowbun stopped squeaking last week. Mom says it\'s the Hush.', 'If your Kith gets quiet... just keep talking to it, okay?'] });
-  add({ id: 'tobin', x: 12, y: 73, dir: 'right', look: LOOKS.kid, trainer: { name: 'KID TOBIN', team: [['burrowbun', 4], ['breezel', 4]], sight: 4,
+  add({ id: 'tobin', x: 12, y: 73, dir: 'right', look: LOOKS.kid, trainer: { name: 'KID TOBIN', team: [['burrowbun', 4], ['trundle', 4]], sight: 4,
     pre: 'Hey! Your Kith isn\'t in a Lantern? That\'s so weird. Battle me!', post: 'Okay, okay. Maybe Lanterns aren\'t everything.' } });
-  add({ id: 'bea', x: 19, y: 64, dir: 'left', look: LOOKS.picnic, trainer: { name: 'PICNICKER BEA', team: [['mossnip', 5], ['zapling', 5]], sight: 4,
+  add({ id: 'bea', x: 19, y: 64, dir: 'left', look: LOOKS.picnic, trainer: { name: 'PICNICKER BEA', team: [['capsprout', 5], ['zapling', 5]], sight: 4,
     pre: 'A picnic without a battle is just lunch!', post: 'My sandwiches AND my pride. Both gone.' } });
   add({ id: 'scholar', x: 25, y: 51, look: LOOKS.elder, lines: ['Echo Scrolls remember moves. Any Kith can learn a Plain move from one.', 'Other scrolls only work on Kith of the same type... though some Kith have a knack for a second type. Try it and see!'] });
   add({ id: 'tip', x: 22, y: 78, look: LOOKS.towns, lines: ['Tip: a tired Kith is more willing to step into a Lantern. Knock its HP down first!', 'But careful. Knock it out, and it wanders off.'] });
   add({ id: 'gossip', x: 12, y: 49, look: LOOKS.elder, lines: ['Warden Moss tends the Verdant Chord, one of the old songs.', 'They say the old songs held back the first Hush, centuries ago.'] });
   add({ id: 'merchant', x: 20, y: 47, look: LOOKS.towns, lines: ['Keeper Vell used to come to market for lamp oil. Kind soul.', 'Lately Vell\'s followers buy up every Lantern in town. What do they need so many for?'] });
   add({ id: 'nurse', x: 8, y: 52, look: LOOKS.picnic, lines: ['Hurt Kith can rest at the Hearth, just up the path. It\'s free!', 'Your Pipwick doesn\'t ride in a Lantern? Then it sees everything you see. Lucky.'] });
-  add({ id: 'ilse', x: 5, y: 27, look: LOOKS.ranger, trainer: { name: 'RANGER ILSE', team: [['pebblet', 11], ['puddlepup', 12]], sight: 3,
+  add({ id: 'ilse', x: 5, y: 27, look: LOOKS.ranger, trainer: { name: 'RANGER ILSE', team: [['geodillo', 11], ['joltoad', 11], ['puddlepup', 12]], sight: 3,
     pre: 'Ranger\'s orders: no one goes deeper without being tested!', post: 'You\'ll do. Mind the grey grass; that\'s where the Hush lives.' } });
-  add({ id: 'vane', x: 21, y: 21, dir: 'left', look: LOOKS.follower, trainer: { name: 'LAMPLIGHTER VANE', team: [['mothmurmur', 12], ['coalcrab', 12]], sight: 4,
+  add({ id: 'vane', x: 21, y: 21, dir: 'left', look: LOOKS.follower, trainer: { name: 'LAMPLIGHTER VANE', team: [['wispet', 12], ['mothmurmur', 12], ['smolderhog', 12]], sight: 4,
     pre: 'The Keeper will keep every Kith safe in a Lantern, forever. Why let yours wander loose?', post: 'Your partner... it hummed at me. Why did that make me want to cry?' } });
   add({ id: 'ranger', x: 14, y: 37, look: LOOKS.ranger, lines: ['Hushed Kith hide in the grey grass. The fog makes them silent, and stronger.', 'If one bonds with you, they say its voice comes back. That\'s worth a Lantern or two.'] });
   add({ id: 'pilgrim', x: 11, y: 14, dir: 'right', look: LOOKS.follower, lines: P.flags.ending
@@ -807,7 +1118,7 @@ async function warden() {
   await msg('WARDEN MOSS: So you\'re the one walking with an unbonded Pipwick. Word travels fast in a quiet world.');
   await msg('WARDEN MOSS: The Verdant Chord is one of the old songs. It was sung to calm the first Hush, long ago.');
   if (!await yes('WARDEN MOSS: I\'ll teach it to your Pipwick, if you show me your bond is real. Ready?')) return msg('WARDEN MOSS: Then come back when you are.');
-  const res = await battle({ foes: [makeKith('mossnip', 10), makeKith('bramblemaw', 12)], trainer: { name: 'WARDEN MOSS' } });
+  const res = await battle({ foes: [makeKith('mossnip', 10), makeKith('capsprout', 11), makeKith('bramblemaw', 12)], trainer: { name: 'WARDEN MOSS' } });
   if (res !== 'win') return blackout();
   P.money += 1200;
   await msg('WARDEN MOSS: You fight like a pair, not a trainer and a tool. Here.');
@@ -837,7 +1148,7 @@ async function rival2() {
   await msg('SABLE: I went into the fog alone. My Galeferret... it can\'t make a sound anymore. It still fights. It just won\'t sing.');
   await msg('SABLE: Vell\'s people say a Lantern keeps a Kith safe from the Hush forever. Maybe they\'re right. Maybe yours should be locked up too.');
   await msg('SABLE: Prove your way is better. Battle me!');
-  const res = await battle({ foes: [makeKith('pebblet', 12), makeKith('zapling', 13), makeKith('galeferret', 15, { hushed: true })], trainer: { name: 'SABLE' } });
+  const res = await battle({ foes: [makeKith('coilbug', 12), makeKith('plumowl', 13), makeKith('galeferret', 15, { hushed: true })], trainer: { name: 'SABLE' } });
   if (res !== 'win') { P.flags.rival2 = false; NPCS = NPCS.filter(n => n !== sb); return blackout(); }
   P.money += 900;
   await msg('SABLE: Here. Take this too. Galeferret can\'t sing it anymore anyway.');
@@ -860,7 +1171,7 @@ async function lighthouse() {
     await msg('VELL: Long ago, the great Kith Quietus sang the tides in and out. People stopped listening. Its song curdled into silence: the Hush.');
     await msg('VELL: Every Kith the Hush touches loses its voice. So I keep them in Lanterns. Still. Safe. Where nothing can be lost.');
     await msg('VELL: I darkened the lighthouse so Quietus would sleep. But your Pipwick hums. It\'s waking the old songs. I can\'t allow that.');
-    const res = await battle({ foes: [makeKith('hushwing', 18), makeKith('craghorn', 18), makeKith('duskmastiff', 20)], trainer: { name: 'KEEPER VELL', reward: 3000 } });
+    const res = await battle({ foes: [makeKith('hushwing', 18), makeKith('tidecrown', 18), makeKith('cairnguard', 18), makeKith('duskmastiff', 20)], trainer: { name: 'KEEPER VELL', reward: 3000 } });
     NPCS = NPCS.filter(n => n !== v);
     if (res !== 'win') return blackout();
     P.flags.vell = true; P.money += 3000;
@@ -909,7 +1220,7 @@ async function battle(o) {
   B.bg = o.legend ? 'sea' : (o.foes[0].hushed || player.y < 17) ? 'hush' : player.y < 42 ? 'forest' : 'meadow';
   if (prev === 'world') { transFx = { t0: NOW(), dur: 950 }; await sleep(950); transFx = null; }
   mode = 'battle'; B.openT = NOW(); B.enter.foe = NOW();
-  for (const k in PARTS) if (PARTS[k].sp === 'bg') PARTS[k].life = 0;
+  for (let i = PARTS.length - 1; i >= 0; i--) if (PARTS[i].sp !== 'screen' || !PARTS[i].path) PARTS.splice(i, 1);
   for (const f of o.foes) { f.st = { atk: 0, def: 0 }; f.dispHp = f.hp; }
   markSeen(B.foe.id);
   B.foeShow = true;
@@ -1022,7 +1333,12 @@ async function attack(a, d, id) {
     else { tgt.st[key] = nv; statFx(sideOf(tgt), key, mv.amt > 0); await sleep(500); await msg(`${lab(tgt)}'s ${nm} ${mv.amt > 0 ? 'rose' : 'fell'}!`); }
   }
 }
-function tweenHp(m) { return new Promise(r => { const iv = setInterval(() => { if (Math.abs(m.dispHp - m.hp) < .5) { m.dispHp = m.hp; clearInterval(iv); r(); } }, 30); }); }
+function tweenHp(m) {
+  // only the two Kith on the field animate their HP bars; anything else snaps, and a timeout guards against waiting forever
+  if (!B || (m !== B.me && m !== B.foe)) { m.dispHp = m.hp; return Promise.resolve(); }
+  const t0 = NOW();
+  return new Promise(r => { const iv = setInterval(() => { if (Math.abs(m.dispHp - m.hp) < .5 || NOW() - t0 > 2500) { m.dispHp = m.hp; clearInterval(iv); r(); } }, 30); });
+}
 async function handleFaints() {
   if (B.foe.hp <= 0) {
     await faintFx('foe'); await msg(`${lab(B.foe)} fainted!`); B.foeShow = false;
@@ -1227,7 +1543,7 @@ const amb = { dark: 0, col: [20, 30, 40] };
 const RUSTLE = new Map();
 const NOW = () => performance.now();
 function spawnP(o) {
-  if (PARTS.length > 700) return;
+  if (PARTS.length > 700 && !o.path) return; // projectiles always spawn so attack animations can finish
   PARTS.push(Object.assign({ x: 0, y: 0, vx: 0, vy: 0, ay: 0, drag: 0, life: 800, age: 0, size: 4, col: '#fff', shape: 'sq', glow: false, sp: 'screen', rot: 0, spin: 0, grow: 0, wob: 0, ph: rnd() * 6, a: 1 }, o));
 }
 const pickc = c => Array.isArray(c) ? c[ri(0, c.length - 1)] : c;
@@ -1577,7 +1893,7 @@ function drawLanternIcon(x, y) { g.fillStyle = INK; g.fillRect(x, y, 10, 12); g.
 const sideOf = m => m === B.me ? 'me' : 'foe';
 const FXCOL = { Ember: ['#ff9a3c', '#ffd23f', '#e8622c', '#fff1a0'], Tide: ['#7fc7ff', '#d8f0ff', '#3b7fd6'], Bloom: ['#7ccf5a', '#b9f08a', '#3f8f35', '#f5a3c7'], Spark: ['#fff27a', '#ffd23f', '#ffffff'],
   Stone: ['#a8957a', '#857a6b', '#d8cbb0'], Gale: ['#e9fbf7', '#9fd8d0', '#ffffff'], Hush: ['#b7a6f0', '#6b5b9a', '#e6e2f5'], Plain: ['#ffffff', '#ffe9a8', '#f3d9b0'] };
-function shot(from, to, o) { return new Promise(r => spawnP(Object.assign({ x: from[0], y: from[1], life: 1e9, path: { from, to, arc: o.arc || 0, dur: o.dur, delay: o.delay || 0, wave: o.wave || 0, onEnd: () => { if (o.onEnd) o.onEnd(); r(); } } }, o))); }
+function shot(from, to, o) { return new Promise(r => { setTimeout(r, (o.delay || 0) + o.dur + 600); spawnP(Object.assign({ x: from[0], y: from[1], life: 1e9, path: { from, to, arc: o.arc || 0, dur: o.dur, delay: o.delay || 0, wave: o.wave || 0, onEnd: () => { if (o.onEnd) o.onEnd(); r(); } } }, o)); }); }
 function bolt(to) { const pts = []; let x = to[0] + rnd() * 80 - 40, y = -10; while (y < to[1]) { pts.push([x, y]); y += 24 + rnd() * 20; x += rnd() * 50 - 25 + (to[0] - x) * .25; } pts.push(to); return pts; }
 async function playMove(a, d, mv) {
   const sa = sideOf(a), sd = sideOf(d), from = ctr(sa), to = ctr(sd), C = FXCOL[mv.type], big = mv.pow >= 85, T = mv.type;
