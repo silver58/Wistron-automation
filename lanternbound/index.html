@@ -102,6 +102,31 @@ const MV = {
   bristle: { name: 'Bristle', type: 'Plain', pow: 0, acc: 100, self: 'atk', amt: 1 },
   glare: { name: 'Glare', type: 'Plain', pow: 0, acc: 100, foe: 'def', amt: -1 },
   lullaby: { name: 'Lullaby', type: 'Hush', pow: 0, acc: 100, foe: 'atk', amt: -1 },
+  // ---- teachable roster (Echo Scrolls); also learned naturally by some evolved Kith ----
+  quickjab: { name: 'Quick Jab', type: 'Plain', pow: 45, acc: 100, prio: 1, note: 'Always strikes first.' },
+  haymaker: { name: 'Haymaker', type: 'Plain', pow: 85, acc: 85 },
+  catnap: { name: 'Catnap', type: 'Plain', pow: 0, acc: 100, heal: .5, note: 'Restores half of max HP.' },
+  flaredash: { name: 'Flare Dash', type: 'Ember', pow: 75, acc: 95 },
+  emberward: { name: 'Ember Ward', type: 'Ember', pow: 0, acc: 100, self: 'def', amt: 1 },
+  sunforge: { name: 'Sunforge', type: 'Ember', pow: 105, acc: 80 },
+  brinelash: { name: 'Brine Lash', type: 'Tide', pow: 60, acc: 100 },
+  mistshell: { name: 'Mist Shell', type: 'Tide', pow: 0, acc: 100, self: 'def', amt: 1 },
+  riptidecrash: { name: 'Riptide Crash', type: 'Tide', pow: 95, acc: 85 },
+  vinesnare: { name: 'Vine Snare', type: 'Bloom', pow: 55, acc: 100 },
+  rootdown: { name: 'Root Down', type: 'Bloom', pow: 0, acc: 100, heal: .35, note: 'Restores a third of max HP.' },
+  petalgale: { name: 'Petal Gale', type: 'Bloom', pow: 90, acc: 90 },
+  joltring: { name: 'Jolt Ring', type: 'Spark', pow: 60, acc: 100 },
+  overcharge: { name: 'Overcharge', type: 'Spark', pow: 0, acc: 100, self: 'atk', amt: 2 },
+  stormclap: { name: 'Stormclap', type: 'Spark', pow: 95, acc: 85 },
+  shalespike: { name: 'Shale Spike', type: 'Stone', pow: 60, acc: 100 },
+  stoneskin: { name: 'Stoneskin', type: 'Stone', pow: 0, acc: 100, self: 'def', amt: 2 },
+  landslide: { name: 'Landslide', type: 'Stone', pow: 95, acc: 85 },
+  feathercut: { name: 'Feather Cut', type: 'Gale', pow: 60, acc: 100 },
+  updraft: { name: 'Updraft', type: 'Gale', pow: 0, acc: 100, self: 'atk', amt: 1 },
+  cyclone: { name: 'Cyclone', type: 'Gale', pow: 95, acc: 85 },
+  gloombite: { name: 'Gloom Bite', type: 'Hush', pow: 60, acc: 100 },
+  muffle: { name: 'Muffle', type: 'Hush', pow: 0, acc: 100, foe: 'atk', amt: -2 },
+  voidhymn: { name: 'Void Hymn', type: 'Hush', pow: 95, acc: 85 },
 };
 
 // look: plan (quad/biped/bird/blob/serpent), colors and features for the pixel generator
@@ -174,6 +199,35 @@ const SP = {
     dex: 'The old voice of the tides. When no one listened, its song became the Hush.' },
 };
 const DEX_ORDER = Object.keys(SP);
+// Extra types each line can learn from scrolls (besides its own type and Plain)
+const ALSO = { pipwick: ['Spark'], wickwyre: ['Spark'], mossnip: ['Stone'], mosswarden: ['Stone'], puddlepup: ['Hush'], tidehound: ['Hush'],
+  zapling: ['Gale'], stormlark: ['Gale'], pebblet: ['Ember'], craghorn: ['Ember'], breezel: ['Bloom'], galeferret: ['Bloom'],
+  burrowbun: ['Stone', 'Bloom'], thumpkin: ['Stone', 'Bloom'], coalcrab: ['Stone'], glimmerfin: ['Spark'], mothmurmur: ['Gale'],
+  hushwing: ['Gale'], bramblemaw: ['Hush'], duskmastiff: ['Ember'], quietus: ['Tide', 'Gale'] };
+const canLearn = (m, mv) => MV[mv].type === 'Plain' || MV[mv].type === SP[m.id].type || (ALSO[m.id] || []).includes(MV[mv].type);
+// natural late learnsets for evolved and sturdier Kith
+for (const [id, extra] of Object.entries({ pipwick: [[13, 'quickjab']], wickwyre: [[22, 'flaredash'], [28, 'sunforge']], mosswarden: [[18, 'vinesnare'], [26, 'petalgale']],
+  tidehound: [[21, 'brinelash'], [28, 'riptidecrash']], stormlark: [[21, 'joltring'], [27, 'stormclap']], craghorn: [[22, 'shalespike'], [28, 'landslide']],
+  galeferret: [[21, 'feathercut'], [27, 'cyclone']], thumpkin: [[20, 'quickjab'], [26, 'haymaker']], hushwing: [[22, 'gloombite'], [28, 'voidhymn']],
+  duskmastiff: [[22, 'gloombite'], [26, 'muffle']], coalcrab: [[20, 'emberward']], glimmerfin: [[20, 'brinelash']], bramblemaw: [[18, 'rootdown']] })) SP[id].learn.push(...extra);
+// Echo Scrolls: where each one comes from
+const SCROLL_SHOP = [['emberward', 1000], ['mistshell', 1000], ['rootdown', 1200], ['brinelash', 1500], ['vinesnare', 1500]];
+const SCROLL_SHOP2 = [['quickjab', 1800], ['overcharge', 2000], ['stoneskin', 2000], ['updraft', 2000], ['haymaker', 2500], ['catnap', 2500]];
+const PICKUPS = [
+  { x: 27, y: 64, mv: 'shalespike' }, { x: 3, y: 72, mv: 'feathercut' }, { x: 28, y: 44, mv: 'joltring' },
+  { x: 5, y: 21, mv: 'gloombite' }, { x: 26, y: 37, mv: 'flaredash' }, { x: 7, y: 33, mv: 'muffle' },
+  { x: 23, y: 4, mv: 'stormclap' }, { x: 8, y: 3, mv: 'landslide' }, { x: 21, y: 14, mv: 'riptidecrash' }, { x: 10, y: 6, mv: 'sunforge' },
+];
+const pickupAt = (x, y) => PICKUPS.findIndex((pk, i) => pk.x === x && pk.y === y && !P.flags['p_' + i]);
+let _scrollImg; const SCROLL_IMG = () => _scrollImg || (_scrollImg = (() => { const c = mk(16, 16), x = c.getContext('2d'); R(x, '#f3e3b5', 4, 5, 8, 7); R(x, '#c79a5b', 3, 4, 10, 2); R(x, '#c79a5b', 3, 11, 10, 2); R(x, '#d9534f', 7, 4, 2, 9); R(x, '#a37a42', 5, 7, 2, 1); R(x, '#a37a42', 9, 9, 2, 1); outline(c); return c; })());
+async function giveScroll(mv) {
+  P.scrolls = P.scrolls || [];
+  if (P.scrolls.includes(mv)) return;
+  P.scrolls.push(mv);
+  await msg(`You got the Echo Scroll: ${MV[mv].name}! (${MV[mv].type})`);
+  if (P.scrolls.length === 1) await msg('Echo Scrolls hold the memory of a move. Open SCROLLS in the menu to teach it to any Kith that can learn its type. Scrolls never wear out.');
+}
+
 
 const ITEMS = {
   lantern: { name: 'Lantern', price: 200, catch: 1, desc: 'Offer to a wild Kith to bond.' },
@@ -387,7 +441,7 @@ const ENC = {
 let P, mode = 'title', busy = false, NPCS = [], player, partnerEnt, banner = null, B = null, EVO = null, lastRegion = '';
 function newState(name) {
   return { name, money: 300, bag: { lantern: 0, bright: 0, salve: 0, tonic: 0, draught: 0 }, party: [], archive: [], flags: {},
-    seen: [], caught: [], friend: 70, steps: 0, pos: { x: 7, y: 90, dir: 'down' }, lastHeal: { x: 7, y: 90 } };
+    seen: [], caught: [], scrolls: [], friend: 70, steps: 0, pos: { x: 7, y: 90, dir: 'down' }, lastHeal: { x: 7, y: 90 } };
 }
 const partnerMon = () => P.party.find(m => m.partner);
 const T = s => s.replace(/\{P\}/g, P ? P.name : '').replace(/\{K\}/g, (partnerMon() || { name: 'Pipwick' }).name);
@@ -418,6 +472,7 @@ function buildNPCs() {
     pre: 'Hey! Your Kith isn\'t in a Lantern? That\'s so weird. Battle me!', post: 'Okay, okay. Maybe Lanterns aren\'t everything.' } });
   add({ id: 'bea', x: 19, y: 64, dir: 'left', look: LOOKS.picnic, trainer: { name: 'PICNICKER BEA', team: [['mossnip', 5], ['zapling', 5]], sight: 4,
     pre: 'A picnic without a battle is just lunch!', post: 'My sandwiches AND my pride. Both gone.' } });
+  add({ id: 'scholar', x: 25, y: 51, look: LOOKS.elder, lines: ['Echo Scrolls remember moves. Any Kith can learn a Plain move from one.', 'Other scrolls only work on Kith of the same type... though some Kith have a knack for a second type. Try it and see!'] });
   add({ id: 'tip', x: 22, y: 78, look: LOOKS.towns, lines: ['Tip: a tired Kith is more willing to step into a Lantern. Knock its HP down first!', 'But careful. Knock it out, and it wanders off.'] });
   add({ id: 'gossip', x: 12, y: 49, look: LOOKS.elder, lines: ['Warden Moss tends the Verdant Chord, one of the old songs.', 'They say the old songs held back the first Hush, centuries ago.'] });
   add({ id: 'merchant', x: 20, y: 47, look: LOOKS.towns, lines: ['Keeper Vell used to come to market for lamp oil. Kind soul.', 'Lately Vell\'s followers buy up every Lantern in town. What do they need so many for?'] });
@@ -513,6 +568,7 @@ const STEP_MS = 170;
 function canWalk(x, y, ignore) {
   if (!WALKABLE.has(tileAt(x, y))) return false;
   if (npcAt(x, y)) return false;
+  if (pickupAt(x, y) >= 0) return false;
   return true;
 }
 function stepEnt(e, dx, dy, ms = STEP_MS) { e.fx = e.x; e.fy = e.y; e.x += dx; e.y += dy; e.t = 0; e.dur = ms; e.fr ^= 1; }
@@ -575,6 +631,8 @@ async function interact() {
   const [dx, dy] = DIRV[player.dir], x = player.x + dx, y = player.y + dy, t = tileAt(x, y);
   const n = npcAt(x, y);
   if (n) return talk(n);
+  const pk = pickupAt(x, y);
+  if (pk >= 0) { P.flags['p_' + pk] = true; await msg('You found something tucked in the ground!'); return giveScroll(PICKUPS[pk].mv); }
   if (partnerEnt && partnerVisible() && partnerEnt.x === x && partnerEnt.y === y) return partnerMood();
   if (t === 'S') return msg(SIGNS[x + ',' + y] || 'The sign is too weathered to read.');
   if (t === 'D') return door(x, y);
@@ -668,8 +726,17 @@ async function shop() {
   await msg('MARKET: Lanterns, salves, tonics! What\'ll it be?');
   const stock = ['lantern', 'salve', 'tonic', 'draught']; if (P.flags.chord) stock.splice(1, 0, 'bright');
   while (true) {
-    const i = await choose([...stock.map(id => ({ label: ITEMS[id].name, right: '$' + ITEMS[id].price })), { label: 'DONE' }], { layout: 'big', title: `MARKET   $${P.money}`, sub: j => j < stock.length ? ITEMS[stock[j]].desc : 'Leave the shop.' });
-    if (i < 0 || i === stock.length) break;
+    const scrolls = [...SCROLL_SHOP, ...(P.flags.chord ? SCROLL_SHOP2 : [])];
+    const n = stock.length + scrolls.length;
+    const i = await choose([...stock.map(id => ({ label: ITEMS[id].name, right: '$' + ITEMS[id].price })),
+      ...scrolls.map(([mv, pr]) => ({ label: 'Scroll: ' + MV[mv].name, right: P.scrolls.includes(mv) ? 'OWNED' : '$' + pr, disabled: P.scrolls.includes(mv) })), { label: 'DONE' }],
+      { layout: 'big', title: `MARKET   $${P.money}`, sub: j => j < stock.length ? ITEMS[stock[j]].desc : j < n ? scrollInfo(scrolls[j - stock.length][0]) : 'Leave the shop.' });
+    if (i < 0 || i === n) break;
+    if (i >= stock.length) {
+      const [mv, pr] = scrolls[i - stock.length];
+      if (P.money < pr) { await msg('You don\'t have enough money for that.'); continue; }
+      P.money -= pr; await giveScroll(mv); continue;
+    }
     const it = ITEMS[stock[i]];
     if (P.money < it.price) { await msg('You don\'t have enough money for that.'); continue; }
     P.money -= it.price; P.bag[stock[i]]++;
@@ -743,6 +810,7 @@ async function warden() {
   await msg('WARDEN MOSS: You fight like a pair, not a trainer and a tool. Here.');
   await msg('Moss hums a low, green melody. {K} listens, flame swaying... then hums it right back!');
   P.flags.chord = true;
+  await giveScroll('petalgale');
   await msg('{K} learned the VERDANT CHORD! Hum it at the Hush, and the fog will part.');
   await msg('You received $1200. The Market will now sell Bright Lanterns.');
   await msg('WARDEN MOSS: The Hush is thickest in Murkwood, north of town. Whatever is at the bottom of it, I think it\'s waiting for you.');
@@ -769,6 +837,8 @@ async function rival2() {
   const res = await battle({ foes: [makeKith('pebblet', 12), makeKith('zapling', 13), makeKith('galeferret', 15, { hushed: true })], trainer: { name: 'SABLE' } });
   if (res !== 'win') { P.flags.rival2 = false; NPCS = NPCS.filter(n => n !== sb); return blackout(); }
   P.money += 900;
+  await msg('SABLE: Here. Take this too. Galeferret can\'t sing it anymore anyway.');
+  await giveScroll('cyclone');
   await msg('SABLE: ...Your {K} hummed at Galeferret the whole fight. Did you see? Its ears twitched.');
   await msg('SABLE: Go. If anyone can get through the Hush, it\'s you two. You got $900.');
   for (const d of ['down', 'down', 'down']) { if (canWalk(sb.x, sb.y + 1)) await walkEnt(sb, d, 120); }
@@ -791,6 +861,8 @@ async function lighthouse() {
     NPCS = NPCS.filter(n => n !== v);
     if (res !== 'win') return blackout();
     P.flags.vell = true; P.money += 3000;
+    await msg('VELL: Take this scroll. It holds the only song the Hush ever taught me.');
+    await giveScroll('voidhymn');
     await msg('VELL: ...Listen. Do you hear that? You got $3000.');
     await msg('VELL: The Lanterns. They\'re humming along with your {K}. All of them.');
     await afterBattle();
@@ -879,7 +951,7 @@ async function chooseAction() {
   }
 }
 function aiPick(f) {
-  const scored = f.moves.map(id => { const mv = MV[id]; let s = mv.pow ? mv.pow * eff(mv.type, SP[B.me.id].type) * (SP[f.id].type === mv.type ? 1.5 : 1) : 30 - Math.abs(mv.self ? f.st[mv.self] : B.me.st[mv.foe]) * 15; return [id, s]; });
+  const scored = f.moves.map(id => { const mv = MV[id]; let s = mv.pow ? mv.pow * (mv.acc / 100) * eff(mv.type, SP[B.me.id].type) * (SP[f.id].type === mv.type ? 1.5 : 1) : mv.heal ? (f.hp < f.maxHp * .4 ? 90 : 0) : 30 - Math.abs(mv.self ? f.st[mv.self] : B.me.st[mv.foe]) * 15; return [id, s]; });
   scored.sort((a, b) => b[1] - a[1]);
   return rnd() < .65 ? scored[0][0] : scored[ri(0, scored.length - 1)][0];
 }
@@ -900,7 +972,8 @@ async function doTurn(act) {
     await attack(B.foe, B.me, foeMv);
     return handleFaints();
   }
-  const meFirst = B.me.spd > B.foe.spd || (B.me.spd === B.foe.spd && rnd() < .5);
+  const pr = (m, mv) => (MV[mv].prio || 0) * 1000 + m.spd, mp = pr(B.me, act.mv), fp = pr(B.foe, foeMv);
+  const meFirst = mp > fp || (mp === fp && rnd() < .5);
   const order = meFirst ? [[B.me, B.foe, act.mv], [B.foe, B.me, foeMv]] : [[B.foe, B.me, foeMv], [B.me, B.foe, act.mv]];
   const snap = [B.me, B.foe];
   for (const [a, d, mv] of order) {
@@ -929,7 +1002,12 @@ async function attack(a, d, id) {
     if (e < 1) await msg('It\'s not very effective...');
     if (endured) await msg(`${d.name} held on for you!`);
   } else {
-    const tgt = mv.self ? a : d, key = mv.self || mv.foe, nm = key === 'atk' ? 'Attack' : 'Defense';
+    if (mv.heal) {
+      if (a.hp >= a.maxHp) { await msg(`${lab(a)} is already at full health!`); return; }
+      a.hp = Math.min(a.maxHp, a.hp + Math.ceil(a.maxHp * mv.heal)); await tweenHp(a);
+      await msg(`${lab(a)} recovered some HP!`); return;
+    }
+    const tgt = mv.self ? a : d, key = mv.self || mv.foe, nm = (key === 'atk' ? 'Attack' : 'Defense') + (Math.abs(mv.amt) > 1 ? (mv.amt > 0 ? ' sharply' : ' harshly') : '');
     const nv = Math.max(-4, Math.min(4, tgt.st[key] + mv.amt));
     if (nv === tgt.st[key]) await msg(`${lab(tgt)}'s ${nm} won't go any ${mv.amt > 0 ? 'higher' : 'lower'}!`);
     else { tgt.st[key] = nv; await msg(`${lab(tgt)}'s ${nm} ${mv.amt > 0 ? 'rose' : 'fell'}!`); }
@@ -1017,15 +1095,33 @@ async function pickKith(title, force) {
   return i < 0 ? null : P.party[i];
 }
 async function startMenu() {
-  const opts = ['KITH', 'BAG', 'JOURNAL', 'ARCHIVE', 'SAVE', 'CLOSE'];
+  const opts = ['KITH', 'BAG', 'SCROLLS', 'JOURNAL', 'ARCHIVE', 'SAVE', 'CLOSE'];
   while (true) {
     const i = await choose(opts.map(o => o === 'KITH' && !P.party.length ? { label: o, disabled: true } : o), { layout: 'box', pos: 'top' });
-    if (i < 0 || i === 5) return;
+    if (i < 0 || i === 6) return;
     if (i === 0) await partyMenu();
     if (i === 1) { const it = await bagMenu(false); if (it) await useItemWorld(it); }
-    if (i === 2) await journal();
-    if (i === 3) await archiveMenu();
-    if (i === 4) { save(); await msg('Your journey was saved. (Saved in this browser only.)'); }
+    if (i === 2) await scrollMenu();
+    if (i === 3) await journal();
+    if (i === 4) await archiveMenu();
+    if (i === 5) { save(); await msg('Your journey was saved. (Saved in this browser only.)'); }
+  }
+}
+function scrollInfo(mv) {
+  const m = MV[mv], who = DEX_ORDER.filter(id => P.seen.includes(id) && canLearn({ id }, mv)).map(id => SP[id].name);
+  return `${m.type} · ${m.pow ? 'Power ' + m.pow + ', Acc ' + m.acc : m.note || (m.self ? 'Raises your ' : 'Lowers foe ') + (m.self || m.foe).toUpperCase()}. ${m.type === 'Plain' ? 'Any Kith can learn it.' : 'Learnable by ' + m.type + ' Kith' + (who.length ? ' and others' : '') + '.'}`;
+}
+async function scrollMenu() {
+  if (!P.scrolls.length) return msg('You have no Echo Scrolls yet. Look for glinting scrolls on the ground, or check the Market.');
+  while (true) {
+    const list = [...P.scrolls].sort((a, b) => MV[a].type.localeCompare(MV[b].type));
+    const i = await choose(list.map(mv => ({ label: MV[mv].name, right: MV[mv].type })), { layout: 'big', title: `ECHO SCROLLS  (${list.length})`, sub: j => scrollInfo(list[j]) });
+    if (i < 0) return;
+    const mv = list[i];
+    const opts = P.party.map(m => ({ label: m.name, right: m.moves.includes(mv) ? 'KNOWN' : canLearn(m, mv) ? 'ABLE' : '--', disabled: !canLearn(m, mv) || m.moves.includes(mv) }));
+    const k = await choose(opts, { layout: 'big', title: `Teach ${MV[mv].name}?`, sub: j => { const m = P.party[j]; return canLearn(m, mv) ? `${SP[m.id].type} type. Current moves: ${m.moves.map(id => MV[id].name).join(', ')}.` : `${m.name} (${SP[m.id].type}) can't learn ${MV[mv].type} moves.`; } });
+    if (k < 0) continue;
+    await learnMove(P.party[k], mv);
   }
 }
 async function useItemWorld(it) {
@@ -1092,7 +1188,7 @@ async function title() {
   const existing = loadSave();
   const opts = existing ? ['CONTINUE', 'NEW GAME'] : ['NEW GAME'];
   const i = await choose(opts, { layout: 'title', cancel: false });
-  if (existing && i === 0) { P = existing; P.party.concat(P.archive).forEach(m => { m.dispHp = m.hp; m.st = { atk: 0, def: 0 }; }); enterWorld(); return; }
+  if (existing && i === 0) { P = existing; P.scrolls = P.scrolls || []; P.party.concat(P.archive).forEach(m => { m.dispHp = m.hp; m.st = { atk: 0, def: 0 }; }); enterWorld(); return; }
   P = newState('');
   mode = 'intro';
   await msg('Welcome to the Lumen Coast.');
@@ -1142,6 +1238,8 @@ function drawWorld(now) {
     const m = partnerMon(); ents.push({ e: partnerEnt, kith: kithImg(m.id, partnerEnt.dir === 'right') });
   }
   ents.push({ e: player, img: personImg(LOOKS.player, player.dir, player.t < 1 ? player.fr : 0) });
+  PICKUPS.forEach((pk, i) => { if (P.flags['p_' + i]) return; const sx = Math.round((pk.x - camX) * 64), sy = Math.round((pk.y - camY) * 64); if (sx < -64 || sy < -64 || sx > 640 || sy > 576) return;
+    g.drawImage(SCROLL_IMG(), sx + 8, sy + 8 + Math.round(Math.sin(now / 250 + i) * 3), 48, 48); if (Math.floor(now / 300 + i) % 3 === 0) { g.fillStyle = '#fff6c0'; g.fillRect(sx + 46, sy + 6, 6, 6); } });
   ents.sort((a, b) => entPos(a.e)[1] - entPos(b.e)[1]);
   for (const o of ents) {
     const [ex, ey] = entPos(o.e), sx = Math.round((ex - camX) * 64), sy = Math.round((ey - camY) * 64);
@@ -1249,7 +1347,7 @@ function drawUI(now) {
     c.opts.forEach((o, i) => { const x = 52 + (i % 2) * 300, y = 444 + Math.floor(i / 2) * 40; if (i === c.idx) cursor(x - 22, y); txt(o.label, x, y, INK, 14); });
     const mv = c.cfg.info(c.idx); g.fillStyle = TYPE_COL[mv.type]; g.fillRect(28, 528, 120, 26);
     txt(mv.type.toUpperCase(), 88, 534, '#fff', 12, 'center');
-    txt(mv.pow ? `POWER ${mv.pow}  ACC ${mv.acc}` : 'STATUS MOVE', 164, 534, INK, 12);
+    txt(mv.pow ? `POWER ${mv.pow}  ACC ${mv.acc}${mv.prio ? '  FAST' : ''}` : mv.heal ? 'HEALS YOU' : 'STATUS MOVE', 164, 534, INK, 12);
     if (B && mv.pow) { const e = eff(mv.type, SP[B.foe.id].type); if (e !== 1) txt(e > 1 ? 'STRONG!' : 'WEAK', 610, 534, e > 1 ? '#2e8b3e' : '#c0392b', 12, 'right'); }
   } else if (L === 'title') {
     c.opts.forEach((o, i) => { const y = 470 + i * 40; if (i === c.idx) { g.fillStyle = '#ffd65a'; g.beginPath(); g.moveTo(220, y); g.lineTo(230, y + 7); g.lineTo(220, y + 14); g.fill(); } txt(o.label, 250, y, i === c.idx ? '#ffd65a' : '#e8dcf5'); });
