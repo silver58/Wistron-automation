@@ -256,6 +256,80 @@ const CLASSIC = {
 // ---- 40 Kith families, four stages each (base form + three evolutions) ----
 // n: names by stage · plan/plans: body plan(s) · look: palette · ov: per-stage look overrides
 // prof: stat profile [hp, atk, def, spd] · evo: levels for each evolution · also: bonus scroll type · dex: one line per stage ('' = keep classic entry)
+// Template settings for every family (keyed by base form), as one spec or one per stage.
+const VSPEC = {
+  smolderhog: { kind: 'quad', len: 13, ht: 9, leg: 6, head: 9, snout: 'pointy', ears: 'small', tail: 'stub', quills: true, noBelly: false, flourish: false },
+  coalcrab: { kind: 'crab', flourish: false },
+  flickernewt: { kind: 'lizard', flourish: false },
+  smokid: { kind: 'quad', len: 13, ht: 9, leg: 10, head: 8.6, snout: 'long', ears: 'side', tail: 'stub', wool: true, horns: 'ram', hoof: '#3a2a2a', noseCol: '#4a3a3a' },
+  kindlepaw: { kind: 'quad', len: 13, ht: 8, leg: 8, head: 10, snout: 'short', ears: 'round', tail: 'ringed', mask: 'panda', socks: '#2a1a18', earIn: '#fff0dc', muzzle: '#fff0dc' },
+  emberfinch: [{ kind: 'bird', kind2: 'perch', beak: 'cone', tail: 'short', breast: '#ffb070' }, { kind: 'bird', beak: 'cone', tail: 'long', crest: 'tuft', breast: '#ffb070', flourish: false }, { kind: 'bird', beak: 'cone', tail: 'long', crest: 'flame', breast: '#ffd27a', flourish: false }],
+  puddlepup: [{ kind: 'quad', len: 12, ht: 8, leg: 8, head: 9.6, snout: 'mid', ears: 'flop', tail: 'fin', spots: '#e0f0ff', finCol: '#8fd0ff' },
+    { kind: 'quad', len: 14, ht: 8, leg: 11, head: 9, snout: 'pointy', ears: 'pointy', tail: 'fin', finCol: '#8fd0ff' },
+    { kind: 'quad', len: 15, ht: 8.6, leg: 12, head: 9, snout: 'pointy', ears: 'pointy', tail: 'fin', finCol: '#7ff0ff', eye: 'fierce' }],
+  glimmerfin: [{ kind: 'fish' }, { kind: 'fish' }, { kind: 'fish', kind2: 'angler' }],
+  driplet: { kind: 'jelly', flourish: false },
+  pondling: { kind: 'turtle' },
+  squidge: { kind: 'octo', flourish: false },
+  otterlet: { kind: 'quad', len: 16, ht: 7, leg: 6, head: 8.6, snout: 'short', ears: 'small', tail: 'flat', whiskers: true },
+  chillpip: { kind: 'bird', kind2: 'penguin' },
+  petalpip: [{ kind: 'caterpillar', flourish: false }, { kind: 'chrysalis', flourish: false }, { kind: 'wings', kind2: 'butterfly', flourish: false }],
+  fawnbud: { kind: 'quad', len: 13, ht: 7.4, leg: 15, head: 8, neck: 5, snout: 'long', ears: 'pointy', tail: 'stub', spots: '#fff4e0', horns: 'antler', antlerBloom: true, hoof: '#3a2a2a', flourish: false },
+  snoozel: { kind: 'sloth', flourish: false },
+  hueling: { kind: 'lizard', kind2: 'chameleon', flourish: false },
+  buzzlet: { kind: 'wings', kind2: 'bee', flourish: false },
+  spotlet: { kind: 'beetle', kind2: 'ladybug', flourish: false },
+  capybud: { kind: 'quad', len: 15, ht: 10, leg: 7, head: 9, snout: 'blunt', ears: 'small', tail: 'none', flowers: true, legW: 5, flourish: false },
+  zapling: [{ kind: 'bird', kind2: 'chick', flourish: false }, { kind: 'bird', beak: 'cone', tail: 'short', crest: 'bolt', breast: '#fff3b0' }, { kind: 'bird', beak: 'cone', tail: 'long', crest: 'bolt', wing: 'long', flourish: false }],
+  sparkpole: [{ kind: 'tadpole', flourish: false }, { kind: 'frog' }, { kind: 'frog' }],
+  grubzap: [{ kind: 'grub', flourish: false }, { kind: 'beetle' }, { kind: 'beetle' }],
+  zipeel: { kind: 'eel', flourish: false },
+  glimmergnat: { kind: 'wings', kind2: 'firefly', flourish: false },
+  buzzbill: { kind: 'bird', beak: 'thin', tail: 'fan', wing: 'raised', throat: '#ff4a8a', flourish: false },
+  zapray: { kind: 'ray', kind2: 'disc', flourish: false },
+  gritpup: { kind: 'quad', len: 14, ht: 8.6, leg: 5, head: 7.6, snout: 'pointy', ears: 'small', tail: 'thin', bands: true, shellCol: null },
+  siltmole: { kind: 'quad', len: 15, ht: 8, leg: 4, head: 8, snout: 'pointy', ears: 'none', tail: 'stub', paws: true, noseCol: '#f08a9a', eye: 'sleepy' },
+  rhinub: { kind: 'quad', len: 16, ht: 10, leg: 9, head: 9, snout: 'blunt', ears: 'small', tail: 'tuft', horns: 'rhino', plates: true, legW: 5.4, hoof: '#3a3530', flourish: false },
+  scalet: { kind: 'quad', len: 15, ht: 8, leg: 5, head: 7, snout: 'pointy', ears: 'none', tail: 'flat', scales: true },
+  kidcliff: { kind: 'quad', len: 12, ht: 7.6, leg: 13, head: 8, neck: 3, snout: 'long', ears: 'side', tail: 'stub', horns: 'goat', beard: true, hoof: '#3a3030' },
+  dustling: { kind: 'lizard', kind2: 'horned', flourish: false },
+  breezel: { kind: 'quad', len: 16, ht: 6.6, leg: 6, head: 8, snout: 'pointy', ears: 'round', tail: 'bushy', tailTip: '#ffffff' },
+  fluffowl: { kind: 'bird', kind2: 'owl' },
+  kiteling: { kind: 'ray', flourish: false },
+  dartfly: { kind: 'wings', kind2: 'dragonfly', flourish: false },
+  glidlet: { kind: 'quad', len: 12, ht: 7.4, leg: 6, head: 9.4, snout: 'short', ears: 'round', tail: 'bushy', membrane: true, whiskers: true },
+  swiftlet: { kind: 'bird', beak: 'cone', tail: 'fork', wing: 'long', throat: '#e8603a', beakCol: '#2a2a36' },
+  hawklet: [{ kind: 'bird', beak: 'hook', tail: 'short' }, { kind: 'bird', beak: 'hook', tail: 'fan', eye: 'fierce', brow: '#5a3a24' }, { kind: 'bird', beak: 'hook', tail: 'fan', eye: 'fierce', brow: '#3a2418' }],
+  grublull: [{ kind: 'caterpillar', flourish: false }, { kind: 'wings', kind2: 'moth', flourish: false }, { kind: 'wings', kind2: 'moth', flourish: false }],
+  mutebat: { kind: 'bat', flourish: false },
+  shadekit: { kind: 'quad', len: 13, ht: 7, leg: 10, head: 8.6, snout: 'short', ears: 'pointy', tail: 'long', eye: 'glow', whiskers: true, earIn: '#c9b8ff' },
+  duskpup: [{ kind: 'quad', len: 12, ht: 8, leg: 8, head: 9.6, snout: 'mid', ears: 'flop', tail: 'stub' },
+    { kind: 'quad', len: 15, ht: 9, leg: 12, head: 9, snout: 'pointy', ears: 'pointy', tail: 'wisp', collar: true, eye: 'glow', mane: false },
+    { kind: 'quad', len: 16, ht: 9.4, leg: 13, head: 9.4, snout: 'pointy', ears: 'pointy', tail: 'wisp', collar: true, eye: 'glow' }],
+  corvlet: { kind: 'bird', beak: 'thick', tail: 'fan' },
+  silkling: { kind: 'spider', flourish: false },
+  burrowbun: { kind: 'quad', len: 11, ht: 9.4, leg: 5, head: 9, snout: 'short', ears: 'long', tail: 'stub', noseCol: '#f08a9a', tailCol: '#ffffff', whiskers: true },
+  trudgelet: { kind: 'snail', flourish: false },
+  snufflet: [{ kind: 'quad', len: 13, ht: 8.4, leg: 6, head: 8.4, snout: 'pig', ears: 'pointy', tail: 'curl', stripes: '#c9a890' },
+    { kind: 'quad', len: 15, ht: 9.4, leg: 8, head: 9, snout: 'pig', ears: 'pointy', tail: 'curl', tusks: true, quills: false, mane: false },
+    { kind: 'quad', len: 16, ht: 10, leg: 9, head: 9.6, snout: 'pig', ears: 'pointy', tail: 'curl', tusks: true }],
+  pilferkit: { kind: 'quad', len: 13, ht: 8, leg: 8, head: 9.4, snout: 'pointy', ears: 'pointy', tail: 'ringed', mask: 'bandit', socks: '#3a3a44' },
+  cubbit: { kind: 'quad', len: 14, ht: 10, leg: 8, head: 10, snout: 'mid', ears: 'round', tail: 'stub', legW: 6 },
+  nibblet: { kind: 'quad', len: 11, ht: 8, leg: 5, head: 9.4, snout: 'pointy', ears: 'big', tail: 'thin', whiskers: true, cheeks: true, noseCol: '#f08a9a', tailCol: '#f5a3b7' },
+  // legendaries
+  solmara: { kind: 'quad', len: 14, ht: 8, leg: 17, head: 7.6, neck: 6, snout: 'long', ears: 'pointy', tail: 'stub', horns: 'antler', antlerGlow: true, antlerCol: '#ffd27a', hoof: '#6a4a2a', flourish: false },
+  thalassine: { kind: 'whale', flourish: false },
+  verdancrown: { kind: 'quad', len: 18, ht: 12, leg: 12, head: 9, snout: 'trunk', ears: 'elephant', tail: 'tuft', flowers: true, legW: 7, flourish: false },
+  fulgurex: { kind: 'bird', kind2: 'eagle', flourish: false },
+  terravast: { kind: 'turtle', kind2: 'tortoise', flourish: false },
+  zephyrine: { kind: 'bird', kind2: 'crane', flourish: false },
+  noctaria: { kind: 'quad', len: 17, ht: 8, leg: 12, head: 8.4, snout: 'short', ears: 'pointy', tail: 'long', eye: 'glow', flourish: false, earIn: '#c9b8ff' },
+  aurelion: { kind: 'quad', len: 16, ht: 9, leg: 12, head: 9, snout: 'mid', ears: 'round', tail: 'tuft', mane: true, maneCol: '#c07a2a', flourish: false },
+  lumora: { kind: 'fish', kind2: 'angler', flourish: false },
+  quietus: { kind: 'eel', crest: true, thick: 11, whiskers: true, eye: 'glow', flourish: false },
+};
+// kind2 selects a variant within a template (stored as q.kind for the template)
+function vspecFor(baseId, stage) { let s = VSPEC[baseId]; if (!s) return null; if (Array.isArray(s)) s = s[stage]; const o = Object.assign({}, s, { tpl: s.kind, kind: s.kind2 }); delete o.kind2; return o; }
 // ---- 53 Kith families based on real animals, three stages each (baby, young, adult) ----
 // n: names · plan/plans: body plan per stage · q: animal parameters for shared plans · look: palette · ov: per-stage overrides
 // prof: stat profile [hp, atk, def, spd] · evo: levels for each evolution · also: bonus scroll type · dex: one line per stage
@@ -400,7 +474,8 @@ const STAGE_TOTAL = [185, 300, 430], STAGE_RATE = [190, 90, 35], STAGE_XP = [60,
 const SP = {}, ALSO = {};
 FAMILIES.forEach((f, fi) => f.n.forEach((name, s) => {
   const id = name.toLowerCase(), C = CLASSIC[id] || {}, plan = (f.plans || [])[s] || f.plan;
-  const look = Object.assign({}, f.look, { body: shade(f.look.body, STAGE_TINT[s]) }, f.q ? { q: f.q } : {}, (f.ov || [])[s] || {}, { plan, stage: s });
+  const look = Object.assign({}, f.look, { body: shade(f.look.body, STAGE_TINT[s]) }, f.q ? { q: f.q } : {}, (f.ov || [])[s] || {}, { plan, stage: s, etype: f.t });
+  const vs = typeof vspecFor === 'function' ? vspecFor(f.n[0].toLowerCase(), s) : null; if (vs) { look.v = vs; look.plan = 'v'; }
   if (look.big === undefined) look.big = s >= (f.big ?? 2);
   const sum = f.prof.reduce((x, y) => x + y);
   SP[id] = { name, type: f.t, base: f.prof.map(v => Math.round(STAGE_TOTAL[s] * v / sum * (f.partner ? 1.3 : 1))), xp: STAGE_XP[s], rate: f.partner ? 0 : STAGE_RATE[s],
@@ -409,10 +484,10 @@ FAMILIES.forEach((f, fi) => f.n.forEach((name, s) => {
   ALSO[id] = [f.also || 'Plain'];
 }));
 LEGENDS.forEach(L => {
-  if (L.classic) { SP[L.id] = Object.assign({}, CLASSIC[L.id], { look: Object.assign({}, CLASSIC[L.id].look, { stage: 2 }), dex: 'A giant oarfish, the old voice of the tides. When no one listened, its song became the Hush.' }); ALSO[L.id] = ['Tide', 'Gale']; return; }
+  if (L.classic) { SP[L.id] = Object.assign({}, CLASSIC[L.id], { look: Object.assign({}, CLASSIC[L.id].look, { stage: 2, etype: L.t, plan: 'v', v: vspecFor(L.id, 2) }), dex: 'A giant oarfish, the old voice of the tides. When no one listened, its song became the Hush.' }); ALSO[L.id] = ['Tide', 'Gale']; return; }
   L.id = L.name.toLowerCase();
   SP[L.id] = { name: L.name, type: L.t, base: L.base, xp: 300, rate: 12, legend: true, learn: [[1, POOL[L.t][1]], [1, POOL[L.t][2]], [1, 'glare'], [1, POOL[L.t][3]], [50, 'haymaker']],
-    look: Object.assign({ plan: L.plan, stage: 2, big: !!L.big }, L.q ? { q: L.q } : {}, L.look), dex: L.dex };
+    look: Object.assign({ plan: L.plan, stage: 2, big: !!L.big }, L.q ? { q: L.q } : {}, L.look, { etype: L.t }, vspecFor(L.id, 2) ? { plan: 'v', v: vspecFor(L.id, 2) } : {}), dex: L.dex };
   ALSO[L.id] = ['Plain', 'Ember', 'Tide', 'Bloom', 'Spark', 'Stone', 'Gale', 'Hush'];
 });
 const DEX_ORDER = Object.keys(SP);
@@ -1490,6 +1565,478 @@ PLANS.pipfox = function (K, L) {
     K.fxPoints = [[54.5, -6], [4.8, -3], [23, -5]];
   }
 };
+// =====================================================================================
+// Curve-drawn creature templates. Every Kith is drawn with smooth canvas paths on a 64x64
+// grid (facing left, feet on y=62), then snapped to pixels, cel-shaded and outlined.
+// Templates read their animal parameters from look.v; stage 0-2 sets size and proportions.
+// =====================================================================================
+const V = {};
+function vkit(K, L) {
+  const st = K.stage, s = [.8, .91, 1][st] * (L.v.scale || 1), B = L.body, Be = L.belly || shade(B, .45);
+  const tfm = c => { c.setTransform(s, 0, 0, s, 32 * (1 - s), 62 * (1 - s)); c.lineCap = 'round'; c.lineJoin = 'round'; };
+  const F = (draw, col, glow) => K.vec(c => { tfm(c); draw(c); c.setTransform(1, 0, 0, 1, 0, 0); }, col, glow);
+  const path = (c, pts) => { c.beginPath(); c.moveTo(...pts[0]); for (const p of pts.slice(1)) p.length === 2 ? c.lineTo(...p) : p.length === 4 ? c.quadraticCurveTo(...p) : c.bezierCurveTo(...p); };
+  const M = (x, y) => [32 + (x - 32) * s, 62 + (y - 62) * s];
+  const k = {
+    st, s, B, Be, A: L.acc || shade(B, -.3), A2: L.acc2 || '#ffd23f', Dk: shade(B, -.22), D2: shade(B, -.5), type: L.etype, anc: null,
+    poly: (pts, col, glow) => F(c => { path(c, pts); c.closePath(); c.fill(); }, col, glow),
+    oval: (x, y, rx, ry, col, rot = 0, glow) => F(c => { c.beginPath(); c.ellipse(x, y, Math.max(.5, rx), Math.max(.5, ry), rot, 0, 7); c.fill(); }, col, glow),
+    stroke: (pts, w, col, glow) => F(c => { c.lineWidth = w; path(c, pts); c.stroke(); }, col, glow),
+    ring: (x, y, r, w, col, a0 = 0, a1 = 7, glow) => F(c => { c.lineWidth = w; c.beginPath(); c.arc(x, y, r, a0, a1); c.stroke(); }, col, glow),
+    eyes: (list, w, h) => { K.rawEyes = list.map(([x, y, st2]) => [...M(x, y), st2]); K.eyeSize = [w * s, h * s]; },
+    mouth: (x, y, st2 = 'smile') => { K.rawMouth = [...M(x, y), st2]; },
+    fx: pts => { K.fxPoints = pts.map(p => M(...p)); },
+  };
+  k.flame = (x, y, h, w, lean = 0) => {
+    const drop = (hh, ww, col) => F(c => { c.beginPath(); c.moveTo(x + lean, y - hh); c.quadraticCurveTo(x + ww * 1.25, y - hh * .35, x + ww, y); c.arc(x, y, ww, 0, Math.PI); c.quadraticCurveTo(x - ww * 1.25, y - hh * .35, x + lean, y - hh); c.fill(); }, col, true);
+    drop(h, w, '#ff7a24'); drop(h * .72, w * .66, '#ffc23a'); drop(h * .42, w * .36, '#fff4c4');
+  };
+  k.leaf = (x, y, len, ang, col) => { const dx = Math.cos(ang) * len, dy = Math.sin(ang) * len, nx = -dy * .35, ny = dx * .35; k.poly([[x, y], [x + dx * .5 + nx, y + dy * .5 + ny, x + dx, y + dy], [x + dx * .5 - nx, y + dy * .5 - ny, x, y]], col); k.stroke([[x, y], [x + dx * .8, y + dy * .8]], .8, shade(col, -.25)); };
+  k.bolt = (x, y, h, col) => k.poly([[x, y], [x - 3, y + h * .45], [x, y + h * .45], [x - 2.5, y + h], [x + 3.5, y + h * .38], [x + .5, y + h * .38], [x + 3, y]], col, true);
+  k.shard = (x, y, h, lean, col) => { k.poly([[x - 2.2, y], [x + lean, y - h], [x + 2.2, y]], col, true); k.poly([[x - .6, y], [x + lean * .8, y - h * .8], [x + .4, y]], shade(col, .45), true); };
+  return k;
+}
+// erase helper: draw with a fully transparent "color" means nothing; use real cut-outs instead
+function vErase(K, draw) { K.vec(draw, null); }
+// elemental details added to evolved forms at the anchor points a template provides
+function flourish(k, K) {
+  const a = k.anc; if (!a || k.st === 0) return;
+  const { st, type } = k, [bx, by] = a.back, [tx, ty] = a.tail || a.back, [hx, hy] = a.head || a.back;
+  if (type === 'Ember') { for (let i = 0; i < st + 1; i++) k.flame(bx - 4 + i * 5, by + (i % 2), 6 + st * 2, 2.2, 1.5); if (st === 2 && a.tail) k.flame(tx, ty, 9, 2.8, 1); }
+  if (type === 'Tide') { k.poly([[bx - 4, by + 2], [bx + 1, by - 6 - st * 2, bx + 5, by - 8 - st * 2], [bx + 3, by - 3, bx + 6, by + 2]], '#8fd0ff'); if (st === 2 && a.tail) k.poly([[tx, ty], [tx + 7, ty - 6], [tx + 5, ty], [tx + 7, ty + 5]], '#8fd0ff'); }
+  if (type === 'Bloom') { k.leaf(bx, by + 1, 6 + st, -2.1, '#5aa83a'); k.leaf(bx + 1, by + 1, 6 + st, -.9, '#7ccf5a'); if (st === 2) { k.oval(hx, hy, 2.4, 2, '#f5a3c7', 0, true); k.oval(hx, hy, 1, 1, '#fff2a8', 0, true); } }
+  if (type === 'Spark') { k.bolt(bx + 1, by + 1, 7 + st * 2, '#ffe04a'); if (st === 2) k.bolt(hx + 1, hy - 7, 7, '#ffe04a'); }
+  if (type === 'Stone') { const n = st * 2; for (let i = 0; i < n; i++) k.shard(bx - n * 1.6 + i * 3.4, by + 2, 5 + (i % 2) * 3 + st, i % 2 ? 1 : -1, k.A2); }
+  if (type === 'Gale') { for (let i = 0; i < 2 + st; i++) k.stroke([[hx - 1 + i * 2, hy], [hx + i * 2.4, hy - 5, hx + 3 + i * 2, hy - 7]], 1.4, '#f4fbff'); if (st === 2 && a.tail) k.ring(tx + 2, ty - 2, 4, 1.4, '#f4fbff', 3.6, 8.5); }
+  if (type === 'Hush') { k.oval(hx, hy, 2.4, 2.4, '#d9ccff', 0, true); k.oval(hx + 1.2, hy - .8, 2.1, 2.1, k.B); if (st === 2 && a.tail) for (let i = 0; i < 3; i++) k.oval(tx + 2 + i * 2.6, ty - 2 - i * 2.4, 2.4 - i * .6, 1.8 - i * .4, '#c9b8ff', 0, true); }
+  if (type === 'Plain' && st === 2) k.poly([[hx - 2, hy + 1], [hx, hy - 4], [hx + 2, hy + 1]], shade(k.B, -.2));
+}
+PLANS.v = (K, L) => { const k = vkit(K, L); V[L.v.tpl](k, L.v, L, K); if (L.v.flourish !== false) flourish(k, K); };
+
+// ---------------------------------------------------------------- four-legged mammals
+V.quad = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, Dk, D2 } = k;
+  const hb = [1.32, 1.16, 1.06][st] * (q.headScale || 1), len = q.len ?? 14, ht = q.ht ?? 8.5, legL = q.leg ?? 12, gy = 62;
+  const bx = 37, by = gy - legL - ht * .62, lw = q.legW ?? 4.6, hr = (q.head ?? 9.5) * hb, nk = q.neck ?? 0;
+  const hx = bx - len - hr * .1 - nk * .7, hy = by - ht * .75 - hr * .3 - nk, tx = bx + len - 2, ty = by - ht * .35;
+  const sock = q.socks || null, xf = bx - len * .55, xb = bx + len * .52;
+  const leg = (x, top, col, paw) => { poly([[x, top], [x + lw, top], [x + lw - .7, gy - 1], [x + .7, gy - 1]], col); oval(x + lw / 2, gy - 1.3, lw * .62, 1.6, paw || shade(col, -.25)); if (sock) poly([[x + .4, gy - 5.5], [x + lw - .4, gy - 5.5], [x + lw - .7, gy - 1], [x + .7, gy - 1]], sock); };
+  // mane sits behind the head
+  if (q.mane) { for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; poly([[hx, hy], [hx + Math.cos(a) * hr * 1.75, hy + Math.sin(a) * hr * 1.6], [hx + Math.cos(a + .45) * hr * 1.3, hy + Math.sin(a + .45) * hr * 1.25]], q.maneCol || A); } oval(hx + 1, hy, hr * 1.45, hr * 1.35, q.maneCol || A); }
+  // tail
+  const tc = q.tailCol || B;
+  if (q.tail === 'bushy') { poly([[tx - 2, ty + 3], [tx + 15, ty + 5, tx + 18, ty - 13, tx + 11, ty - 18], [tx + 7, ty - 8, tx + 4, ty - 3, tx - 2, ty - 3]], tc); oval(tx + 12, ty - 15, 3.6, 3.4, q.tailTip || Be, -.5); }
+  if (q.tail === 'ringed') { poly([[tx - 2, ty + 3], [tx + 15, ty + 4, tx + 17, ty - 12, tx + 11, ty - 17], [tx + 7, ty - 7, tx + 4, ty - 3, tx - 2, ty - 3]], tc); for (const [x, y, r] of [[tx + 7, ty - 1, -.4], [tx + 12, ty - 7, -1], [tx + 13, ty - 13, -1.5]]) oval(x, y, 4.4, 1.8, A, r); }
+  if (q.tail === 'thin') stroke([[tx, ty + 2], [tx + 9, ty + 8, tx + 15, ty - 2]], 1.6, q.tailCol || Dk);
+  if (q.tail === 'flat') poly([[tx - 3, ty], [tx + 16, ty + 9], [tx - 2, ty + 6]], q.tailCol || Dk);
+  if (q.tail === 'stub') oval(tx + 1, ty - 1, 3, 2.6, q.tailCol || Be);
+  if (q.tail === 'tuft') { stroke([[tx, ty], [tx + 5, ty + 7]], 1.4, B); oval(tx + 5.5, ty + 9, 2, 3, D2); }
+  if (q.tail === 'curl') { stroke([[tx, ty], [tx + 5, ty - 1, tx + 5, ty - 5]], 1.5, B); k.ring(tx + 3.5, ty - 5.5, 1.8, 1.4, B); }
+  if (q.tail === 'long') stroke([[tx - 1, ty + 1], [tx + 12, ty + 4, tx + 8, ty - 12, tx + 14, ty - 15]], 2.8, tc);
+  if (q.tail === 'fin') poly([[tx - 2, ty], [tx + 14, ty - 9, tx + 16, ty - 4], [tx + 12, ty + 2, tx + 15, ty + 7], [tx + 6, ty + 4, tx - 2, ty + 4]], q.finCol || A);
+  if (q.tail === 'wisp') { stroke([[tx - 1, ty], [tx + 6, ty - 2, tx + 8, ty - 9]], 3, B); for (let i = 0; i < 3; i++) oval(tx + 8 + i * 2.5, ty - 10 - i * 3, 3 - i * .6, 2.4 - i * .5, shade(B, .25 + i * .15)); }
+  // far legs
+  leg(xf + 3.5, by + 1, q.legDark || shade(B, -.2), q.hoof); leg(xb + 3, by + 1, q.legDark || shade(B, -.2), q.hoof);
+  if (q.membrane) poly([[xf - 1, by + 1], [bx, by + ht + 7, bx + 2, by + ht + 7], [xb + 6, by + 1]], shade(B, .12));
+  // body
+  oval(bx, by, len, ht, B);
+  if (!q.noBelly) oval(bx - 2, by + ht * .5, len * .72, ht * .42, Be);
+  if (q.wool) { for (let i = 0; i < 9; i++) { const a = Math.PI * (1.05 + i / 8 * .95); oval(bx + Math.cos(a) * len * .85, by + Math.sin(a) * ht * .8, 4.2, 4, q.woolCol || Be); } oval(bx, by - 1, len * .85, ht * .85, q.woolCol || Be); }
+  if (q.quills) { const n = 9 + st * 2; for (let i = 0; i < n; i++) { const a = Math.PI * (1.08 + i / (n - 1) * .9), r0 = len * .78, l = 7 + st * 2 + (i % 2) * 2; const x0 = bx + Math.cos(a) * r0, y0 = by + Math.sin(a) * ht * .85; poly([[x0 - 1.8, y0 + 1], [x0 + Math.cos(a) * l, y0 + Math.sin(a) * l], [x0 + 1.8, y0 + 1]], A); oval(x0 + Math.cos(a) * l * .9, y0 + Math.sin(a) * l * .9, 1, 1, q.quillTip || shade(A, .5), 0, !!q.quillTip); } }
+  if (q.bands) { poly([[bx - len * .8, by + 2], [bx - len * .8, by - ht * .9, bx + len * .8, by - ht * .9, bx + len * .8, by + 2]], q.shellCol || A); for (let i = -2; i <= 2; i++) stroke([[bx + i * 4, by - ht * .9], [bx + i * 4.2, by + 2]], 1, shade(q.shellCol || A, -.3)); }
+  if (q.scales) for (let r = 0; r < 3; r++) for (let i = 0; i < 5; i++) { const x = bx - 9 + i * 4.5 + (r % 2) * 2.2, y = by - ht * .7 + r * 3.6; poly([[x - 2.6, y], [x, y + 4], [x + 2.6, y]], r === 0 && st === 2 ? A2 : A); }
+  if (q.stripes) for (let i = 0; i < 3; i++) stroke([[bx - 4 + i * 4.5, by - ht + 1], [bx - 5 + i * 4.5, by - 1]], 1.6, q.stripes);
+  if (q.spots && st === 0) for (const [dx, dy] of [[-4, -4], [1, -5], [6, -3], [-1, -1], [-7, -2], [4, 0]]) oval(bx + dx, by + dy, 1.2, 1.1, q.spots);
+  if (q.plates) { for (let i = 0; i < 3; i++) poly([[bx - 9 + i * 6, by - ht + 1.5], [bx - 6 + i * 6, by - ht - 1.5 - st], [bx - 3 + i * 6, by - ht + 1.5]], A); stroke([[bx - len + 3, by + 1], [bx + len - 3, by + 1]], .9, A); }
+  if (q.flowers) for (let i = 0; i < 1 + st * 2; i++) { const fx = bx - 6 + i * (12 / Math.max(1, st * 2)), fy = by - ht + .5 - (i % 2); k.leaf(fx, fy, 4, -2.2, '#5aa83a'); oval(fx + 1, fy - 1.5, 1.8, 1.6, i % 2 ? '#fff2a8' : '#f5a3c7', 0, true); }
+  if (q.collar) { stroke([[xf - 3, by - ht * .6], [xf + 4, by - ht * .2]], 2.4, '#7a4a2a'); oval(xf, by + 1.5, 1.8, 2.2, '#ffd65a', 0, true); }
+  // near legs with a thigh at the back
+  oval(xb, by + 1.5, ht * .62, ht * .78, B); leg(xb - 1.5, by + 3, B, q.hoof); leg(xf - 2.5, by + 2, B, q.hoof);
+  if (q.paws) { oval(xf - 4, gy - 2.5, 4.6, 3, Be); for (let i = 0; i < 3; i++) stroke([[xf - 7 + i * 2.2, gy - 2], [xf - 8 + i * 2.2, gy + .5]], .9, '#ffffff'); }
+  // neck
+  if (nk) { stroke([[bx - len * .55, by - ht * .2], [hx + hr * .2, hy + hr * .35]], hr * 1.05, B); stroke([[bx - len * .6, by], [hx - hr * .1, hy + hr * .7]], hr * .5, shade(Be, -.04)); }
+  // ears behind the head
+  const earIn = q.earIn || shade(Be, -.05);
+  if (q.ears === 'pointy') { poly([[hx - hr * .75, hy - hr * .4], [hx - hr * .7, hy - hr * 1.75], [hx - hr * .05, hy - hr * .7]], B); poly([[hx - hr * .6, hy - hr * .55], [hx - hr * .62, hy - hr * 1.4], [hx - hr * .2, hy - hr * .75]], earIn); poly([[hx + hr * .05, hy - hr * .75], [hx + hr * .55, hy - hr * 1.9], [hx + hr * .85, hy - hr * .35]], B); poly([[hx + hr * .2, hy - hr * .78], [hx + hr * .55, hy - hr * 1.55], [hx + hr * .7, hy - hr * .5]], earIn); }
+  if (q.ears === 'round' || q.ears === 'big' || q.ears === 'small') { const r = hr * (q.ears === 'big' ? .62 : q.ears === 'small' ? .26 : .38); for (const dx of [-.55, .5]) { oval(hx + hr * dx, hy - hr * .78, r, r, B); oval(hx + hr * dx, hy - hr * .78, r * .55, r * .55, q.ears === 'big' ? '#f5b8c4' : earIn); } }
+  if (q.ears === 'long') for (const [dx, rot] of [[-.3, -.15], [.35, .2]]) { oval(hx + hr * dx, hy - hr * 1.5, hr * .26, hr * .85, B, rot); oval(hx + hr * dx, hy - hr * 1.45, hr * .12, hr * .65, '#f5b8c4', rot); }
+  if (q.ears === 'elephant') oval(hx + hr * .55, hy + hr * .1, hr * .75, hr * 1.05, shade(B, -.08));
+  // head
+  oval(hx, hy, hr, hr * .9, B);
+  if (q.cheeks) { oval(hx - hr * .55, hy + hr * .4, hr * .42, hr * .35, Be); oval(hx + hr * .4, hy + hr * .45, hr * .38, hr * .32, Be); }
+  if (q.ears === 'flop') for (const dx of [-.15, .62]) oval(hx + hr * dx, hy - hr * .05, hr * .28, hr * .62, shade(B, -.15), dx > 0 ? .3 : -.2);
+  if (q.ears === 'side') for (const dx of [-.55, .6]) oval(hx + hr * dx, hy - hr * .55, hr * .5, hr * .22, shade(B, -.08), dx > 0 ? .4 : -.4);
+  // snout and nose
+  const nose = q.noseCol || '#2a1a1a'; let nx = hx - hr * 1.05, ny = hy + hr * .25;
+  const mz = q.muzzle || Be;
+  if (q.snout === 'pointy') { poly([[hx - hr * .5, hy - hr * .2], [hx - hr * 1.35, hy + hr * .3], [hx - hr * .45, hy + hr * .65]], B); oval(hx - hr * .8, hy + hr * .45, hr * .5, hr * .24, mz); nx = hx - hr * 1.3; ny = hy + hr * .28; }
+  if (q.snout === 'mid') { oval(hx - hr * .8, hy + hr * .35, hr * .55, hr * .38, mz); nx = hx - hr * 1.25; ny = hy + hr * .2; }
+  if (q.snout === 'short') { oval(hx - hr * .62, hy + hr * .42, hr * .42, hr * .32, mz); nx = hx - hr * .98; ny = hy + hr * .3; }
+  if (q.snout === 'long') { poly([[hx - hr * .3, hy - hr * .2], [hx - hr * 1.55, hy + hr * .35, hx - hr * 1.5, hy + hr * .75], [hx - hr * .2, hy + hr * .75]], B); oval(hx - hr * 1.15, hy + hr * .55, hr * .4, hr * .28, mz); nx = hx - hr * 1.5; ny = hy + hr * .45; }
+  if (q.snout === 'blunt') { oval(hx - hr * .75, hy + hr * .2, hr * .62, hr * .58, shade(B, -.04)); nx = hx - hr * 1.3; ny = hy + hr * .05; }
+  if (q.snout === 'pig') { oval(hx - hr * 1.05, hy + hr * .3, hr * .32, hr * .4, shade(B, .15)); oval(hx - hr * 1.25, hy + hr * .2, .9, 1.1, D2); oval(hx - hr * 1.25, hy + hr * .55, .9, 1.1, D2); nx = null; }
+  if (q.snout === 'trunk') { stroke([[hx - hr * .6, hy + hr * .2], [hx - hr * 1.4, hy + hr * .8, hx - hr * 1.2, hy + hr * 2.1, hx - hr * .6, hy + hr * 2.2]], hr * .38, B); poly([[hx - hr * .5, hy + hr * .6], [hx - hr * 1.2, hy + hr * 1.1], [hx - hr * .6, hy + hr * .85]], '#fff8e0'); nx = null; }
+  if (nx !== null && q.snout) { oval(nx + .6, ny, hr * .1 + .6, hr * .08 + .5, nose); oval(nx + .3, ny - .4, .5, .35, '#ffffff'); }
+  // face markings
+  if (q.mask === 'bandit') oval(hx - hr * .05, hy - hr * .1, hr * .95, hr * .3, A);
+  if (q.mask === 'panda') { oval(hx - hr * .3, hy + hr * .42, hr * .7, hr * .32, mz); oval(hx - hr * .45, hy - hr * .55, hr * .3, hr * .2, mz); oval(hx + hr * .35, hy - hr * .55, hr * .3, hr * .2, mz); stroke([[hx - hr * .45, hy + hr * .1], [hx - hr * .6, hy + hr * .55]], 1.2, shade(B, -.4)); stroke([[hx + hr * .35, hy + hr * .1], [hx + hr * .5, hy + hr * .55]], 1.2, shade(B, -.4)); }
+  if (q.blaze) poly([[hx - hr * .2, hy - hr * .85], [hx + hr * .1, hy - hr * .85], [hx - hr * .5, hy + hr * .3], [hx - hr * .75, hy + hr * .25]], Be);
+  if (q.whiskers) for (const dy of [-.3, .6]) stroke([[nx + hr * .25, ny + dy], [nx - hr * .45, ny + dy * 2.2]], .7, '#ffffff');
+  if (q.beard) poly([[hx - hr * .9, hy + hr * .65], [hx - hr * .75, hy + hr * 1.35 + st], [hx - hr * .4, hy + hr * .7]], Be);
+  if (q.tusks) poly([[hx - hr * .8, hy + hr * .6], [hx - hr * 1.15, hy - hr * .1 - st], [hx - hr * .55, hy + hr * .5]], '#fff8e0');
+  // horns and antlers
+  const horn = q.hornCol || '#ece4d0';
+  if (q.horns === 'ram' && st > 0) { k.ring(hx + hr * .25, hy - hr * .35, hr * (.42 + st * .12), hr * .28, q.hornCol || A, 3.2, 8.4); }
+  if (q.horns === 'goat' && st > 0) for (const dx of [-.1, .3]) stroke([[hx + hr * dx, hy - hr * .7], [hx + hr * (dx + .5), hy - hr * (1.4 + st * .25), hx + hr * (dx + 1 + st * .2), hy - hr * (1.3 + st * .35)]], 1.6 + st * .3, horn);
+  if (q.horns === 'rhino') { poly([[hx - hr * 1.2, hy - hr * .05], [hx - hr * 1.45, hy - hr * (.8 + st * .35)], [hx - hr * .85, hy - hr * .15]], horn); if (st > 0) poly([[hx - hr * .75, hy - hr * .3], [hx - hr * .85, hy - hr * (.75 + st * .2)], [hx - hr * .45, hy - hr * .35]], horn); }
+  if (q.horns === 'antler' && st > 0) for (const dx of [-.15, .4]) {
+    const ax = hx + hr * dx, top = hy - hr * (1.1 + st * .55), ac = q.antlerCol || '#8a6a4a';
+    stroke([[ax, hy - hr * .7], [ax + 1, top]], 1.3, ac); stroke([[ax + .5, top + 4], [ax - 4, top]], 1.1, ac); stroke([[ax + .7, top + 2], [ax + 4.5, top - 2]], 1.1, ac);
+    if (q.antlerBloom) { k.leaf(ax - 4, top, 3.4, -2.4, '#5aa83a'); k.leaf(ax + 4.5, top - 2, 3.4, -.6, '#7ccf5a'); if (st === 2) { oval(ax + 1, top - 1, 1.6, 1.6, '#f5a3c7', 0, true); oval(ax - 4, top - 2.4, 1.3, 1.3, '#fff2a8', 0, true); } }
+    if (q.antlerGlow) { oval(ax + 1, top - 1, 1.8, 1.8, A2, 0, true); oval(ax - 4, top - .5, 1.4, 1.4, A2, 0, true); oval(ax + 4.5, top - 2.5, 1.4, 1.4, A2, 0, true); }
+  }
+  // eyes and mouth
+  const ew = hr * .5 * [1.12, 1, .92][st];
+  k.eyes([[hx - hr * .42, hy - hr * .08, q.eye], [hx + hr * .36, hy - hr * .08, q.eye]], ew, ew * 1.2);
+  if (nx !== null && q.snout) k.mouth(nx + 1, ny + hr * .3, 'smile');
+  k.anc = { back: [bx + 2, by - ht + 1], tail: [tx + 6, ty - 6], head: [hx + hr * .1, hy - hr * .85] };
+};
+// ---------------------------------------------------------------- birds
+V.bird = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k, kind = q.kind || 'perch', hb = [1.25, 1.1, 1][st];
+  if (kind === 'owl') {
+    poly([[36, 34], [46, 58], [36, 57]], A); stroke([[30, 54], [29, 61]], 1.4, '#e8b020'); stroke([[38, 54], [39, 61]], 1.4, '#e8b020');
+    oval(32, 42, 13, 15, B); oval(31, 47, 8, 9, Be); for (const [x, y] of [[28, 44], [33, 47], [29, 51], [34, 52]]) poly([[x - 1.5, y], [x, y + 2], [x + 1.5, y]], shade(Be, -.25));
+    oval(43, 43, 4.5, 10, A, .1);
+    poly([[22, 22], [21, 11 - st * 2], [27, 19]], A); poly([[38, 19], [44, 10 - st * 2], [43, 22]], A);
+    oval(32, 27, 12 * hb, 10.5 * hb, B); oval(27, 27, 5.4 * hb, 5.4 * hb, Be); oval(37, 27, 5.4 * hb, 5.4 * hb, Be);
+    poly([[30.5, 30], [32, 35], [33.5, 30]], '#e8b020');
+    k.eyes([[27, 26.5], [37, 26.5]], 6.4 * hb, 6.6 * hb); k.anc = { back: [42, 36], tail: [44, 50], head: [32, 16] }; return;
+  }
+  if (kind === 'penguin') {
+    oval(27, 61, 4.4, 1.8, '#f0a030'); oval(38, 61, 4.4, 1.8, '#f0a030');
+    oval(33, 43, 13, 18, B); oval(30, 46, 9, 15, Be); oval(45, 43, 3, 10, shade(B, -.15), -.25); oval(19.5, 43, 2.6, 9, shade(B, -.15), .25);
+    oval(31, 23, 10.5 * hb, 9.5 * hb, B); if (st === 0) oval(29, 26, 7 * hb, 6 * hb, Be); else { oval(26, 28, 4.6, 3.6, Be); oval(24, 31, 3.4, 2, A2); }
+    poly([[22, 24], [13, 27.5], [22, 29]], '#2e2e3a'); stroke([[16, 27.3], [21, 27.3]], .8, '#f0a030');
+    k.eyes([[25, 22], [33, 22]], 5.6 * hb, 6.4 * hb); k.anc = { back: [42, 32], tail: [40, 56], head: [32, 13] }; return;
+  }
+  if (kind === 'crane') {
+    stroke([[34, 42], [33, 62]], 1.2, '#3a3a44'); stroke([[40, 42], [42, 62]], 1.2, '#3a3a44');
+    poly([[42, 30], [62, 40], [46, 42]], A); oval(37, 35, 13, 8.5, B); poly([[28, 30], [52, 2], [56, 26]], shade(B, -.04)); stroke([[36, 14], [48, 7]], .8, A);
+    stroke([[27, 31], [21, 22, 20, 12]], 3, B); oval(19, 9, 5, 4.4, B); oval(19.5, 5.5, 2.4, 1.4, A2, 0, true); stroke([[20, 11], [22, 19]], 1.4, A);
+    poly([[15, 8], [1, 11], [15, 11.5]], '#d0a030');
+    k.eyes([[17, 8.5]], 4, 4.6); return;
+  }
+  if (kind === 'eagle') {
+    for (const sgn of [-1, 1]) { poly([[32, 30], [32 + sgn * 31, 3], [32 + sgn * 28, 14], [32 + sgn * 30, 18], [32 + sgn * 24, 24], [32 + sgn * 25, 30], [32 + sgn * 14, 40]], B);
+      for (let i = 0; i < 3; i++) k.bolt(32 + sgn * (10 + i * 6), 12 + i * 3, 9, A); }
+    poly([[27, 46], [32, 62], [37, 46]], A); oval(32, 36, 8, 12, B); oval(32, 40, 5, 8, Be);
+    oval(32, 19, 7, 6.4, Be); poly([[29, 21], [32, 29], [35, 21]], '#ffd23f'); for (let i = 0; i < 3; i++) poly([[27 + i * 4, 14], [26 + i * 5, 5 - (i === 1 ? 3 : 0)], [31 + i * 4, 14]], A);
+    k.eyes([[29, 18, 'fierce'], [35, 18, 'fierce']], 3.8, 4.4); return;
+  }
+  const round = kind === 'chick', bw = round ? 14 : 11.5, bh = round ? 13.5 : 10.5, bx = 37, by = round ? 45 : 41;
+  // tail
+  const tc = A, tx = bx + bw - 3, ty = by + 4;
+  if (q.tail === 'fork') { poly([[tx, ty - 2], [tx + 20, ty + 13], [tx + 9, ty + 2]], tc); poly([[tx, ty], [tx + 16, ty + 18], [tx + 6, ty + 4]], shade(tc, .12)); }
+  else if (q.tail === 'fan') poly([[tx, ty - 3], [tx + 15, ty - 6], [tx + 16, ty + 9], [tx, ty + 4]], tc);
+  else if (q.tail === 'long') poly([[tx, ty - 3], [tx + 19, ty + 6], [tx + 15, ty + 10], [tx, ty + 3]], tc);
+  else poly([[tx, ty - 2], [tx + 9, ty - 2], [tx + 8, ty + 4], [tx, ty + 3]], tc);
+  // legs
+  const lc = q.legCol || '#e08a1f';
+  for (const x of [bx - 4, bx + 3]) { stroke([[x, by + bh - 2], [x - 1, 60]], 1.3, lc); stroke([[x - 4, 61], [x + 2, 61]], 1.1, lc); }
+  // body, belly, wing
+  oval(bx, by, bw, bh, B); oval(bx - 3, by + 3.5, bw * .62, bh * .65, Be);
+  if (q.breast) oval(bx - 5, by + 1, 5, 5.5, q.breast);
+  if (q.wing === 'raised') { poly([[bx, by - 4], [bx + 22, by - 26], [bx + 13, by - 4]], shade(A, .25)); poly([[bx + 2, by - 2], [bx + 24, by - 18], [bx + 14, by]], shade(A, .45)); }
+  else if (q.wing === 'long') poly([[bx - 2, by - 3], [bx + 26, by + 3], [bx + 2, by + 6]], A);
+  else { oval(bx + 4, by + 1, bw * .62, bh * .55, A, -.25); for (let i = 0; i < 3; i++) stroke([[bx + 3 + i * 3, by + 4], [bx + 6 + i * 3, by + 7]], .8, shade(A, -.25)); }
+  // head
+  const hr = (round ? 0 : 8.4) * hb, hx = bx - bw + 4, hy = by - bh + 1;
+  if (!round) oval(hx, hy, hr, hr * .95, B);
+  const fx = round ? bx - bw + 2 : hx - hr + 1, fy = round ? by - 3 : hy + 1;
+  if (q.crest === 'tuft') poly([[hx + 2, hy - hr + 2], [hx + 11, hy - hr - 8], [hx + 7, hy - hr + 4]], A);
+  if (q.crest === 'flame') k.flame(hx + 4, hy - hr + 3, 13, 3, 3);
+  if (q.crest === 'bolt' || round) k.bolt(round ? bx - 2 : hx + 3, (round ? by - bh - 8 : hy - hr - 8), 9, A2 === '#ffd23f' || round ? '#ffe04a' : A2);
+  if (q.cap) oval(hx + 1, hy - hr * .55, hr * .75, hr * .45, q.cap);
+  if (q.throat) oval(hx - hr * .3, hy + hr * .7, hr * .55, hr * .4, q.throat);
+  if (q.brow) poly([[hx - hr, hy - hr * .4], [hx + hr * .2, hy - hr * .65], [hx + hr * .2, hy - hr * .35], [hx - hr * .9, hy - hr * .15]], q.brow);
+  // beak
+  const bc = q.beakCol || '#f0a030';
+  if (q.beak === 'hook') { poly([[fx + 1, fy - 2.6], [fx - 6, fy - 1], [fx - 5, fy + 3], [fx + 1, fy + 2]], bc); oval(fx - 5.2, fy + 2.4, 1.2, 1.4, '#3a3a44'); }
+  else if (q.beak === 'thin') stroke([[fx + 1, fy], [fx - 15, fy + 3]], 1.3, '#3a3a44');
+  else if (q.beak === 'thick') poly([[fx + 1, fy - 3.4], [fx - 9, fy + .5], [fx + 1, fy + 3.6]], '#2a2a36');
+  else poly([[fx + 1, fy - 2.6], [fx - 6, fy + .3], [fx + 1, fy + 2.8]], bc);
+  const ex = round ? bx - bw + 8 : hx - hr * .2, ey = round ? by - 5 : hy - hr * .2;
+  k.eyes(round ? [[ex, ey], [ex + 7, ey]] : [[ex, ey, q.eye]], round ? 6.4 : hr * .62, round ? 7.4 : hr * .74);
+  k.anc = { back: [bx + 4, by - bh + 2], tail: [tx + 10, ty - 4], head: [hx + 1, hy - hr] };
+};
+// ---------------------------------------------------------------- fish and sea life
+V.fish = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2 } = k;
+  if (q.kind === 'angler') {
+    poly([[48, 34], [62, 22], [58, 36], [62, 50]], shade(B, .1)); poly([[30, 20], [40, 12], [44, 22]], shade(B, .15));
+    oval(30, 36, 20, 16, B); oval(30, 46, 14, 5, k.Be);
+    poly([[10, 34], [24, 32, 32, 38, 28, 44], [18, 50, 10, 46, 8, 40]], '#1a1024');
+    for (let i = 0; i < 6; i++) { poly([[11 + i * 3, 35.5 + i * .4], [12.5 + i * 3, 40], [14 + i * 3, 36 + i * .4]], '#ffffff'); poly([[12 + i * 2.8, 47 - i * .5], [13.5 + i * 2.8, 42.5], [15 + i * 2.8, 46.5 - i * .5]], '#ffffff'); }
+    stroke([[22, 22], [16, 8, 6, 8]], 1.4, A); oval(6, 11, 4, 4, A2, 0, true); oval(5, 10, 2, 2, '#ffffff', 0, true);
+    k.eyes([[25, 28]], 6, 6.6); k.fx([[6, 11]]); return;
+  }
+  poly([[48, 34], [61, 22], [57, 34], [61, 46]], A); poly([[49, 34], [57, 27], [55, 34], [57, 41]], shade(A, .3));
+  poly([[24, 24], [34, 12 - st * 2], [42, 26]], A); poly([[28, 40], [33, 50], [37, 41]], A);
+  poly([[8, 34], [14, 22, 38, 20, 50, 34], [38, 48, 14, 46, 8, 34]], B); poly([[10, 36], [24, 44, 42, 42, 48, 36], [36, 48, 16, 46, 10, 36]], Be);
+  for (let i = 0; i < 3; i++) stroke([[26 + i * 6, 25], [25 + i * 6, 41]], 1.3, shade(B, .25));
+  if (q.lure !== false) { stroke([[16, 25], [12, 14, 6, 15]], 1.1, shade(B, -.2)); oval(6, 15.5, 2.6 + st * .4, 2.6 + st * .4, A2, 0, true); oval(5.4, 15, 1.1, 1.1, '#ffffff', 0, true); k.fx([[6, 15]]); }
+  k.eyes([[15, 31]], 6.4, 6.8); k.mouth(9, 36, 'smile');
+};
+V.eel = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2 } = k, pts = [[14, 30], [26, 18, 36, 46, 48, 32], [54, 24, 58, 30, 62, 40]];
+  if (q.crest) for (let i = 0; i < 12; i++) { const t = i / 11, x = 16 + t * 44, y = 28 + Math.sin(t * 5.3 + .6) * 8 - 6; poly([[x - 2, y + 3], [x, y - 4 - (i % 2) * 2], [x + 2, y + 3]], A); }
+  stroke(pts, q.thick || 9, B); stroke(pts.map(p => p.map((v, i) => v + (i % 2 ? 2.2 : 0))), (q.thick || 9) * .4, Be);
+  if (!q.crest) for (let i = 1; i < 7; i++) { const t = i / 7, x = 16 + t * 42, y = 30 + Math.sin(t * 5.3 + .6) * 7.5; poly([[x - 2, y - 3], [x, y - 8], [x + 2, y - 3]], A); }
+  for (let i = 0; i < 2 + st * 2; i++) { const t = (i + 1) / (3 + st * 2), x = 16 + t * 42, y = 30 + Math.sin(t * 5.3 + .6) * 7.5; oval(x, y, 1.6, 1.2, A2, 0, true); }
+  poly([[58, 38], [64, 32], [64, 46]], A);
+  oval(13, 29, 8 + st, 6.4 + st * .5, B); oval(9.5, 32.5, 5, 2.4, Be);
+  if (q.whiskers) { stroke([[6, 32], [1, 38]], .8, A); stroke([[9, 33], [6, 41]], .8, A); }
+  k.eyes([[10, 27, q.eye], [15.5, 27, q.eye]], 4.8, 5.4); k.mouth(5, 32, 'line');
+};
+V.ray = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2 } = k;
+  if (q.kind === 'disc') {
+    stroke([[44, 44], [56, 50, 62, 58]], 3, B); poly([[56, 52], [63, 48], [62, 60]], A);
+    oval(28, 40, 20, 15, B); oval(28, 43, 13, 9, Be); for (let i = 0; i < 2 + st; i++) oval(20 + i * 7, 33 - (i % 2) * 2, 2, 1.6, A2, 0, true);
+    k.eyes([[23, 35], [32, 35]], 5.4, 6); k.mouth(26, 41, 'smile'); return;
+  }
+  stroke([[40, 44], [52, 52, 62, 62]], 1.2, A);
+  poly([[32, 30], [10, 22, 2, 28, 2, 34], [12, 36, 22, 44, 32, 48], [42, 44, 52, 36, 62, 34], [62, 28, 54, 22, 32, 30]], B);
+  oval(32, 40, 10, 6.4, Be); poly([[24, 32], [21, 24], [27, 30]], A); poly([[40, 32], [43, 24], [37, 30]], A);
+  for (const x of [12, 18, 46, 52]) oval(x, 32, 1.6, 1.3, shade(B, .3));
+  k.eyes([[27, 34], [37, 34]], 5, 5.8); k.mouth(30, 40, 'line');
+};
+V.whale = (k) => {
+  const { poly, oval, stroke, B, Be, A, A2 } = k;
+  poly([[52, 32], [64, 20], [61, 32], [64, 46]], B);
+  poly([[2, 36], [6, 18, 40, 16, 56, 32], [44, 52, 10, 54, 2, 36]], B); poly([[4, 40], [18, 52, 42, 50, 52, 38], [34, 46, 14, 46, 4, 40]], Be);
+  for (let i = 0; i < 6; i++) stroke([[8 + i * 5, 42], [10 + i * 5, 48]], .8, shade(Be, -.18));
+  poly([[24, 44], [32, 56], [36, 46]], shade(B, -.15));
+  for (const [x, y] of [[20, 26], [30, 24], [40, 27], [14, 30]]) oval(x, y, 1.4, 1.4, A2, 0, true);
+  stroke([[14, 18], [12, 10]], 1.4, A); oval(9, 7, 2.6, 3.4, A, 0, true); oval(16, 7, 2.6, 3.4, A, 0, true);
+  k.eyes([[12, 34]], 4.2, 4.6); k.mouth(5, 39, 'line');
+};
+V.jelly = (k) => {
+  const { st, poly, oval, stroke, B, Be, A, A2 } = k, n = 6 + st;
+  for (let i = 0; i < n; i++) { const x = 32 - (n - 1) * 3 + i * 6; stroke([[x, 36], [x - 3, 44, x + 3, 50, x - 1, 58]], 1.4, A); }
+  stroke([[28, 36], [24, 46, 32, 50, 26, 60]], 3.4, shade(Be, -.05)); stroke([[36, 36], [40, 46, 32, 50, 38, 60]], 3.4, shade(Be, -.05));
+  poly([[12, 36], [12, 16, 52, 16, 52, 36]], B); oval(28, 26, 10, 7, Be);
+  for (let x = 13; x <= 51; x += 4) oval(x, 36.5, 2.1, 1.7, shade(B, -.12));
+  for (const [x, y] of [[40, 22], [44, 30], [20, 30]]) oval(x, y, 1.6, 1.6, '#ffffff', 0, true);
+  if (st === 2) for (let i = 0; i < 3; i++) { poly([[22 + i * 10, 18], [24 + i * 10, 8], [27 + i * 10, 18]], A2, true); oval(24 + i * 10, 9, 1.2, 1.2, '#ffffff', 0, true); }
+  k.eyes([[25, 28], [35, 28]], 5, 5.8); k.mouth(29, 32, 'smile');
+};
+V.octo = (k) => {
+  const { st, poly, oval, stroke, B, Be, A } = k;
+  for (let i = 0; i < 6; i++) { const x = 18 + i * 5.6, d = i < 3 ? -1 : 1; stroke([[x, 36], [x + d * 2, 48, x + d * 9, 52, x + d * 6, 60]], 3.6, i % 2 ? B : shade(B, -.1)); k.ring(x + d * 8, 58, 2.2, 2.2, B, 0, 7); for (let j = 0; j < 3; j++) oval(x + d * (1 + j * 2.5), 46 + j * 3.6, 1, .9, Be); }
+  oval(32, 26, 15, 15.5, B); oval(27, 19, 6, 7, shade(B, .2));
+  for (const [x, y] of [[40, 16], [43, 26], [22, 30]]) oval(x, y, 1.6, 1.4, Be);
+  if (st > 0) poly([[24, 13], [32, 0 - st * 2], [40, 13]], A);
+  k.eyes([[26, 28], [38, 28]], 6.4, 7.2); k.mouth(31, 34, 'smile');
+};
+V.crab = (k) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k;
+  for (let i = 0; i < 3; i++) { stroke([[22 - i * 3, 46], [12 - i * 3, 50], [8 - i * 2, 61]], 1.6, shade(B, -.2)); stroke([[42 + i * 3, 46], [52 + i * 3, 50], [56 + i * 2, 61]], 1.6, shade(B, -.2)); }
+  stroke([[18, 42], [8, 36], [8, 26]], 3, B); stroke([[46, 42], [56, 36], [56, 26]], 3, B);
+  for (const x of [8, 56]) { oval(x, 22, 6.6, 5.6, A); oval(x + (x < 32 ? -2 : 2), 17.5, 3, 2.6, A); oval(x + (x < 32 ? -4.5 : 4.5), 19.5, 2.4, 1.6, null); }
+  stroke([[26, 34], [25, 22]], 1.2, B); stroke([[38, 34], [39, 22]], 1.2, B);
+  poly([[12, 44], [12, 26, 52, 26, 52, 44], [44, 52, 20, 52, 12, 44]], B); oval(32, 47, 15, 4, Be);
+  oval(32, 31, 9, 4.6, '#2a1c1c'); for (let i = 0; i < 5 + st * 2; i++) oval(25 + i * (14 / (4 + st * 2)), 30.5 + (i % 2), 1.5, 1.3, i % 2 ? '#ff9a3c' : '#ffd23f', 0, true);
+  if (st === 2) for (const [x0, y0, x1, y1] of [[16, 40, 22, 36], [48, 40, 42, 37]]) stroke([[x0, y0], [x1, y1]], 1, '#ff9a3c', true);
+  k.eyes([[25, 21], [39, 21]], 5, 5.6); k.mouth(30, 41, 'smile'); k.fx([[32, 28]]);
+};
+// ---------------------------------------------------------------- reptiles and amphibians
+V.turtle = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k, big = q.kind === 'tortoise';
+  for (const x of big ? [14, 44] : [18, 42]) { oval(x, 57, big ? 5 : 4, 5, B); oval(x, 61, big ? 5 : 4, 1.4, D2); }
+  stroke([[18, 46], [10, 40]], big ? 6 : 5, B); oval(8, 36, big ? 6.4 : 6, big ? 5.4 : 5.2, B); oval(5, 39, 3, 1.8, Be);
+  if (!big) poly([[48, 48], [58, 50], [48, 52]], B);
+  const top = big ? 10 : 22 - st * 2;
+  poly([[12, 52], [12, top + 6, 54, top + 6, 54, 52]], A);
+  for (const [x, y] of [[24, top + 16], [34, top + 13], [44, top + 17], [28, top + 27], [40, top + 27]]) { oval(x, y, 5, 4.2, shade(A, .12)); oval(x, y, 3.6, 3, shade(A, .25)); }
+  stroke([[10, 52], [56, 52]], 2.2, shade(A, -.3));
+  if (big) { k.shard(26, top + 8, 9, 0, '#8fbf6a'); k.shard(36, top + 9, 12, 1, '#7ab05a'); oval(30, top + 1, 2, 1.4, '#ffffff', 0, true); for (const x of [18, 44]) { oval(x, top + 14, 2.4, 2.4, A2); oval(x, top + 11, 1.6, 2.2, shade(A2, .2)); } }
+  else if (st > 0) { oval(28, top + 9, 6, 2, '#5aa83a'); oval(38, top + 10, 4, 1.6, '#7ccf5a'); if (st === 2) oval(26, top + 7, 1.4, 1.4, '#f5a3c7', 0, true); }
+  k.eyes([[6, 34]], 4.6, 5.2); k.mouth(3, 38, 'line'); k.anc = big ? null : { back: [34, top + 5], tail: [56, 48], head: [8, 30] };
+};
+V.lizard = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k;
+  if (q.kind === 'chameleon') {
+    stroke([[0, 58], [64, 56]], 3, '#7a5230'); k.leaf(52, 55, 6, -.6, '#5aa83a');
+    stroke([[44, 44], [56, 44, 58, 50]], 3.4, B); k.ring(55, 52, 3.4, 2.4, B, 0, 6);
+    for (const [x0, x1] of [[22, 18], [40, 44]]) stroke([[x0, 46], [x1, 56]], 2.4, shade(B, -.15));
+    oval(32, 41, 14, 8.5, B); oval(30, 45.5, 10, 3, Be); for (let x = 22; x < 44; x += 5) oval(x, 35, 1.8, 1.2, A);
+    poly([[12, 30], [20, 18 - st * 3], [24, 32]], A); oval(15, 36, 9, 7.4, B); oval(10, 39, 4.4, 2.2, Be);
+    oval(15, 34, 5, 5, shade(B, .15));
+    if (st === 2) for (const [x, y] of [[28, 38], [36, 40]]) oval(x, y, 1.6, 1.6, A2, 0, true);
+    k.eyes([[15, 34]], 5.6, 5.6); k.mouth(7, 40, 'line'); k.anc = { back: [34, 33], tail: [56, 44], head: [20, 20] }; return;
+  }
+  if (q.kind === 'horned') {
+    stroke([[44, 50], [62, 48]], 3, B);
+    for (const [x0, x1] of [[18, 14], [26, 26], [40, 38], [46, 50]]) stroke([[x0, 50], [x1, 60]], 2.4, shade(B, -.15));
+    oval(32, 48, 16, 8, B); oval(30, 53, 11, 2.6, Be);
+    for (let x = 20; x <= 44; x += 4.5) poly([[x - 1.6, 42], [x, 37 - st], [x + 1.6, 42]], A);
+    oval(13, 44, 8.5, 6.4, B); oval(8, 47, 4.6, 2, Be);
+    for (let i = 0; i < 3 + st; i++) poly([[10 + i * 3, 40], [12 + i * 4, 31 - st * 1.5], [14 + i * 3, 40]], A2);
+    k.eyes([[11, 43]], 4.6, 5); k.mouth(6, 47, 'line'); return;
+  }
+  // newt / salamander
+  poly([[44, 48], [56, 46, 62, 40, 63, 34], [60, 44, 56, 52, 44, 54]], B);
+  for (const [x0, x1] of [[18, 14], [26, 28], [40, 36], [46, 50]]) stroke([[x0, 50], [x1, 60]], 2.6, shade(B, -.15));
+  oval(31, 47, 16, 8, B); oval(29, 52, 11, 2.6, Be);
+  for (const [x, y] of [[22, 43], [30, 41], [38, 43], [45, 44]]) oval(x, y, 1.8, 1.6, A2, 0, true);
+  if (st === 2) for (let i = 0; i < 5; i++) poly([[18 + i * 6, 42], [21 + i * 6, 32 - (i % 2) * 3], [24 + i * 6, 42]], A);
+  oval(13, 42, 9, 7, B); oval(8, 45.5, 5, 2.4, Be);
+  k.eyes([[10, 40], [16, 40]], 5, 5.8); k.mouth(5, 45, 'line'); k.anc = { back: [30, 40], tail: [60, 38], head: [14, 35] };
+};
+V.frog = (k) => {
+  const { st, poly, oval, stroke, B, Be, A2, D2 } = k;
+  oval(44, 52, 11, 8, shade(B, -.12)); oval(52, 60, 7, 2, Be);
+  stroke([[20, 50], [16, 60]], 3, shade(B, -.08)); oval(14, 61, 4.6, 1.6, Be);
+  oval(32, 48, 20, 13, B); oval(28, 54, 14, 6, Be);
+  oval(20, 35, 7, 6.6, B); oval(36, 34, 7, 6.6, B);
+  for (const [x, y] of [[40, 44], [46, 48], [34, 42]].slice(0, 1 + st)) oval(x, y, 2, 1.8, A2, 0, true);
+  if (st > 0) k.bolt(46, 38, 9, A2);
+  stroke([[12, 47], [24, 51, 34, 50]], 1.1, '#1e1a2a');
+  k.eyes([[19, 34], [35, 33]], 7.4, 7.8); k.anc = null;
+};
+V.tadpole = (k) => {
+  const { poly, oval, B, Be, A2 } = k;
+  poly([[36, 40], [50, 32, 56, 42, 63, 36], [58, 48, 50, 52, 36, 46]], shade(B, .25));
+  oval(28, 41, 14, 12, B); oval(26, 47, 9, 4.6, Be);
+  oval(36, 35, 1.8, 1.6, A2, 0, true); oval(38, 40, 1.4, 1.2, A2, 0, true);
+  k.eyes([[22, 38], [31, 38]], 6.2, 7); k.mouth(24, 45, 'smile');
+};
+V.snail = (k) => {
+  const { st, poly, oval, stroke, B, Be, A } = k;
+  poly([[6, 58], [8, 48, 20, 46, 30, 50], [44, 54, 56, 56, 62, 60], [40, 62, 14, 62, 6, 58]], B); oval(30, 60, 20, 2, Be);
+  stroke([[12, 48], [8, 34]], 1.6, B); stroke([[16, 48], [18, 34]], 1.6, B); oval(12, 52, 6.4, 6, B);
+  const cx = 38, cy = 38, r = 16 + st;
+  oval(cx, cy, r, r, A); oval(cx + 1, cy + 1, r * .7, r * .7, shade(A, .25)); oval(cx + 2, cy + 2, r * .42, r * .42, A); oval(cx + 2.6, cy + 2.6, r * .18, r * .18, shade(A, -.3));
+  k.ring(cx, cy, r - 1, 1, shade(A, -.25), 3.6, 6.4);
+  if (st === 2) { poly([[cx - 8, cy - r + 3], [cx - 8, cy - r - 6], [cx - 4, cy - r - 2], [cx, cy - r - 7], [cx + 4, cy - r - 2], [cx + 8, cy - r - 6], [cx + 8, cy - r + 3]], '#a8a8b4'); oval(cx, cy - r - 3, 1.6, 2, '#2a2230'); }
+  k.eyes([[8, 33], [18, 33]], 4.4, 5); k.mouth(10, 54, 'smile');
+};
+// ---------------------------------------------------------------- insects and spiders
+V.caterpillar = (k) => {
+  const { poly, oval, stroke, B, Be, A, D2 } = k;
+  for (let i = 6; i >= 0; i--) { const x = 20 + i * 6.4, y = 50 - Math.sin(i * .8 + .4) * 4; oval(x, y, 6.4, 6.4, i % 2 ? B : shade(B, .08)); oval(x - 1, y + 3.6, 3.6, 1.8, Be); oval(x, y - 3, 1.4, 1.4, A); oval(x + .5, y + 6.6, 1.4, 1.6, D2); }
+  oval(13, 43, 9, 8.6, B); oval(11, 48, 6, 3.4, Be);
+  stroke([[10, 35], [5, 26]], 1, D2); stroke([[16, 35], [19, 26]], 1, D2); oval(5, 25, 1.8, 1.8, A); oval(19, 25, 1.8, 1.8, A);
+  k.eyes([[9, 41], [17, 41]], 5.6, 6.6); k.mouth(11.5, 47, 'smile');
+};
+V.chrysalis = (k) => {
+  const { poly, oval, stroke, B, Be, A, A2 } = k;
+  stroke([[2, 6], [62, 5]], 2.4, '#7a5230'); k.leaf(46, 5, 9, .4, '#5aa83a'); stroke([[32, 6], [32, 13]], .8, '#ffffff');
+  poly([[32, 12], [48, 18, 48, 44, 32, 60], [16, 44, 16, 18, 32, 12]], B);
+  poly([[26, 16], [16, 28, 18, 44, 30, 54], [24, 40, 22, 28, 26, 16]], shade(B, .18));
+  for (const y of [26, 36, 46]) stroke([[22, y], [42, y + 1]], .9, A);
+  oval(32, 50, 2, 2, A2, 0, true);
+  k.eyes([[27, 28, 'sleepy'], [37, 28, 'sleepy']], 5, 5); k.mouth(30, 33, 'smile');
+};
+V.wings = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k, kind = q.kind;
+  if (kind === 'butterfly' || kind === 'moth') {
+    const wb = kind === 'moth' ? 1.1 : 1;
+    oval(44, 22, 15 * wb, 13, A, -.2); oval(40, 44, 11 * wb, 9, shade(A, .12), .3);
+    oval(24, 20, 14 * wb, 13, B, .2); oval(25, 44, 10 * wb, 9, Be, -.3);
+    oval(24, 20, 6, 6, A2, 0, kind === 'moth'); oval(24, 20, 2.6, 2.6, kind === 'moth' ? D2 : '#ffffff'); oval(44, 21, 4.6, 4.6, A2); oval(25, 44, 3.4, 3.4, A2);
+    if (st === 2) for (const [x, y] of [[16, 12], [52, 14], [34, 52]]) oval(x, y, 1.6, 1.6, '#ffffff', 0, true);
+    oval(32, 36, 3.6, 13, kind === 'moth' ? Be : D2); oval(32, 21, 5, 4.6, kind === 'moth' ? Be : D2);
+    if (kind === 'moth') { for (const d of [-1, 1]) { stroke([[32 + d, 17], [32 + d * 7, 6]], 1, D2); for (let i = 0; i < 4; i++) stroke([[32 + d * (2.5 + i * 1.3), 14 - i * 2.2], [32 + d * (4.5 + i * 1.3), 15 - i * 2.2]], .8, D2); } }
+    else for (const d of [-1, 1]) { stroke([[32 + d, 17], [32 + d * 7, 6]], 1, D2); oval(32 + d * 7, 6, 1.6, 1.6, A2); }
+    k.eyes([[29.5, 21], [34.5, 21]], 3.4, 3.8); return;
+  }
+  if (kind === 'bee') {
+    oval(36, 22, 9, 6, '#eef6ff', -.4); oval(44, 25, 7, 5, '#dcecff', -.2);
+    poly([[50, 42], [60, 43], [50, 46]], A);
+    oval(38, 42, 14, 11.5, B); for (const x of [33, 39, 45]) stroke([[x, 31.5], [x - 1, 53]], 2.4, A);
+    oval(36, 47, 8, 3.2, Be); for (const x of [30, 36, 42]) stroke([[x, 52], [x - 1, 60]], 1, A);
+    oval(20, 38, 9.5, 9, B); oval(18, 43, 5.4, 3.2, Be);
+    for (const d of [-1, 1]) { stroke([[19 + d * 2, 30], [16 + d * 6, 20]], 1, A); oval(16 + d * 6, 19.5, 1.8, 1.8, A2); }
+    if (st === 2) poly([[13, 30], [16, 22], [19, 27], [22, 21], [25, 30]], '#ffd65a', true);
+    k.eyes([[16, 36], [24, 36]], 5.4, 6.2); k.mouth(19, 42, 'smile'); return;
+  }
+  if (kind === 'firefly') {
+    oval(30, 22, 11, 6, A, -.3); oval(42, 24, 9, 5, shade(A, -.06), -.15);
+    for (const x of [20, 27, 33]) stroke([[x, 44], [x - 2, 56]], 1, D2);
+    oval(43, 40, 13, 9.5, Be); for (let i = 0; i < 3; i++) oval(44 + i, 41, 9 - i * 2.4, 6.6 - i * 1.8, i === 2 ? '#ffffff' : A2, 0, true);
+    oval(27, 38, 7, 6.4, B); oval(17, 36, 7, 6.6, B);
+    stroke([[15, 30], [8, 20]], 1, D2); stroke([[19, 30], [22, 20]], 1, D2);
+    k.eyes([[13, 35], [19, 35]], 5, 5.8); k.fx([[46, 41]]); return;
+  }
+  if (kind === 'dragonfly') {
+    for (const [y, rot, c] of [[20, -.1, A], [27, .1, shade(A, -.05)]]) { oval(30, y, 18, 4, c, rot); stroke([[14, y], [46, y + rot * 30]], .7, shade(A, -.2)); }
+    stroke([[20, 34], [62, 42]], 3.4, B); for (let x = 26; x < 62; x += 5) stroke([[x, 34.5 + (x - 20) * .19], [x, 36.5 + (x - 20) * .19]], 1, shade(B, -.25));
+    oval(18, 33, 5, 4.4, B); for (const x of [14, 20]) stroke([[x, 37], [x - 2, 46]], .9, D2);
+    oval(11, 31, 5.6, 5.4, B); oval(9, 29, 3.6, 3.4, A2);
+    k.eyes([[8, 30], [13, 30]], 4.4, 5); return;
+  }
+};
+V.beetle = (k, q) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k;
+  for (let i = 0; i < 3; i++) stroke([[24 + i * 9, 48], [20 + i * 10, 56], [22 + i * 10, 61]], 1.4, '#2a2230');
+  if (q.kind === 'ladybug') {
+    oval(36, 42, 19, 15, B); poly([[36, 27], [36, 57], [38, 57], [38, 27]], '#2a2230');
+    for (const [x, y, r] of [[28, 35, 3.2], [45, 34, 3], [27, 47, 2.6], [46, 46, 3.2], [37, 52, 2.2]]) oval(x, y, r, r, A);
+    if (st === 2) for (const [x, y] of [[33, 33], [42, 42], [24, 41]]) { oval(x, y, 2.2, 2.2, A2, 0, true); oval(x, y, .9, .9, '#fff6c0', 0, true); }
+    oval(17, 44, 9, 8, '#3a3044'); oval(14, 40.5, 2.6, 2, '#ffffff'); oval(21, 40.5, 2.6, 2, '#ffffff');
+    stroke([[15, 37], [10, 28]], .8, '#2a2230'); stroke([[19, 37], [21, 28]], .8, '#2a2230');
+    k.eyes([[14, 44], [21, 44]], 4.6, 5.4); return;
+  }
+  oval(38, 42, 19, 14, B); stroke([[22, 40], [56, 42]], 1, shade(B, -.35)); oval(33, 34, 10, 3, shade(B, .5));
+  oval(16, 44, 9, 8.4, shade(B, -.2));
+  const hornCol = A2; stroke([[12, 40], [8, 28], [12, 22]], 2.2 + st * .4, hornCol); oval(12, 21, 2.6 + st * .4, 2.6 + st * .4, hornCol);
+  if (st === 2) stroke([[16, 37], [22, 30]], 1.8, hornCol);
+  for (const [x, y] of [[44, 36], [50, 42], [36, 46]].slice(0, 1 + st)) oval(x, y, 1.6, 1.6, '#fff27a', 0, true);
+  k.eyes([[12, 45, 'glow']], 4.6, 5);
+};
+V.grub = (k) => {
+  const { oval, stroke, B, Be, A, A2, D2 } = k;
+  for (let i = 7; i >= 0; i--) { const a = Math.PI * (.3 + i * .2), x = 34 + Math.cos(a) * 13, y = 40 + Math.sin(a) * 12; oval(x, y, 7, 7, i % 2 ? B : shade(B, -.06)); }
+  oval(44, 50, 8.4, 8, A); oval(42, 54, 5, 2.6, Be);
+  for (const x of [38, 44, 50]) stroke([[x, 56], [x, 61]], 1, D2);
+  oval(28, 30, 1.8, 1.8, A2, 0, true); oval(22, 38, 1.6, 1.6, A2, 0, true);
+  k.eyes([[41, 48], [48, 48]], 5, 5.8); k.mouth(43, 53, 'smile');
+};
+V.spider = (k) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k;
+  for (let i = 0; i < 4; i++) { stroke([[26, 44], [14 - i * 2, 32 + i * 4], [6 + i * 2, 61]], 1.6, shade(B, -.15)); stroke([[30, 44], [44 + i * 3, 30 + i * 4], [50 + i * 3, 61]], 1.6, B); }
+  oval(42, 36, 14, 12.5, B); oval(42, 32, 5, 6, A); oval(42, 42, 3.2, 2.6, A); if (st === 2) oval(42, 32, 2.4, 3, A2, 0, true);
+  oval(22, 44, 10, 9, shade(B, .1)); oval(20, 49, 6, 2.6, Be);
+  oval(15, 38, 1.4, 1.4, A2, 0, true); oval(27, 38, 1.4, 1.4, A2, 0, true);
+  k.eyes([[18, 43], [26, 43]], 6.4, 7.2); k.mouth(21, 50, 'smile');
+};
+// ---------------------------------------------------------------- bats and sloths
+V.bat = (k) => {
+  const { st, poly, oval, stroke, B, Be, A, A2, D2 } = k;
+  for (const d of [-1, 1]) { poly([[32 + d * 4, 30], [32 + d * 30, 12 - st * 3], [32 + d * 27, 28], [32 + d * 22, 26], [32 + d * 20, 38], [32 + d * 13, 34], [32 + d * 7, 44]], A); for (const [x, y] of [[30, 12], [22, 26], [13, 34]]) stroke([[32 + d * 4, 30], [32 + d * x, y - (x === 30 ? st * 3 : 0)]], 1, shade(A, -.25)); }
+  oval(32, 38, 9, 11, B); oval(32, 42, 5.6, 6.4, Be);
+  poly([[24, 26], [21, 9], [31, 24]], B); poly([[33, 24], [43, 9], [40, 26]], B); poly([[25, 23], [23, 13], [29, 23]], Be); poly([[35, 23], [41, 13], [39, 23]], Be);
+  oval(32, 30, 9.5, 8.6, B);
+  for (const x of [28, 36]) stroke([[x, 48], [x, 54]], 1.2, D2);
+  k.eyes([[28, 29, 'glow'], [36, 29, 'glow']], 4.6, 5); k.mouth(30.5, 34, 'smile');
+};
+V.sloth = (k) => {
+  const { st, poly, oval, stroke, B, Be, A, A2 } = k;
+  stroke([[0, 8], [64, 6]], 3, '#7a5230'); k.leaf(10, 7, 7, -2.4, '#5aa83a'); k.leaf(54, 6, 7, -.7, '#7ccf5a');
+  stroke([[22, 12], [24, 30]], 4.4, B); stroke([[42, 12], [40, 30]], 4.4, B);
+  for (const x of [19, 21.5, 24, 40, 42.5, 45]) stroke([[x, 6], [x + .5, 12]], 1, '#e8dcc4');
+  oval(32, 40, 15, 15, B); oval(32, 46, 9, 9, Be);
+  stroke([[24, 50], [22, 61]], 4, B); stroke([[40, 50], [42, 61]], 4, B);
+  oval(32, 30, 10.5, 9, B); oval(32, 31.5, 8, 6, Be);
+  stroke([[26, 29], [30, 33]], 1.4, A); stroke([[38, 29], [34, 33]], 1.4, A);
+  for (const [x, y] of [[20, 38], [44, 42], [34, 52]].slice(0, 1 + st)) { oval(x, y, 3.4, 2.4, A2); if (st === 2) oval(x, y - 1.4, 1, 1, '#f5a3c7', 0, true); }
+  k.eyes([[28, 30, 'sleepy'], [36, 30, 'sleepy']], 5, 5); k.mouth(30.5, 35, 'smile');
+};
+
+
 const kithCache = {};
 function kithIcon(id) { // portrait trimmed to the creature and centered in a square, for lists
   const k = 'i' + id; if (kithCache[k]) return kithCache[k];
