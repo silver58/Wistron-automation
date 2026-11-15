@@ -130,7 +130,7 @@ const MV = {
 };
 
 // look: plan (quad/biped/bird/blob/serpent), colors and features for the pixel generator
-const SP = {
+const CLASSIC = {
   // ---- Ember ----
   pipwick: { name: 'Pipwick', type: 'Ember', base: [42, 52, 40, 62], xp: 62, rate: 0, evo: ['wickwyre', 16],
     learn: [[1, 'bump'], [1, 'wickflick'], [7, 'bristle'], [11, 'cinderpounce'], [15, 'glare'], [19, 'hearthglow']],
@@ -253,14 +253,142 @@ const SP = {
     look: { plan: 'leviathan', body: '#e6e2f5', belly: '#ffffff', acc: '#9d8fd6', acc2: '#8fe0ff', eye: 'glow' },
     dex: 'The old voice of the tides. When no one listened, its song became the Hush.' },
 };
+// ---- 40 Kith families, four stages each (base form + three evolutions) ----
+// n: names by stage · plan/plans: body plan(s) · look: palette · ov: per-stage look overrides
+// prof: stat profile [hp, atk, def, spd] · evo: levels for each evolution · also: bonus scroll type · dex: one line per stage ('' = keep classic entry)
+const FAMILIES = [
+  // ===== Ember =====
+  { t: 'Ember', n: ['Pipwick', 'Wickwyre', 'Beaconyx', 'Pharolux'], plan: 'fox', big: 1, partner: true, look: { body: '#f39a3d', belly: '#ffe2b0' }, ov: [0, 0, { body: '#d9542a', belly: '#ffd29a' }, { body: '#c23a22', belly: '#ffe2a0' }],
+    prof: [.9, 1.1, .85, 1.15], evo: [16, 28, 38], also: 'Spark', dex: ['', '', 'Its tail flame flashes in a rhythm ships can read from miles away.', 'A living beacon. Where it walks, no one is ever lost in the dark.'] },
+  { t: 'Ember', n: ['Smolderhog', 'Pyrequill', 'Blazeback', 'Pyreclad'], plan: 'hog', look: { body: '#b0703f', belly: '#f3d2a6', acc: '#7a3a1e' }, ov: [0, { acc: '#d9542a' }, { acc: '#ff7a3a' }, { acc: '#ffb347' }],
+    prof: [1, 1.05, 1.05, .9], evo: [18, 28, 40], also: 'Stone', dex: ['', '', 'Its back is a hedge of flame. Forest fires part around it out of respect.', 'Wears its quills like armor. It walks through lava for a warm bath.'] },
+  { t: 'Ember', n: ['Coalcrab', 'Kilnclaw', 'Forgecrab', 'Magmantle'], plan: 'crab', look: { body: '#5a4646', belly: '#8a6a5a', acc: '#e8622c' }, ov: [0, { acc: '#ff7a3a' }, { body: '#4a3434', acc: '#ff9a3c' }, { body: '#3a2424', acc: '#ffb347' }],
+    prof: [.95, 1.05, 1.25, .75], evo: [14, 27, 39], also: 'Stone', dex: ['', 'Bakes pebbles into pottery inside its shell. Gives them away as gifts.', 'Smiths say a Forgecrab nearby makes the best steel.', 'Its shell is a cooling lava flow. It naps inside volcanoes.'] },
+  { t: 'Ember', n: ['Flickernewt', 'Scorchscale', 'Ashdrake', 'Cinderwyrm'], plan: 'lizard', look: { body: '#e8743a', belly: '#ffd9a0', acc: '#c04a2a', acc2: '#ffd23f' }, ov: [0, { body: '#d9602a' }, { body: '#b84a2a' }, { body: '#8f2e22', acc: '#ff9a3c' }],
+    prof: [.85, 1.15, .85, 1.15], evo: [13, 25, 37], also: 'Gale', dex: ['A newt with a candle-flame tail. It sleeps in fireplaces.', 'Its scales flake off as glowing ash when it gets excited.', 'Grows wings of smoke. It is still learning to fly and often crashes.', 'An ancient fire-drake. Its roar sounds like a crackling bonfire.'] },
+  { t: 'Ember', n: ['Smokid', 'Charram', 'Blazehorn', 'Calderam'], plan: 'ram', look: { body: '#e8e0d4', belly: '#fff6ea', acc: '#4a3a3a', acc2: '#ff9a3c' }, ov: [0, { body: '#d8c8b8' }, { body: '#a89888', acc2: '#ff7a3a' }, { body: '#6a5a5a', acc2: '#ffb347' }],
+    prof: [1.05, 1.15, 1, .8], evo: [15, 27, 39], also: 'Plain', dex: ['A woolly kid whose fleece smells faintly of campfire.', 'Its horns smoke when it is about to charge. Run.', 'Butts heads with boulders to keep its horns hot.', 'Lives on the rim of a crater. Its wool never stops smoldering.'] },
+  // ===== Tide =====
+  { t: 'Tide', n: ['Puddlepup', 'Tidehound', 'Brinewolf', 'Abysshound'], plan: 'dog', look: { body: '#5aa6e8', belly: '#e0f0ff', acc: '#3a7cc4' },
+    ov: [{ ears: 'flop', tail: 'fin', spots: '#e0f0ff' }, { ears: 'pointy', tail: 'fin', back: 'fin' }, { ears: 'pointy', tail: 'fin', back: 'fin', fang: true, body: '#2a5aa0', acc: '#7fc7ff', size: 1.1 }, { ears: 'pointy', tail: 'fin', back: 'fin', horns: true, fang: true, eye: 'glow', eyeCol: '#7ff0ff', body: '#1f3f80', acc: '#7fc7ff', size: 1.14 }],
+    prof: [1, 1.1, .95, 1], evo: [16, 28, 40], also: 'Hush', dex: ['', '', 'Leads packs of Tidehounds along the cliffs. Howls at high tide.', 'Hunts in the deepest trenches, where its eyes are the only light.'] },
+  { t: 'Tide', n: ['Glimmerfin', 'Lumigill', 'Deeplure', 'Trenchlure'], plan: 'fish', look: { body: '#4fb6c9', belly: '#e9fbff', acc: '#f28a5a' }, ov: [0, { body: '#3f9ab8' }, { body: '#2f6f9a', acc: '#ff7a5a' }, { body: '#1f3f6a', acc: '#ff6a8a' }],
+    prof: [.85, .95, .9, 1.3], evo: [14, 26, 38], also: 'Spark', dex: ['', 'Its lamp shines in colors it picks to match its mood.', 'Lures lost sailors back to shore instead of away from it.', 'Its lamp is the only sunrise the deep sea ever sees.'] },
+  { t: 'Tide', n: ['Driplet', 'Bubbloon', 'Tidecrown', 'Coralregent'], plan: 'jelly', look: { body: '#c8baf5', belly: '#f4f0ff', acc: '#9a86e0', acc2: '#ffd65a' }, ov: [0, { body: '#b7a6f0', belly: '#efeaff', acc: '#8f7ad6' }, 0, { body: '#5a48b0', belly: '#c9bfff', acc: '#3a2a8a', acc2: '#ff8fd0' }],
+    prof: [1.25, .8, 1, .95], evo: [10, 18, 34], also: 'Spark', dex: ['A single drop of seawater that decided to wiggle.', '', '', 'Rules a reef kingdom. Its crown of coral grows a little every year.'] },
+  { t: 'Tide', n: ['Pondling', 'Bogshell', 'Marshback', 'Isleback'], plan: 'turtle', look: { body: '#8fbe8a', acc: '#5f7f5a' }, ov: [0, { body: '#7fae7a', acc: '#4f6f4a' }, { body: '#6a9a6a', acc: '#4a5a3a' }, { body: '#5a8a5a', acc: '#6a5a3a' }],
+    prof: [1.2, .85, 1.35, .6], evo: [10, 26, 40], also: 'Bloom', dex: ['A pebble-sized turtle. It rides on lily pads.', '', 'A whole marsh grows on its back, frogs included.', 'Old maps mark it as an island. It moves a little every century.'] },
+  { t: 'Tide', n: ['Squidge', 'Inkwhirl', 'Tentacrest', 'Krakenmoor'], plan: 'octo', look: { body: '#e86a9a', belly: '#ffd0e0', acc: '#b03a6a' }, ov: [0, { body: '#d9507f' }, { body: '#b03a6a', acc: '#7a1a4a' }, { body: '#7a1f4a', acc: '#ff8fb0' }],
+    prof: [1, 1.05, 1, 1], evo: [13, 27, 39], also: 'Hush', dex: ['Squishes into teapots and refuses to come out.', 'Draws spirals in ink on the seafloor. Nobody knows what they mean.', 'Its crest flashes warnings to boats about coming storms.', 'Can hold a whole ship gently in its arms. It brings them home.'] },
+  // ===== Bloom =====
+  { t: 'Bloom', n: ['Mossnip', 'Thicketling', 'Mosswarden', 'Elderoak'], plans: ['sprout', 'sprout', 'treant', 'treant'], look: { body: '#8ccf63', belly: '#e2f6c0' }, ov: [0, { body: '#6fb84a', belly: '#d0eeaa' }, 0, { body: '#5e4630' }],
+    prof: [1.1, .95, 1.15, .8], evo: [16, 26, 40], also: 'Stone', dex: ['', 'A little thicket on legs. Birds nest in it without asking.', '', 'The oldest tree on the coast. Its rings remember the first lantern.'] },
+  { t: 'Bloom', n: ['Sporelet', 'Capsprout', 'Morelord', 'Myceliarch'], plan: 'mushroom', look: { body: '#e8705f', belly: '#f6ead2' }, ov: [0, { body: '#d9534f' }, { body: '#a8402f', belly: '#efe0c4' }, { body: '#6a2f5a', belly: '#e8dcf0' }],
+    prof: [1.1, 1, 1.05, .75], evo: [11, 25, 38], also: 'Hush', dex: ['Pops up after rain. Squeaks when stepped on.', '', 'Its spore cloud puts whole armies to sleep, gently.', 'Its roots connect every forest. It hears all of them at once.'] },
+  { t: 'Bloom', n: ['Petalpip', 'Petalfly', 'Bloomwing', 'Bloomarch'], plan: 'butterfly', look: { body: '#f5a3c7', belly: '#ffd9e8', acc: '#e86a9a', acc2: '#fff2a8' }, ov: [{ body: '#ffc0d8' }, 0, { body: '#e86a9a', acc: '#b03a6a', acc2: '#ffd65a' }, { body: '#b03a8a', acc: '#6a1f5a', acc2: '#ffffff' }],
+    prof: [.85, .95, .85, 1.35], evo: [12, 24, 36], also: 'Gale', dex: ['A bud that has not quite decided to open.', '', 'A swarm of Bloomwing can repaint a meadow overnight.', 'Its wingbeat makes flowers bloom out of season.'] },
+  { t: 'Bloom', n: ['Nettlenip', 'Thornjaw', 'Bramblemaw', 'Briarking'], plan: 'maw', look: { body: '#4f8a3a', acc: '#a8d77c', spots: '#c0446b' }, ov: [0, 0, { body: '#3f7a3a' }, { body: '#2a5a2a', spots: '#ff4a6a' }],
+    prof: [1.05, 1.2, 1, .75], evo: [12, 14, 38], also: 'Hush', dex: ['Nibbles ankles. It means it affectionately.', 'Its jaw snaps shut on anything that moves. Including itself.', '', 'Rules a maze of hedges. Visitors who are polite get berries.'] },
+  { t: 'Bloom', n: ['Pricklet', 'Needleguard', 'Saguaron', 'Cactitan'], plan: 'cactus', look: { body: '#5aa864', belly: '#bfe8a8', acc: '#f5a3c7', acc2: '#ffd65a' }, ov: [0, { body: '#4f9a5a' }, { body: '#3f8a4a', acc: '#ff7aa8' }, { body: '#2f6a3a', acc: '#ffd65a' }],
+    prof: [1, 1, 1.25, .75], evo: [14, 27, 39], also: 'Stone', dex: ['A tiny cactus that hugs anyway. It is sorry about the spines.', 'Stands guard over desert springs and shares the water.', 'Stores a whole season of rain. It sloshes when it walks.', 'Towers over the dunes. Its flowers bloom once every hundred years.'] },
+  // ===== Spark =====
+  { t: 'Spark', n: ['Zapling', 'Voltwren', 'Stormlark', 'Tempestlark'], plans: ['chick', 'chick', 'lark', 'lark'], look: { body: '#f2d23c', belly: '#fff3b0', acc: '#e0a020', acc2: '#3b3b6b' },
+    ov: [0, { body: '#f0c020', acc: '#c08010' }, { body: '#3d4580', belly: '#dfe3ff', acc: '#2a2f5c', acc2: '#ffd23f' }, { body: '#2a2f5c', belly: '#fff3b0', acc: '#141a3a', acc2: '#fff27a' }],
+    prof: [.8, 1.1, .8, 1.3], evo: [12, 15, 36], also: 'Gale', dex: ['', 'Its trill makes your hair stand on end. Literally.', '', 'Storms follow it across the sea like a flock.'] },
+  { t: 'Spark', n: ['Sparkpole', 'Joltoad', 'Thunderbog', 'Stormcroak'], plan: 'frog', look: { body: '#4fb09a', belly: '#e0f8ee', acc2: '#fff27a' }, ov: [0, { body: '#3f9a8a', belly: '#d8f5e8' }, { body: '#2f7a6a', acc2: '#ffd23f' }, { body: '#1f5a5a', acc2: '#ffffff' }],
+    prof: [1.1, 1.05, .95, .9], evo: [10, 26, 38], also: 'Tide', dex: ['A tadpole that tingles when you hold it.', '', 'Its croak can be heard three villages away. And felt.', 'Sits in thunderclouds and calls the lightning down to play.'] },
+  { t: 'Spark', n: ['Grubzap', 'Coilbug', 'Arcbeetle', 'Voltitan'], plan: 'beetle', look: { body: '#3f6a9a', acc2: '#e3a83b', eyeCol: '#fff27a' }, ov: [0, { body: '#2f5a8a' }, { body: '#1f4a7a', acc2: '#ffd23f' }, { body: '#14305a', acc2: '#fff27a' }],
+    prof: [.95, 1.05, 1.15, .85], evo: [10, 27, 39], also: 'Stone', dex: ['A grub that glows faintly when it eats copper.', '', 'Arcs of lightning jump between its horns when it charges.', 'Its shell is harder than iron and hums like a power line.'] },
+  { t: 'Spark', n: ['Zipeel', 'Joltlash', 'Arcwhip', 'Thunderwhip'], plan: 'eel', look: { body: '#e8c93a', belly: '#fff6c0', acc: '#3b3b6b', acc2: '#ffffff' }, ov: [0, { body: '#e0b020' }, { body: '#3b3b6b', belly: '#fff3b0', acc: '#ffd23f' }, { body: '#1f1f4a', belly: '#fff27a', acc: '#ffd23f' }],
+    prof: [.85, 1.25, .8, 1.1], evo: [14, 26, 38], also: 'Tide', dex: ['Zips through rock pools faster than you can blink.', 'Cracks its tail like a whip and leaves sparks in the water.', 'Lights up the whole lagoon when it hunts at night.', 'Fishers say its lightning is what makes sea-glass.'] },
+  { t: 'Spark', n: ['Glimmergnat', 'Flashfly', 'Lumibeacon', 'Aurorafly'], plan: 'firefly', look: { body: '#4a5a3a', belly: '#e8f8a0', acc: '#dff0ff', acc2: '#f6ff7a' }, ov: [0, { acc2: '#fff27a' }, { body: '#3a4a4a', acc2: '#7ff0ff' }, { body: '#2a2a4a', acc2: '#ff8fd0' }],
+    prof: [.8, .95, .85, 1.4], evo: [11, 24, 36], also: 'Gale', dex: ['A speck of light that bumps into lanterns all night.', 'Blinks secret messages to other Flashflies.', 'Swarms of them light the road home on moonless nights.', 'Its glow shimmers in every color, like the northern lights.'] },
+  // ===== Stone =====
+  { t: 'Stone', n: ['Pebblet', 'Rubblekin', 'Craghorn', 'Summithorn'], plans: ['rock', 'rock', 'dog', 'dog'], look: { body: '#9a8f80' },
+    ov: [0, { body: '#857a6b' }, 0, { body: '#6a5f50', belly: '#b9ad99', acc: '#4a4038', horns: true, back: 'mane', tail: 'stub', size: 1.15, eye: 'glow', eyeCol: '#ffb347' }],
+    prof: [1, 1.1, 1.3, .6], evo: [17, 22, 38], also: 'Ember', dex: ['', 'A pile of pebbles that stays together out of friendship.', '', 'Lives on mountain peaks. Avalanches politely go around it.'] },
+  { t: 'Stone', n: ['Gritpup', 'Geodillo', 'Crystadillo', 'Prismadon'], plan: 'armadillo', look: { body: '#b88e6a', belly: '#f0dcc0', acc2: '#8fe0f0' }, ov: [0, { body: '#a87e5a', belly: '#e8cfae' }, { body: '#8a6a5a', acc2: '#c0a8ff' }, { body: '#6a4a5a', acc2: '#ff8fd0' }],
+    prof: [1, .95, 1.3, .8], evo: [10, 26, 38], also: 'Ember', dex: ['Rolls into a ball at the slightest noise. Including its own sneezes.', '', 'Its crystals ring like bells when it runs.', 'Splits sunlight into rainbows across whole canyons.'] },
+  { t: 'Stone', n: ['Cobblet', 'Stackstone', 'Cairnguard', 'Monolord'], plans: ['rock', 'golem', 'golem', 'golem'], look: { body: '#9a9aa6', acc: '#7a7a88', acc2: '#7ff0ff' }, ov: [0, 0, { body: '#8a8a96', acc: '#6a6a78' }, { body: '#5a5a6a', acc: '#3a3a4a', acc2: '#ffd65a' }],
+    prof: [1.15, 1.15, 1.3, .4], evo: [12, 18, 40], also: 'Ember', dex: ['A cobblestone that wandered off the road.', 'Stacks itself taller to see over hills.', '', 'An ancient guardian. The runes on its body are a map of the stars.'] },
+  { t: 'Stone', n: ['Siltmole', 'Gemmole', 'Quarrymole', 'Coremole'], plan: 'mole', look: { body: '#6a5a6a', belly: '#e8c0c8', acc: '#f2d6a0', acc2: '#8fe0f0' }, ov: [0, { acc2: '#ff8fd0' }, { body: '#5a4a5a', acc2: '#ffd65a' }, { body: '#3a2a3a', acc: '#ffb347', acc2: '#ff6a5a' }],
+    prof: [1, 1.15, 1.1, .75], evo: [13, 25, 37], also: 'Plain', dex: ['Digs tunnels so neat that villages use them as cellars.', 'Collects gems and arranges them by color.', 'Can dig through a hill before lunch. Then eats lunch.', 'Has tunneled to the warm heart of the world and back.'] },
+  { t: 'Stone', n: ['Gargling', 'Ledgeguard', 'Spiregoyle', 'Cathedrake'], plan: 'gargoyle', look: { body: '#8a909e', belly: '#b0b8c8', acc: '#5a6070', acc2: '#ff6a5a' }, ov: [0, { body: '#7a8090' }, { body: '#5a6070', acc: '#3a4050', acc2: '#ffb347' }, { body: '#3a4050', acc: '#2a2f3a', acc2: '#ffd65a' }],
+    prof: [.95, 1.1, 1.2, .85], evo: [14, 27, 39], also: 'Hush', dex: ['Sits on rooftops pretending to be a statue. It is bad at it.', 'Guards a single ledge with its life.', 'Perches on the highest towers and watches for storms.', 'Wakes once a century to rebuild the town it watches over.'] },
+  // ===== Gale =====
+  { t: 'Gale', n: ['Breezel', 'Galeferret', 'Zephyrmink', 'Tempestoat'], plan: 'ferret', big: 1, look: { body: '#9fd8d0', belly: '#effcf9' }, ov: [0, { body: '#4fa8a0', belly: '#dff7f3' }, { body: '#3f8f9a', belly: '#e8fbff' }, { body: '#2f6a7a', belly: '#ffffff' }],
+    prof: [.85, 1.1, .8, 1.35], evo: [15, 27, 39], also: 'Bloom', dex: ['', '', 'Rides the jet stream from one coast to the other in a day.', 'Its passing leaves a tornado-shaped hole in the clouds.'] },
+  { t: 'Gale', n: ['Fluffowl', 'Plumowl', 'Gustowl', 'Aerowl'], plan: 'owl', look: { body: '#b0906a', belly: '#f8ecd8', acc: '#7e6246', acc2: '#ffd65a' }, ov: [0, { body: '#9a7a5a', belly: '#f0e2c8', acc: '#6e5236' }, { body: '#6a6a8a', acc: '#4a4a6a', acc2: '#7ff0ff' }, { body: '#3a3a5a', acc: '#2a2a4a', acc2: '#ffffff' }],
+    prof: [1, .95, 1, 1.05], evo: [12, 26, 38], also: 'Hush', dex: ['A puff of feathers with two huge eyes. Mostly eyes.', '', 'One flap of its wings can blow out every candle in a village.', 'Flies so high it sees tomorrow\'s weather coming.'] },
+  { t: 'Gale', n: ['Kiteling', 'Skyray', 'Stratoray', 'Aeromanta'], plan: 'ray', look: { body: '#7a9ad9', belly: '#f4f6ff', acc: '#b0d0ff' }, ov: [0, { body: '#5a7ac9', acc: '#9fc0ff' }, { body: '#3a5aa9', acc: '#ffd65a' }, { body: '#2a3a89', acc: '#7ff0ff' }],
+    prof: [.95, 1.05, .9, 1.2], evo: [13, 26, 38], also: 'Tide', dex: ['Children fly Kitelings on strings. The Kitelings enjoy it.', '', 'Glides so high the air turns cold and the stars come out.', 'Cast a shadow the size of a village as it passes overhead.'] },
+  { t: 'Gale', n: ['Dartfly', 'Windart', 'Skimmerwing', 'Zephyrion'], plan: 'dragonfly', look: { body: '#3fb0a0', belly: '#d0fff4', acc: '#d8f4ff', acc2: '#7ff0ff' }, ov: [0, { body: '#2fa090' }, { body: '#2f7ab0', acc2: '#ffd65a' }, { body: '#3a3a9a', acc: '#e8e0ff', acc2: '#ff8fd0' }],
+    prof: [.8, 1.15, .8, 1.35], evo: [12, 25, 37], also: 'Bloom', dex: ['Hovers in one spot, then vanishes. Then hovers again.', 'Its wings whistle a different note for every speed.', 'Skims across lakes without ever touching the water.', 'Moves so fast it seems to be in two places at once.'] },
+  { t: 'Gale', n: ['Fluffseed', 'Puffpod', 'Driftcloud', 'Cumulord'], plan: 'dandelion', look: { body: '#f4f0e0', belly: '#ffffff', acc: '#8fbf5a', acc2: '#bfeeff' }, ov: [0, 0, { body: '#e8f0ff', acc: '#7fa0d0' }, { body: '#d8e4ff', acc: '#5a7ac9', acc2: '#ffd65a' }],
+    prof: [1.1, .85, .95, 1.1], evo: [11, 24, 37], also: 'Bloom', dex: ['A single dandelion seed. One sneeze and it is gone.', 'Bobs on the breeze in little groups, holding hands.', 'Mistaken for a cloud. It does not correct anyone.', 'A whole weather front with a face. It rains when it is sad.'] },
+  // ===== Hush =====
+  { t: 'Hush', n: ['Grublull', 'Mothmurmur', 'Hushwing', 'Nocturne'], plan: 'moth', look: { body: '#b8acd8', belly: '#f0ecfa', acc: '#8d7dc0', acc2: '#ffd65a' }, ov: [0, { body: '#a99bd0', belly: '#ece6fa', acc: '#7d6db0' }, 0, { body: '#2a2250', belly: '#9d8fd6', acc: '#141030', acc2: '#7ff0ff', eyeCol: '#7ff0ff' }],
+    prof: [.9, 1.05, .85, 1.2], evo: [9, 17, 36], also: 'Gale', dex: ['A sleepy grub that hums lullabies to itself.', '', '', 'Its wings hold the patterns of every night sky it has flown under.'] },
+  { t: 'Hush', n: ['Wispet', 'Fogling', 'Shroudwisp', 'Phantomist'], plan: 'wisp', look: { body: '#7fd6e0', belly: '#e8fdff', eyeCol: '#2a6f7a' }, ov: [0, { body: '#9fc8e0' }, { body: '#7f9ad0', belly: '#d8e8ff', eyeCol: '#2a2a6a' }, { body: '#5a5ab0', belly: '#c8d0ff', eyeCol: '#ffffff' }],
+    prof: [.85, 1.1, .85, 1.2], evo: [14, 26, 38], also: 'Gale', dex: ['', 'A bit of fog that follows travelers to keep them company.', 'Wraps around lost people and guides them home.', 'A great drifting mist with a gentle face. Ships slow down to say hello.'] },
+  { t: 'Hush', n: ['Duskpup', 'Gloomhound', 'Duskmastiff', 'Nightwarden'], plan: 'dog', look: { body: '#4a4268', belly: '#9f94c8', acc: '#2f2a48' },
+    ov: [{ ears: 'flop', tail: 'stub' }, { ears: 'pointy', tail: 'wisp', eye: 'glow', eyeCol: '#c9b8ff' }, { body: '#3c3557', belly: '#8f84b8', acc: '#25203a', horns: true, back: 'mane', tail: 'wisp', collar: true, fang: true, eye: 'glow', eyeCol: '#c9b8ff', size: 1.15 },
+      { body: '#241f3a', belly: '#6a5f98', acc: '#141024', horns: true, back: 'mane', tail: 'wisp', collar: true, fang: true, eye: 'glow', eyeCol: '#ffd65a', size: 1.18 }],
+    prof: [1.1, 1.15, 1, .9], evo: [13, 18, 38], also: 'Ember', dex: ['A shadowy puppy that hides under beds and wags in the dark.', 'Its howl is silent. Other Kith hear it anyway.', '', 'Guards the coast every night, lantern collar burning.'] },
+  { t: 'Hush', n: ['Mutebat', 'Dimwing', 'Eclipsewing', 'Nyxlord'], plan: 'bat', look: { body: '#6a5a8a', belly: '#d0c4f0', acc: '#4a3f65', acc2: '#ff8fd0' }, ov: [0, { body: '#5a4a7a', acc: '#3a2f55' }, { body: '#3a2f55', acc: '#241c3a', acc2: '#ffd65a' }, { body: '#1f1834', acc: '#120c22', acc2: '#7ff0ff' }],
+    prof: [.9, 1.1, .85, 1.2], evo: [12, 25, 37], also: 'Gale', dex: ['Makes no sound when it flies. Not even a flap.', 'Hangs upside down in belfries and hushes the bells.', 'When it spreads its wings, the moon seems to go out.', 'Rules the night sky. Even owls give it room.'] },
+  { t: 'Hush', n: ['Shadekit', 'Duskcat', 'Gloamprowl', 'Umbrapard'], plan: 'cat', look: { body: '#4a4a5c', belly: '#9a9ab0', acc: '#c9b8ff', eye: 'glow', eyeCol: '#c9ff7a' }, ov: [0, { body: '#3a3a4c' }, { body: '#2a2a3c', eyeCol: '#ffd65a' }, { body: '#16162a', acc: '#7ff0ff', eyeCol: '#7ff0ff' }],
+    prof: [.85, 1.2, .8, 1.25], evo: [13, 25, 37], also: 'Plain', dex: ['A kitten made of evening shadow. It purrs in silence.', 'Walks between shadows instead of across the floor.', 'Prowls at twilight. Its footsteps make no sound at all.', 'A panther of pure night. It only hunts things that hide from the light.'] },
+  // ===== Plain =====
+  { t: 'Plain', n: ['Burrowbun', 'Thumpkin', 'Warrenguard', 'Hareking'], plan: 'bunny', big: 1, look: { body: '#c9a27a', belly: '#f3e2c8' }, ov: [0, { body: '#9a7050', belly: '#ecd6b5' }, { body: '#7a5a40', belly: '#e8d0b0' }, { body: '#e8e0d0', belly: '#ffffff' }],
+    prof: [1, 1.05, .95, 1.1], evo: [12, 24, 36], also: 'Stone', dex: ['', '', 'Protects a warren of hundreds. Its thump can crack stone.', 'A white hare said to have outrun the wind itself.'] },
+  { t: 'Plain', n: ['Trudgelet', 'Trundle', 'Shellbarrow', 'Castlesnail'], plan: 'snail', look: { body: '#f0d8b8', belly: '#fff6e8', acc: '#d08a5a' }, ov: [0, { body: '#e8c9a0', belly: '#fff0dc', acc: '#c07a4a' }, { body: '#d8b890', acc: '#9a6a4a' }, { body: '#c8a880', acc: '#8a8a96' }],
+    prof: [1.3, .8, 1.3, .6], evo: [9, 26, 38], also: 'Tide', dex: ['Leaves a shiny trail that dries into little paths.', '', 'Carries supplies for travelers in its shell. Very slowly.', 'Its shell grew into a tiny castle. Some Kith live inside.'] },
+  { t: 'Plain', n: ['Snufflet', 'Mumbleboar', 'Tuskgrump', 'Grandtusk'], plan: 'boar', look: { body: '#9a7a7a', belly: '#e8d0c0', acc: '#5a4444' }, ov: [0, { body: '#8a6a6a', belly: '#d9c0b0', acc: '#4a3434' }, { body: '#6a4a4a', acc: '#3a2424' }, { body: '#4a3434', acc: '#2a1a1a' }],
+    prof: [1.15, 1.15, 1, .8], evo: [10, 26, 38], also: 'Stone', dex: ['Snuffles for truffles and finds mostly socks.', '', 'Complains about everything but always shows up to help.', 'The oldest boar in the forest. Its tusks are carved with stories.'] },
+  { t: 'Plain', n: ['Pilferkit', 'Ringbandit', 'Bandicoon', 'Rogueking'], plan: 'raccoon', look: { body: '#8a8a94', belly: '#e8e8ee', acc: '#3a3a44', acc2: '#d9534f' }, ov: [0, { body: '#7a7a84' }, { body: '#6a6a74', acc2: '#4a78c9' }, { body: '#4a4a54', acc2: '#ffd65a' }],
+    prof: [.95, 1.1, .9, 1.2], evo: [12, 25, 37], also: 'Hush', dex: ['Borrows shiny things and returns them a week later, polished.', 'Wears a ringed tail like a scarf. Very fashionable.', 'Runs a gang of Pilferkits. They mostly steal pie.', 'Its hideout holds every lost button on the coast.'] },
+  { t: 'Plain', n: ['Cubbit', 'Brawlbear', 'Ironursa', 'Ursamount'], plan: 'bear', look: { body: '#9a6a4a', belly: '#f0d0a8', acc: '#6a4a30', acc2: '#a8b0c0' }, ov: [0, { body: '#8a5a3a' }, { body: '#6a4a3a', acc2: '#c0c8d8' }, { body: '#4a3428', acc2: '#ffd65a' }],
+    prof: [1.25, 1.2, 1.05, .6], evo: [14, 27, 40], also: 'Stone', dex: ['A round cub that tumbles more than it walks.', 'Wrestles trees for fun. The trees usually win.', 'Its fur is as tough as iron. Hugs are not recommended.', 'Big as a hill and just as patient. Kith nap on its back.'] },
+];
+// ---- 10 legendary Kith. Quietus is part of the story; the other nine sleep in shrines ----
+const LEGENDS = [
+  { id: 'quietus', t: 'Hush', classic: true },
+  { name: 'Solmara', t: 'Ember', plan: 'stag', look: { body: '#f2c060', belly: '#fff0c8', acc: '#ff9a3c', acc2: '#fff6c0' }, base: [100, 125, 95, 120], at: [28, 84], lv: 45, dex: 'A stag whose antlers hold the sunrise. Every dawn begins where it stands.' },
+  { name: 'Thalassine', t: 'Tide', plan: 'whale', look: { body: '#2f5fa0', belly: '#d8ecff', acc: '#7fc7ff', acc2: '#bff4ff' }, base: [150, 100, 110, 80], at: [8, 14], lv: 45, dex: 'Sings the currents into motion. Every tide is one of its breaths.' },
+  { name: 'Verdancrown', t: 'Bloom', plan: 'lotus', look: { body: '#f5a3c7', belly: '#fff2f6', acc: '#4f9a3a', acc2: '#ffd65a' }, base: [115, 95, 110, 100], at: [21, 39], lv: 44, dex: 'The first flower. Spring arrives wherever its petals drift.' },
+  { name: 'Fulgurex', t: 'Spark', plan: 'thunderbird', look: { body: '#2a2f5c', belly: '#fff3b0', acc: '#ffd23f', acc2: '#ffffff' }, base: [95, 125, 85, 135], at: [28, 72], lv: 42, dex: 'Its wingbeats are thunder. It nests inside the tallest storm clouds.' },
+  { name: 'Terravast', t: 'Stone', plan: 'mountain', look: { body: '#7a6a5a', belly: '#a89880', acc: '#5aa83a', acc2: '#ffb347' }, base: [140, 110, 150, 40], at: [28, 57], lv: 46, dex: 'A walking mountain. The coast itself was shaped by its footsteps.' },
+  { name: 'Zephyrine', t: 'Gale', plan: 'skydragon', look: { body: '#bfeee6', belly: '#ffffff', acc: '#5fb7b0', acc2: '#e0f8ff' }, base: [100, 110, 90, 140], at: [22, 2], lv: 44, dex: 'A dragon of open sky. Every wind on the coast once followed it.' },
+  { name: 'Noctaria', t: 'Hush', plan: 'sphinx', look: { body: '#2a2246', belly: '#5b4d86', acc: '#e6e2f5', acc2: '#c9b8ff', eye: 'glow', eyeCol: '#c9b8ff' }, base: [105, 115, 100, 120], at: [4, 20], lv: 44, dex: 'Guards the secrets of the night. It asks one riddle, then lets everyone pass.' },
+  { name: 'Aurelion', t: 'Plain', plan: 'lion', look: { body: '#e3b14b', belly: '#fff0c8', acc: '#b0702a', acc2: '#ffffff' }, base: [115, 130, 105, 100], at: [3, 64], lv: 43, dex: 'A golden lion said to have taught the first people courage.' },
+  { name: 'Lumora', t: 'Ember', plan: 'lanternspirit', look: { body: '#3a3346', belly: '#ffd65a', acc: '#c99a3a', acc2: '#fff6c0' }, base: [110, 100, 110, 110], at: [3, 89], lv: 48, dex: 'The spirit of the very first Lantern. Its light is where every bond began.' },
+];
+const POOL = { Ember: ['wickflick', 'cinderpounce', 'flaredash', 'sunforge', 'emberward'], Tide: ['splashback', 'brinelash', 'undertow', 'riptidecrash', 'mistshell'],
+  Bloom: ['seedspit', 'vinesnare', 'thornlash', 'petalgale', 'rootdown'], Spark: ['staticnip', 'joltring', 'arcbolt', 'stormclap', 'overcharge'],
+  Stone: ['pebbletoss', 'shalespike', 'boulderroll', 'landslide', 'stoneskin'], Gale: ['gustsnip', 'feathercut', 'squall', 'cyclone', 'updraft'],
+  Hush: ['hollowwhisper', 'gloombite', 'silencefall', 'voidhymn', 'muffle'], Plain: ['bump', 'quickjab', 'headlong', 'haymaker', 'catnap'] };
+const genLearn = (t, also) => { const p = POOL[t], a = POOL[also || 'Plain']; return [[1, 'bump'], [1, p[0]], [6, p[4]], [9, 'glare'], [12, p[1]], [18, a[1]], [24, p[2]], [31, 'quickjab'], [38, p[3]]]; };
+const STAGE_TOTAL = [205, 295, 375, 455], STAGE_RATE = [190, 120, 60, 30], STAGE_XP = [60, 140, 195, 250], STAGE_TINT = [.1, 0, -.06, -.12];
+const SP = {}, ALSO = {};
+FAMILIES.forEach((f, fi) => f.n.forEach((name, s) => {
+  const id = name.toLowerCase(), C = CLASSIC[id] || {}, plan = (f.plans || [])[s] || f.plan;
+  const look = Object.assign({}, f.look, { body: shade(f.look.body, STAGE_TINT[s]) }, (f.ov || [])[s] || {}, C.look || {}, { plan, stage: s });
+  if (look.big === undefined) look.big = s >= (f.big ?? 2);
+  const sum = f.prof.reduce((x, y) => x + y);
+  SP[id] = { name, type: f.t, base: C.base || f.prof.map(v => Math.round(STAGE_TOTAL[s] * v / sum)), xp: C.xp || STAGE_XP[s], rate: f.partner ? 0 : (C.rate ?? STAGE_RATE[s]),
+    learn: C.learn || genLearn(f.t, f.also), look, dex: C.dex || f.dex[s] || '', fam: fi, stage: s };
+  if (s < 3) { const nx = f.n[s + 1].toLowerCase(); SP[id].evo = [nx, C.evo && C.evo[0] === nx ? C.evo[1] : f.evo[s]]; }
+  ALSO[id] = [f.also || 'Plain'];
+}));
+LEGENDS.forEach((L, i) => {
+  if (L.classic) { SP[L.id] = Object.assign({}, CLASSIC[L.id], { look: Object.assign({}, CLASSIC[L.id].look, { stage: 3 }) }); ALSO[L.id] = ['Tide', 'Gale']; return; }
+  L.id = L.name.toLowerCase();
+  SP[L.id] = { name: L.name, type: L.t, base: L.base, xp: 300, rate: 12, legend: true, learn: [[1, POOL[L.t][1]], [1, POOL[L.t][2]], [1, 'glare'], [1, POOL[L.t][3]], [50, 'haymaker']], look: Object.assign({ plan: L.plan, stage: 3 }, L.look), dex: L.dex };
+  ALSO[L.id] = ['Plain', 'Ember', 'Tide', 'Bloom', 'Spark', 'Stone', 'Gale', 'Hush'];
+});
 const DEX_ORDER = Object.keys(SP);
-// Extra types each line can learn from scrolls (besides its own type and Plain)
-const ALSO = { pipwick: ['Spark'], wickwyre: ['Spark'], mossnip: ['Stone'], mosswarden: ['Stone'], puddlepup: ['Hush'], tidehound: ['Hush'],
-  zapling: ['Gale'], stormlark: ['Gale'], pebblet: ['Ember'], craghorn: ['Ember'], breezel: ['Bloom'], galeferret: ['Bloom'],
-  burrowbun: ['Stone', 'Bloom'], thumpkin: ['Stone', 'Bloom'], coalcrab: ['Stone'], glimmerfin: ['Spark'], mothmurmur: ['Gale'],
-  hushwing: ['Gale'], bramblemaw: ['Hush'], duskmastiff: ['Ember'], quietus: ['Tide', 'Gale'],
-  smolderhog: ['Stone'], pyrequill: ['Stone'], bubbloon: ['Spark'], tidecrown: ['Spark'], bogshell: ['Bloom', 'Stone'], capsprout: ['Hush'], petalfly: ['Gale'],
-  joltoad: ['Tide'], coilbug: ['Stone'], geodillo: ['Ember'], cairnguard: ['Ember'], plumowl: ['Hush'], skyray: ['Tide'], wispet: ['Gale'], trundle: ['Tide', 'Bloom'], mumbleboar: ['Stone'] };
+const wildForm = (id, lv) => { while (SP[id].evo && lv >= SP[id].evo[1]) id = SP[id].evo[0]; return id; };
 const canLearn = (m, mv) => MV[mv].type === 'Plain' || MV[mv].type === SP[m.id].type || (ALSO[m.id] || []).includes(MV[mv].type);
 // natural late learnsets for evolved and sturdier Kith
 for (const [id, extra] of Object.entries({ pipwick: [[13, 'quickjab']], wickwyre: [[22, 'flaredash'], [28, 'sunforge']], mosswarden: [[18, 'vinesnare'], [26, 'petalgale']],
@@ -669,7 +797,14 @@ function kithSprite(id) {
   const line = (x0, y0, x1, y1, r, c) => { const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2) + 1; for (let i = 0; i <= n; i++) { const t = i / n; ell(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, Math.max(.55, r), Math.max(.55, r), c); } };
   const glow = (x, y, c) => { set(x, y, c); NOSHADE.add(Math.floor(y) * N + Math.floor(x)); };
   const B = L.body, Be = L.belly || shade(B, .45), A = L.acc || shade(B, -.3), A2 = L.acc2 || '#ffd23f', Dk = shade(B, -.3);
-  const K = { set, ell, tri, rect, line, glow, B, Be, A, A2, Dk, eyes: [], mouth: null, big: !!L.big };
+  // later evolution stages are drawn larger: the whole plan is scaled around the feet
+  const stg = L.stage ?? 3, k = [.72, .84, .94, 1][stg], mx = v => 16 + (v - 16) * k, my = v => 30.5 + (v - 30.5) * k;
+  const K = { B, Be, A, A2, Dk, eyes: [], mouth: null, big: !!L.big, stage: stg,
+    set: (x, y, c) => set(mx(x), my(y), c), glow: (x, y, c) => glow(mx(x), my(y), c),
+    ell: (cx, cy, rx, ry, c) => ell(mx(cx), my(cy), Math.max(.6, rx * k), Math.max(.6, ry * k), c),
+    tri: (a, b, c, col) => tri([mx(a[0]), my(a[1])], [mx(b[0]), my(b[1])], [mx(c[0]), my(c[1])], col),
+    rect: (x, y, w, h, c) => rect(Math.round(mx(x)), Math.round(my(y)), Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k)), c),
+    line: (x0, y0, x1, y1, r, c) => line(mx(x0), my(y0), mx(x1), my(y1), r * k, c) };
   PLANS[L.plan](K, L);
   // shading: light from the top-left
   const S = G.map(r => r.slice());
@@ -680,19 +815,256 @@ function kithSprite(id) {
   }
   const put = (x, y, c) => { if (x >= 0 && y >= 0 && x < N && y < N) S[y][x] = c; };
   for (const [ex, ey, st = L.eye || 'dot'] of K.eyes) {
-    const x = Math.floor(ex), y = Math.floor(ey);
+    const x = Math.floor(mx(ex)), y = Math.floor(my(ey));
     if (st === 'big') { for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) put(x + i - 1, y + j - 1, '#ffffff'); put(x - 1, y, INK); put(x, y, INK); put(x - 1, y + 1, INK); put(x, y + 1, INK); put(x, y, '#ffffff'); }
     else if (st === 'glow') { const c = L.eyeCol || A2; put(x, y, c); put(x + 1, y, c); put(x, y + 1, shade(c, -.2)); put(x + 1, y + 1, shade(c, -.2)); put(x, y, '#ffffff'); }
     else if (st === 'sleepy') { put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x - 1, y, INK); }
     else if (st === 'angry') { put(x, y, INK); put(x + 1, y, INK); put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x, y, '#ffffff'); put(x - 1, y - 2, INK); put(x, y - 1, INK); put(x + 1, y - 1, INK); }
     else { put(x, y, INK); put(x + 1, y, INK); put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x, y, '#ffffff'); }
   }
-  if (K.mouth) { const [mx, my, st] = K.mouth; if (st === 'smile') { put(mx, my, INK); put(mx + 1, my + 1, INK); put(mx + 2, my, INK); } else if (st === 'open') { put(mx, my, '#4a1428'); put(mx + 1, my, '#4a1428'); put(mx, my + 1, '#4a1428'); put(mx + 1, my + 1, '#4a1428'); } else { put(mx, my, INK); put(mx + 1, my, INK); put(mx + 2, my, INK); } }
+  if (K.mouth) { const [mx0, my0, st] = K.mouth, mxp = Math.floor(mx(mx0)), myp = Math.floor(my(my0)); const [mxx, myy] = [mxp, myp]; if (st === 'smile') { put(mxx, myy, INK); put(mxx + 1, myy + 1, INK); put(mxx + 2, myy, INK); } else if (st === 'open') { put(mxx, myy, '#4a1428'); put(mxx + 1, myy, '#4a1428'); put(mxx, myy + 1, '#4a1428'); put(mxx + 1, myy + 1, '#4a1428'); } else { put(mxx, myy, INK); put(mxx + 1, myy, INK); put(mxx + 2, myy, INK); } }
   const c = mk(N, N), x = c.getContext('2d');
   for (let y = 0; y < N; y++) for (let i = 0; i < N; i++) if (S[y][i]) R(x, S[y][i], i, y);
   outline(c);
+  if (stg === 3) glowRing(c, shade(TYPE_COL[SP[id].type], .45));
   return c;
 }
+function glowRing(c, col) {
+  const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height), a = d.data, W = c.width, H = c.height, pts = [];
+  for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) { if (a[(y * W + i) * 4 + 3]) continue; let n = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = i + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < W && Y < H && a[(Y * W + X) * 4 + 3] > 200) n++; } if (n) pts.push([i, y]); }
+  x.globalAlpha = .55; x.fillStyle = col; for (const [i, y] of pts) x.fillRect(i, y, 1, 1); x.globalAlpha = 1;
+}
+Object.assign(PLANS, {
+  lizard(K) {
+    const { ell, tri, line, set, B, Be, A, A2, Dk, big } = K;
+    line(22, 23, 29, 19, 1.4, B); line(29, 19, 30, 13, .9, B); tri([28, 13], [30.5, 6], [32, 13], '#f2762e'); set(30, 10, A2);
+    for (const [x, y] of [[10, 26], [13, 27], [20, 26], [23, 27]]) ell(x, y, 1.5, 2.4, Dk);
+    if (big) { tri([13, 19], [19, 5], [24, 19], A); tri([15, 19], [19, 9], [22, 19], shade(A, .3)); }
+    ell(16, 22, 8.5, 4.2, B); ell(15, 24.3, 6, 1.5, Be);
+    for (let x = 10; x <= 22; x += 3) { set(x, 18.5, A); set(x + 1, 18, A); }
+    ell(7, 19, 4.6, 3.5, B); ell(4, 20.8, 2.8, 1.3, Be);
+    if (K.stage >= 2) { tri([8, 16], [10, 10], [12, 17], A); tri([5, 16], [5, 11], [8, 16], A); }
+    K.eyes.push([5, 18]); K.mouth = [2, 21, 'line'];
+  },
+  ram(K) {
+    const { ell, line, rect, B, A, A2, Dk, big } = K;
+    for (const lx of [10, 13, 20, 23]) { rect(lx, 23, 2, 6, Dk); rect(lx, 28, 2, 1, INK); }
+    if (big) for (const [x, y] of [[20, 6], [24, 4], [22, 1]]) ell(x, y, 2.4, 2, '#b8b0a8');
+    ell(17, 19, 8.5, 6, B); ell(12, 16, 4.2, 4, B); ell(21, 15, 4.2, 4, B); ell(25, 19, 3.6, 3.6, B); ell(16, 14, 3.5, 3, B);
+    ell(7, 17, 3.6, 4.3, A); ell(5, 20, 2.2, 1.4, shade(A, .25));
+    line(9, 13, 12, 10, 1, Dk); ell(13, 11, 2.6, 2.6, Dk); ell(13, 11, 1.2, 1.2, A2); line(11, 13, 9, 17, .8, Dk);
+    if (big) { ell(13, 11, 3.4, 3.4, Dk); ell(13, 11, 1.8, 1.8, A2); K.glow(13, 11, '#ffe9a0'); }
+    K.eyes.push([5, 16]);
+  },
+  octo(K) {
+    const { ell, tri, line, B, Be, A, big } = K;
+    for (let i = 0; i < 6; i++) { const x = 8 + i * 3.2, dx = (i % 2 ? 1 : -1) * 2; line(x, 19, x + dx, 26, 1.1, i % 2 ? B : shade(B, -.1)); ell(x + dx * 1.6, 28, 1.4, 1.2, B); }
+    if (big) tri([11, 6], [16, -1], [21, 6], A);
+    ell(16, 13, 9, 8.5, B); ell(13, 10, 4, 3, shade(B, .25));
+    for (const [x, y] of [[20, 9], [22, 14], [11, 16]]) ell(x, y, 1.1, 1, Be);
+    K.eyes.push([12, 14, 'big'], [19, 14, 'big']);
+  },
+  cactus(K) {
+    const { ell, line, set, B, Be, A, A2, Dk, big } = K;
+    ell(13, 29, 2, 1, Dk); ell(19, 29, 2, 1, Dk);
+    line(11, 18, 7, 18, 1.6, B); line(7, 18, 7, 12, 1.6, B); line(21, 15, 25, 15, 1.6, B); line(25, 15, 25, 9, 1.6, B);
+    if (big) { line(21, 21, 26, 21, 1.4, B); line(26, 21, 26, 17, 1.4, B); }
+    ell(16, 17, 5.8, 11, B); line(16, 8, 16, 26, .5, shade(B, -.18));
+    for (let y = 9; y < 27; y += 3) { set(10, y, Be); set(21, y + 1, Be); } set(7, 11, Be); set(25, 8, Be);
+    ell(16, 6, 2.6, 2.2, A); ell(16, 6, 1, 1, A2); if (big) { ell(11, 7, 1.6, 1.4, A); ell(21, 7, 1.6, 1.4, A); }
+    K.eyes.push([13, 15], [18, 15]); K.mouth = [15, 19, 'smile'];
+  },
+  eel(K) {
+    const { ell, tri, B, Be, A, A2 } = K;
+    for (let i = 9; i >= 0; i--) { const x = 6 + i * 2.6, y = 17 + Math.sin(i * .85) * 5, r = 3.6 - i * .16; ell(x, y, r, r, B); ell(x - .4, y + r * .5, r * .55, r * .3, Be); if (i % 2 === 0 && i > 0) tri([x - 1, y - r + .5], [x + 1, y - r - 3], [x + 2, y - r + .5], A); }
+    tri([28, 19], [32, 13], [32, 25], A);
+    for (let i = 1; i < 9; i += 2) K.glow(6 + i * 2.6, 17 + Math.sin(i * .85) * 5, A2);
+    ell(5, 15, 4.4, 3.6, B); ell(3, 17.5, 2.6, 1.2, Be);
+    K.eyes.push([3, 13, 'angry']);
+  },
+  firefly(K) {
+    const { ell, line, B, Be, A, A2, Dk, big } = K;
+    ell(16, 8, 6, 3.2, A); ell(22, 10, 5, 2.8, shade(A, -.08)); if (big) { ell(12, 6, 5, 2.4, A); ell(25, 7, 4, 2, A); }
+    line(10, 18, 8, 23, .4, INK); line(13, 19, 13, 24, .4, INK); line(16, 19, 18, 23, .4, INK);
+    ell(21, 17, 6.5, 4.8, Be);
+    for (let y = 14; y <= 20; y++) for (let x = 17; x <= 26; x++) { const dx = (x + .5 - 21.5) / 4.5, dy = (y + .5 - 17.5) / 3.2; if (dx * dx + dy * dy <= 1) K.glow(x, y, (x + y) % 3 ? A2 : '#ffffff'); }
+    ell(13, 16, 3.6, 3.2, B); ell(8, 15, 3.4, 3.2, B);
+    line(7, 12, 4, 7, .4, Dk); line(9, 12, 10, 7, .4, Dk);
+    K.eyes.push([6, 14, 'big']);
+  },
+  mole(K) {
+    const { ell, tri, line, B, Be, A, A2, Dk, big } = K;
+    ell(23, 27, 3, 2, Dk);
+    ell(17, 21, 10, 7, B); ell(14, 24.5, 6.5, 2.6, Be);
+    if (big) { tri([16, 15], [17, 9], [20, 15], A2); tri([20, 15], [23, 10], [24, 16], A2); tri([12, 16], [13, 11], [15, 16], A2); }
+    ell(6, 25, 3.4, 2.6, A); for (const x of [3, 5, 7]) line(x, 26, x - 1, 29, .4, '#ffffff');
+    ell(5, 19, 3.6, 2.6, B); ell(2, 19, 1.4, 1.3, '#f08a9a');
+    if (K.stage === 3) { ell(9, 13, 4, 2, '#f2c23c'); K.glow(9, 12, '#fff6c0'); }
+    K.eyes.push([6, 17, 'sleepy']);
+  },
+  gargoyle(K) {
+    const { ell, tri, line, B, A, Dk, big } = K;
+    tri([17, 15], [29, big ? 0 : 3], [29, 18], A); tri([19, 17], [31, 9], [27, 21], shade(A, .18));
+    line(21, 25, 28, 28, .6, B); tri([27, 26], [31, 28], [27, 30], B);
+    ell(10, 27.5, 2.8, 1.8, Dk); ell(19, 27.5, 2.8, 1.8, Dk);
+    ell(15, 21, 7.5, 6, B); ell(10, 23, 2, 3.4, B);
+    ell(10, 12, 4.6, 4, B); ell(6, 14, 2.4, 1.6, shade(B, .25));
+    tri([8, 9], [6, 3], [10, 8], Dk); tri([12, 8], [14, 2], [14, 9], Dk);
+    K.eyes.push([7, 11, 'glow'], [11, 11, 'glow']); K.mouth = [5, 15, 'line'];
+  },
+  dragonfly(K) {
+    const { ell, line, B, A, A2, Dk, big } = K;
+    ell(16, 9, 9, 2.2, A); ell(18, 14, 9, 2.2, A); if (big) { ell(15, 5, 7, 1.8, A); ell(19, 18, 7, 1.8, A); }
+    line(10, 9, 25, 9, .35, shade(A, -.2)); line(12, 14, 27, 14, .35, shade(A, -.2));
+    line(9, 17, 30, 21, 1.2, B); for (let x = 12; x < 30; x += 3) K.set(x, 17 + (x - 9) * .19, shade(B, -.25));
+    line(8, 19, 6, 24, .4, INK); line(11, 19, 11, 24, .4, INK);
+    ell(6, 16, 3.6, 3.3, B); ell(5, 14, 2.4, 2.2, A2);
+    K.eyes.push([4, 14, 'big']);
+  },
+  dandelion(K) {
+    const { ell, tri, line, B, Be, A, A2, big } = K;
+    line(16, 22, 16, 27, .6, A); tri([16, 26], [10, 24], [14, 28], A); tri([16, 26], [22, 24], [18, 28], A);
+    ell(16, 13, 9, 8.5, B);
+    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; ell(16 + Math.cos(a) * 9, 13 + Math.sin(a) * 8.5, 2.3, 2.3, Be); }
+    if (big) for (let i = 0; i < 5; i++) K.glow(5 + i * 5.5, 2 + (i % 2) * 2, A2);
+    K.eyes.push([12, 12], [18, 12]); K.mouth = [15, 16, 'smile'];
+  },
+  bat(K) {
+    const { ell, tri, line, rect, B, Be, A, Dk, big } = K;
+    tri([14, 14], [0, big ? 3 : 6], [6, 23], A); tri([18, 14], [32, big ? 3 : 6], [26, 23], A);
+    line(13, 14, 3, 9, .4, Dk); line(13, 15, 5, 18, .4, Dk); line(19, 14, 29, 9, .4, Dk); line(19, 15, 27, 18, .4, Dk);
+    ell(16, 17, 5, 6.2, B); ell(16, 19, 3, 3.5, Be);
+    tri([12, 12], [11, 4], [15, 11], B); tri([17, 11], [21, 4], [20, 12], B);
+    rect(14, 23, 1, 2, Dk); rect(17, 23, 1, 2, Dk);
+    K.eyes.push([13, 15, 'glow'], [18, 15, 'glow']); K.mouth = [15, 19, 'line'];
+  },
+  cat(K) {
+    const { ell, tri, line, rect, set, B, Be, A, Dk, big } = K;
+    line(24, 22, 28, 15, .9, B); ell(27, 13, 1.6, 1.6, B);
+    for (const lx of [11, 14, 21, 24]) { rect(lx, 24, 2, 5, Dk); rect(lx, 28, 2, 1, Be); }
+    ell(18, 21, 8.5, 4.6, B); ell(17, 23.5, 6, 1.6, Be);
+    ell(9, 15, 5, 4.6, B); ell(6.5, 17.5, 2.2, 1.5, Be);
+    tri([5, 12], [5, 5], [9, 11], B); tri([10, 11], [13, 5], [14, 12], B); set(6, 8, A); set(12, 8, A);
+    line(4, 18, 1, 17, .35, Be); line(4, 19, 1, 20, .35, Be);
+    if (big) { ell(9, 11, 1.6, 1.6, A); K.glow(9, 11, A); }
+    K.eyes.push([7, 14, 'glow'], [11, 14, 'glow']);
+  },
+  raccoon(K) {
+    const { ell, tri, line, rect, set, B, Be, A, A2, Dk, big } = K;
+    line(23, 21, 29, 13, 2, B); for (const [x, y] of [[25, 18], [27, 15], [29, 12]]) ell(x, y, 1.8, 1.2, A);
+    for (const lx of [11, 14, 20, 23]) { rect(lx, 24, 2, 5, Dk); }
+    ell(17, 21, 8, 5.5, B); ell(16, 23.5, 5.5, 2, Be);
+    if (big) { tri([10, 17], [13, 26], [16, 17], A2); }
+    ell(9, 14, 5.5, 5, B); ell(5, 16, 2.6, 1.6, Be); set(2.5, 16, INK);
+    ell(8.5, 13.5, 4.8, 1.7, A);
+    tri([5, 11], [5, 6], [9, 10], B); tri([10, 10], [13, 5], [14, 11], B);
+    K.eyes.push([6, 13, 'big'], [10, 13, 'big']);
+  },
+  bear(K) {
+    const { ell, rect, B, Be, A, A2, Dk, big } = K;
+    ell(11, 27, 3.4, 2.8, Dk); ell(21, 27, 3.4, 2.8, Dk);
+    ell(16, 20, 9, 8, B); ell(15, 22, 5.5, 5.5, Be);
+    if (big) { rect(11, 16, 10, 6, A2); rect(12, 17, 8, 1, shade(A2, .3)); }
+    ell(7, 21, 2.6, 4, B); ell(25, 21, 2.6, 4, B);
+    ell(15, 10, 6, 5.5, B); ell(10, 5.5, 2.1, 2.1, B); ell(20, 5.5, 2.1, 2.1, B); ell(10, 5.5, 1, 1, A); ell(20, 5.5, 1, 1, A);
+    ell(15, 12.5, 2.8, 2, Be); K.set(15, 11.5, INK); K.set(14, 11.5, INK);
+    K.eyes.push([12, 9], [17, 9]);
+  },
+  // ===== legendaries =====
+  stag(K) {
+    const { ell, tri, line, rect, B, Be, A, A2, Dk } = K;
+    ell(8, 6, 7, 7, shade(A, .35)); ell(8, 6, 5, 5, A2);
+    for (const lx of [10, 13, 21, 24]) { rect(lx, 19, 2, 10, Dk); rect(lx, 28, 2, 1, INK); }
+    ell(18, 17, 9, 5, B); ell(17, 19.5, 6.5, 2, Be); ell(27, 15, 1.8, 1.6, Be);
+    line(11, 16, 8, 10, 2, B);
+    ell(7, 8, 3.8, 3.2, B); ell(4, 9.5, 2.4, 1.6, Be);
+    for (const s of [-1, 1]) { line(7 + s, 5, 7 + s * 5, 0, .6, A); line(7 + s * 3, 3, 7 + s * 6, 3, .5, A); line(7 + s * 4.5, 1, 7 + s * 7, -1, .5, A); }
+    for (const [x, y] of [[2, 0], [12, 0], [1, 3], [13, 3]]) K.glow(x, y, '#fff6c0');
+    K.eyes.push([6, 7]);
+  },
+  whale(K) {
+    const { ell, tri, line, B, Be, A, A2 } = K;
+    tri([27, 15], [32, 7], [32, 23], B); tri([28, 15], [31, 10], [31, 20], shade(B, .2));
+    ell(16, 17, 13.5, 8, B); ell(14, 21.5, 11, 3.6, Be);
+    for (let x = 6; x < 24; x += 3) line(x, 19.5, x + 1, 23.5, .35, shade(Be, -.15));
+    tri([12, 22], [16, 28], [19, 22], shade(B, -.15));
+    for (const [x, y] of [[14, 12], [19, 13], [24, 15], [10, 13]]) { K.glow(x, y, A2); K.glow(x + 1, y, A); }
+    ell(7, 3, 1.4, 2.6, A); ell(5, 1.5, 1, 1.4, A2); ell(9, 1.5, 1, 1.4, A2);
+    K.eyes.push([6, 16]); K.mouth = [3, 19, 'line'];
+  },
+  lotus(K) {
+    const { ell, tri, B, Be, A, A2 } = K;
+    ell(16, 27, 13, 2.6, A); ell(16, 27, 9, 1.4, shade(A, .25));
+    for (let i = 0; i < 7; i++) { const a = Math.PI * (1 + i / 6), x = 16 + Math.cos(a) * 11, y = 22 + Math.sin(a) * 9; tri([16, 23], [x - 2, y], [x + 2, y], i % 2 ? B : shade(B, -.1)); }
+    for (let i = 0; i < 5; i++) { const a = Math.PI * (1.1 + i / 5.5), x = 16 + Math.cos(a) * 7, y = 21 + Math.sin(a) * 7; tri([16, 22], [x - 1.5, y], [x + 1.5, y], Be); }
+    ell(16, 16, 4.5, 4.5, Be); ell(16, 9, 3.2, 3.2, A2);
+    for (let i = 0; i < 6; i++) K.glow(16 + Math.cos(i) * 5, 9 + Math.sin(i) * 4, '#fff6c0');
+    K.eyes.push([14, 15], [17, 15]); K.mouth = [15, 18, 'smile'];
+  },
+  thunderbird(K) {
+    const { ell, tri, line, B, Be, A, A2 } = K;
+    tri([15, 14], [0, 1], [4, 22], B); tri([17, 14], [32, 1], [28, 22], B);
+    for (const s of [-1, 1]) { line(16 + s * 4, 10, 16 + s * 9, 7, .55, A); line(16 + s * 9, 7, 16 + s * 8, 12, .55, A); line(16 + s * 8, 12, 16 + s * 13, 9, .55, A); }
+    tri([13, 22], [16, 31], [19, 22], A); tri([11, 21], [12, 29], [15, 22], B); tri([17, 22], [20, 29], [21, 21], B);
+    ell(16, 16, 5, 7, B); ell(16, 18, 3, 4.5, Be);
+    ell(16, 7, 4, 3.6, B); tri([14, 9], [16, 13], [18, 9], A);
+    for (let i = 0; i < 3; i++) tri([13 + i * 2, 4], [12 + i * 3, -1], [15 + i * 2, 4], A);
+    K.eyes.push([14, 6, 'angry'], [17, 6, 'angry']);
+  },
+  mountain(K) {
+    const { ell, tri, line, B, Be, A, A2, Dk } = K;
+    ell(9, 26, 2.8, 3, Dk); ell(23, 26, 2.8, 3, Dk);
+    tri([5, 23], [13, 3], [21, 23], B); tri([13, 23], [22, 7], [31, 23], shade(B, -.08));
+    tri([11, 7], [13, 3], [15, 7], '#ffffff'); tri([20, 10], [22, 7], [24, 10], '#ffffff');
+    for (const [x, y] of [[9, 18], [12, 15], [18, 19], [24, 17], [27, 20], [15, 20]]) { K.set(x, y, A); K.set(x, y - 1, shade(A, .3)); }
+    line(5, 23, 30, 23, 1, Be); line(14, 12, 16, 22, .4, A2); K.glow(15, 17, A2); K.glow(16, 20, A2);
+    ell(3, 21, 3.2, 2.8, Be);
+    K.eyes.push([2, 20]);
+  },
+  skydragon(K) {
+    const { ell, tri, line, B, Be, A, A2 } = K, pts = [[8, 10], [11, 15], [16, 19], [21, 20], [26, 17], [29, 12]];
+    tri([13, 15], [18, 0], [24, 16], A); tri([17, 17], [26, 2], [28, 17], shade(A, .2));
+    pts.forEach(([x, y], i) => ell(x, y, 4.2 - i * .4, 4.2 - i * .4, B)); pts.forEach(([x, y], i) => i && ell(x - .4, y + 1.5, 1.8, 1, Be));
+    tri([29, 12], [32, 6], [31, 14], A);
+    ell(8, 10, 4.6, 4, B); ell(4.5, 12, 2.4, 1.6, Be);
+    tri([7, 7], [5, 1], [9, 6], A2); tri([10, 6], [12, 0], [12, 7], A2);
+    line(3, 13, 0, 16, .35, A); line(5, 14, 3, 18, .35, A);
+    for (const [x, y] of [[2, 22], [6, 25], [27, 26]]) { ell(x, y, 2.4, 1.4, '#ffffff'); }
+    K.eyes.push([6, 9, 'glow'], [9, 9, 'glow']);
+  },
+  sphinx(K) {
+    const { ell, tri, line, rect, B, Be, A, A2, Dk } = K;
+    ell(10, 4, 3.4, 3.4, A); ell(11.5, 3, 2.8, 2.8, null);
+    tri([17, 18], [26, 3], [30, 18], shade(B, .25)); tri([18, 19], [29, 8], [31, 20], B);
+    for (const lx of [8, 12]) { rect(lx, 25, 3, 4, Dk); }
+    ell(19, 23, 9, 5, B); ell(18, 25.5, 6, 1.6, Be); line(27, 25, 30, 20, .7, B);
+    ell(10, 14, 5, 4.6, B); ell(7.5, 16.5, 2.2, 1.5, Be);
+    tri([5, 11], [4, 21], [8, 13], A); tri([15, 11], [16, 21], [12, 13], A); line(5, 11, 15, 11, .6, A);
+    K.glow(10, 10, A2);
+    K.eyes.push([8, 13, 'glow'], [12, 13, 'glow']);
+  },
+  lion(K) {
+    const { ell, tri, line, rect, B, Be, A, A2, Dk } = K;
+    line(25, 20, 30, 13, .7, B); ell(30, 12, 1.8, 1.8, A);
+    for (const lx of [12, 15, 21, 24]) { rect(lx, 23, 3, 6, Dk); rect(lx, 28, 3, 1, Be); }
+    ell(19, 20, 9, 5.5, B); ell(18, 22.5, 6, 1.8, Be);
+    for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283; tri([9, 14], [9 + Math.cos(a) * 9.5, 14 + Math.sin(a) * 9], [9 + Math.cos(a + .5) * 7, 14 + Math.sin(a + .5) * 7], A); }
+    ell(9, 14, 6.5, 6.2, A);
+    ell(8, 15, 4.4, 4.2, B); ell(6, 17.5, 2.4, 1.6, Be); K.set(4, 17, INK);
+    for (let i = 0; i < 3; i++) tri([5 + i * 3, 7], [6 + i * 3, 3], [7 + i * 3, 7], A2);
+    K.eyes.push([6, 14], [10, 14]);
+  },
+  lanternspirit(K) {
+    const { ell, rect, line, B, Be, A, A2 } = K;
+    ell(16, 3, 3, 2.4, A); ell(16, 3, 1.6, 1.2, null);
+    rect(10, 5, 12, 3, A); rect(8, 8, 16, 2, B);
+    rect(9, 10, 14, 15, B);
+    for (let y = 11; y < 24; y++) for (let x = 10; x < 22; x++) K.glow(x, y, (x === 15 || x === 16) ? A2 : Be);
+    rect(8, 25, 16, 2, B); rect(10, 27, 12, 2, A);
+    line(9, 15, 4, 12, .9, '#f2762e'); line(23, 15, 28, 12, .9, '#f2762e'); ell(4, 11, 1.6, 1.6, '#ffd23f'); ell(28, 11, 1.6, 1.6, '#ffd23f');
+    K.eyes.push([12, 15], [18, 15]); K.mouth = [15, 19, 'smile'];
+  },
+});
 const kithCache = {};
 function kithImg(id, flip) { const k = id + (flip ? 'f' : ''); if (!kithCache[k]) kithCache[k] = flip ? flipped(kithImg(id)) : kithSprite(id); return kithCache[k]; }
 
@@ -740,13 +1112,18 @@ const SIGNS = {
   '13,50': 'BRINDLEWICK TOWN\nThe Warden\'s Hall is to the southeast.',
   '17,40': 'MURKWOOD\nThe Hush runs thick here. Hushed Kith are restless and strong.',
 };
+// Encounter tables list each family by its base form; wildForm() evolves it to fit the level rolled
 const ENC = {
-  route1: [['burrowbun', 2, 4, 22], ['breezel', 3, 5, 15], ['mossnip', 3, 5, 12], ['puddlepup', 3, 5, 12], ['zapling', 4, 5, 9], ['trundle', 3, 5, 12], ['capsprout', 3, 5, 10], ['plumowl', 4, 5, 8]],
-  murk: [['pebblet', 9, 12, 9], ['mossnip', 9, 12, 7], ['zapling', 9, 12, 7], ['coalcrab', 10, 12, 8], ['puddlepup', 10, 12, 6], ['capsprout', 9, 12, 8], ['coilbug', 10, 12, 9], ['smolderhog', 10, 12, 9],
-    ['joltoad', 10, 12, 8], ['geodillo', 10, 12, 8], ['mumbleboar', 10, 12, 8], ['petalfly', 10, 12, 8], ['bogshell', 10, 12, 5]],
-  murkHush: [['mothmurmur', 11, 14, 30], ['wispet', 11, 14, 25], ['breezel', 11, 13, 10], ['plumowl', 11, 13, 12], ['coalcrab', 11, 13, 10], ['duskmastiff', 13, 13, 5], ['capsprout', 11, 13, 8]],
-  hushpoint: [['mothmurmur', 15, 17, 16], ['glimmerfin', 15, 17, 14], ['bubbloon', 15, 17, 14], ['bogshell', 15, 16, 10], ['skyray', 15, 17, 12], ['wispet', 15, 17, 12], ['pebblet', 15, 16, 8], ['duskmastiff', 15, 16, 7], ['cairnguard', 16, 17, 4], ['zapling', 15, 17, 3]],
+  route1: [['burrowbun', 2, 4, 14], ['breezel', 3, 5, 10], ['mossnip', 3, 5, 8], ['puddlepup', 3, 5, 8], ['zapling', 4, 5, 7], ['trudgelet', 3, 5, 9], ['sporelet', 3, 5, 8],
+    ['fluffowl', 4, 5, 7], ['petalpip', 3, 5, 8], ['cubbit', 3, 5, 7], ['pilferkit', 3, 5, 8], ['glimmergnat', 3, 5, 8]],
+  murk: [['pebblet', 9, 12, 8], ['smolderhog', 9, 12, 8], ['coalcrab', 10, 12, 7], ['gritpup', 9, 12, 8], ['sparkpole', 9, 12, 8], ['grubzap', 9, 12, 8], ['nettlenip', 9, 12, 7],
+    ['siltmole', 9, 12, 8], ['snufflet', 9, 12, 8], ['flickernewt', 10, 12, 8], ['dartfly', 10, 12, 8], ['fluffseed', 9, 12, 7], ['smokid', 10, 12, 7]],
+  murkHush: [['grublull', 11, 14, 18], ['wispet', 11, 14, 16], ['duskpup', 11, 13, 14], ['mutebat', 11, 14, 16], ['shadekit', 11, 14, 14], ['fluffowl', 11, 13, 10], ['nettlenip', 11, 13, 8]],
+  hushpoint: [['glimmerfin', 15, 17, 8], ['driplet', 15, 17, 8], ['pondling', 15, 17, 8], ['squidge', 15, 17, 8], ['kiteling', 15, 17, 8], ['zipeel', 15, 17, 8], ['gargling', 15, 17, 7],
+    ['cobblet', 15, 17, 6], ['pricklet', 15, 17, 7], ['duskpup', 15, 17, 6], ['mutebat', 15, 17, 6], ['grublull', 15, 17, 5], ['wispet', 15, 17, 5], ['shadekit', 15, 17, 5]],
 };
+const shrineAt = (x, y) => LEGENDS.find(L => L.at && L.at[0] === x && L.at[1] === y);
+const bgFor = hushed => (hushed || player.y < 17) ? 'hush' : player.y < 42 ? 'forest' : 'meadow';
 
 // ================= game state =================
 let P, mode = 'title', busy = false, NPCS = [], player, partnerEnt, banner = null, B = null, EVO = null, lastRegion = '';
@@ -879,7 +1256,7 @@ const STEP_MS = 170;
 function canWalk(x, y, ignore) {
   if (!WALKABLE.has(tileAt(x, y))) return false;
   if (npcAt(x, y)) return false;
-  if (pickupAt(x, y) >= 0) return false;
+  if (pickupAt(x, y) >= 0 || shrineAt(x, y)) return false;
   return true;
 }
 function stepEnt(e, dx, dy, ms = STEP_MS) { e.fx = e.x; e.fy = e.y; e.x += dx; e.y += dy; e.t = 0; e.dur = ms; e.fr ^= 1; }
@@ -934,14 +1311,16 @@ function onStep() {
     const table = player.y >= 60 ? ENC.route1 : player.y >= 17 ? (t === 'h' ? ENC.murkHush : ENC.murk) : ENC.hushpoint;
     let roll = rnd() * table.reduce((a, e) => a + e[3], 0), pick = table[0];
     for (const e of table) { roll -= e[3]; if (roll <= 0) { pick = e; break; } }
-    const hushed = t === 'h' && !P.flags.ending;
-    run(() => wildBattle(makeKith(pick[0], ri(pick[1], pick[2]), { hushed })));
+    const hushed = t === 'h' && !P.flags.ending, lvl = ri(pick[1], pick[2]) + (P.flags.ending ? 16 : 0);
+    run(() => wildBattle(makeKith(wildForm(pick[0], lvl), lvl, { hushed })));
   }
 }
 async function interact() {
   const [dx, dy] = DIRV[player.dir], x = player.x + dx, y = player.y + dy, t = tileAt(x, y);
   const n = npcAt(x, y);
   if (n) return talk(n);
+  const sh = shrineAt(x, y);
+  if (sh) return shrine(sh);
   const pk = pickupAt(x, y);
   if (pk >= 0) { P.flags['p_' + pk] = true; await msg('You found something tucked in the ground!'); return giveScroll(PICKUPS[pk].mv); }
   if (partnerEnt && partnerVisible() && partnerEnt.x === x && partnerEnt.y === y) return partnerMood();
@@ -950,6 +1329,17 @@ async function interact() {
   if (t === 'H') return fog();
   if (t === '~') return msg('The water is calm. Something glimmers beneath the surface.');
   if (t === 'L' || t === 'W') return msg(P.flags.ending ? 'The lighthouse hums with warm light.' : 'The lighthouse is cold and silent.');
+}
+async function shrine(L) {
+  if (P.flags['lg_' + L.id]) return msg(`The shrine of ${L.name} is quiet now. Its spirit travels with you.`);
+  if (!P.flags.ending) return msg(`An old shrine carved with a ${L.t} Kith. It is cold and silent, as if the Hush has put it to sleep.`);
+  await msg('The shrine hums. Light pours out of the old carving...');
+  const res = await battle({ foes: [makeKith(L.id, L.lv)], canRun: true, canCatch: true, legend: true, bg: bgFor(false), intro: `${L.name.toUpperCase()} awakens!` });
+  if (res === 'lose') return blackout();
+  if (res === 'caught') { P.flags['lg_' + L.id] = true; await msg(`The shrine's light settles into your Lantern. ${L.name} has chosen you.`); }
+  else if (res === 'win') await msg(`${L.name} fades back into the shrine. It will wake again.`);
+  else await msg(`You step away. ${L.name} watches you go.`);
+  await afterBattle();
 }
 async function talk(n) {
   n.dir = OPP[player.dir];
@@ -1217,7 +1607,7 @@ function lab(m) { if (B.foes.includes(m)) return B.trainer ? `Foe ${m.name}` : `
 async function battle(o) {
   const prev = mode;
   B = { foes: o.foes, foe: o.foes[0], me: null, trainer: o.trainer, canRun: !!o.canRun, canCatch: !!o.canCatch, fx: {}, foeShow: true, meShow: false, legend: o.legend, enter: {}, hit: {}, faint: {} };
-  B.bg = o.legend ? 'sea' : (o.foes[0].hushed || player.y < 17) ? 'hush' : player.y < 42 ? 'forest' : 'meadow';
+  B.bg = o.bg || (o.legend ? 'sea' : bgFor(o.foes[0].hushed));
   if (prev === 'world') { transFx = { t0: NOW(), dur: 950 }; await sleep(950); transFx = null; }
   mode = 'battle'; B.openT = NOW(); B.enter.foe = NOW();
   for (let i = PARTS.length - 1; i >= 0; i--) if (PARTS[i].sp !== 'screen' || !PARTS[i].path) PARTS.splice(i, 1);
@@ -1225,7 +1615,7 @@ async function battle(o) {
   markSeen(B.foe.id);
   B.foeShow = true;
   if (o.trainer) { await msg(`${o.trainer.name} wants to battle!`); await msg(`${o.trainer.name} sent out ${B.foe.name}!`); }
-  else if (o.legend) await msg('QUIETUS rises from the fog!');
+  else if (o.legend) await msg(o.intro || 'QUIETUS rises from the fog!');
   else await msg(`A ${B.foe.hushed ? 'hushed' : 'wild'} ${B.foe.name} appeared!${B.foe.hushed ? ' It makes no sound at all.' : ''}`);
   B.me = P.party.find(alive); B.me.st = { atk: 0, def: 0 }; B.me.dispHp = B.me.hp; B.meShow = true;
   B.part = new Set([B.me]);
@@ -1492,7 +1882,7 @@ async function archiveMenu() {
 const healMon = m => { m.hp = m.maxHp; m.dispHp = m.hp; };
 async function journal() {
   const list = DEX_ORDER.filter(id => !SP[id].legend || P.seen.includes(id));
-  const i = await choose(list.map(id => ({ label: P.seen.includes(id) ? SP[id].name : '??????', right: P.caught.includes(id) ? 'BONDED' : P.seen.includes(id) ? 'SEEN' : '' })),
+  const i = await choose(list.map(id => ({ label: '#' + String(DEX_ORDER.indexOf(id) + 1).padStart(3, '0') + ' ' + (P.seen.includes(id) ? SP[id].name : '??????'), right: P.caught.includes(id) ? 'BONDED' : P.seen.includes(id) ? 'SEEN' : '' })),
     { layout: 'big', title: `JOURNAL  seen ${P.seen.length}  bonded ${P.caught.length}`, sub: j => P.seen.includes(list[j]) ? `${SP[list[j]].type}. ${SP[list[j]].dex}` : 'Not yet encountered.' });
   if (i >= 0 && P.seen.includes(list[i])) await msg(`${SP[list[i]].name} (${SP[list[i]].type}): ${SP[list[i]].dex}`);
 }
@@ -1709,6 +2099,17 @@ function drawWorld(now) {
     g.drawImage(SCROLL_IMG(), sx + 8, sy + 6 + bob, 48, 48);
     const tw = (now / 400 + i * 1.7) % 3; if (tw < 1) { g.save(); g.translate(sx + 50, sy + 10); g.rotate(tw * 3); g.globalAlpha = 1 - tw; g.fillStyle = '#fff6c0'; g.fillRect(-8, -2, 16, 4); g.fillRect(-2, -8, 4, 16); g.restore(); }
   });
+  // legendary shrines
+  for (const L of LEGENDS) {
+    if (!L.at) continue; const sx = Math.round((L.at[0] - camX) * 64), sy = Math.round((L.at[1] - camY) * 64); if (sx < -64 || sy < -128 || sx > 640 || sy > 640) continue;
+    const awake = P.flags.ending && !P.flags['lg_' + L.id], col = TYPE_COL[L.t], pulse = .5 + .5 * Math.sin(now / 400);
+    g.fillStyle = 'rgba(20,10,30,.25)'; g.beginPath(); g.ellipse(sx + 32, sy + 58, 24, 7, 0, 0, 7); g.fill();
+    g.fillStyle = '#5a5664'; g.fillRect(sx + 10, sy + 44, 44, 14); g.fillStyle = '#8a8696'; g.fillRect(sx + 16, sy - 6, 32, 52); g.fillStyle = '#a8a4b4'; g.fillRect(sx + 16, sy - 6, 32, 6); g.fillStyle = '#6a6676'; g.fillRect(sx + 42, sy, 6, 46);
+    g.fillStyle = '#2a2230'; g.fillRect(sx + 12, sy - 12, 40, 8);
+    g.fillStyle = awake ? col : shade(col, -.35); g.fillRect(sx + 28, sy + 8, 8, 24); g.fillRect(sx + 22, sy + 14, 20, 6);
+    if (awake) { g.globalCompositeOperation = 'lighter'; const gr = g.createRadialGradient(sx + 32, sy + 20, 0, sx + 32, sy + 20, 60); gr.addColorStop(0, `rgba(255,240,200,${.25 + pulse * .25})`); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.fillRect(sx - 28, sy - 40, 120, 120); g.globalCompositeOperation = 'source-over';
+      if (rnd() < .15) spawnP({ sp: 'world', x: L.at[0] * 64 + 32 + rnd() * 24 - 12, y: L.at[1] * 64 + 10, vy: -40 - rnd() * 30, wob: 15, shape: 'star', size: 3, col: '#fff6c0', glow: true, life: 1200 }); }
+  }
   // entities
   const ents = [];
   for (const n of NPCS) if (!n.gone) ents.push({ e: n, img: personImg(n.look, n.dir, n.t < 1 ? n.fr : 0), seed: hash(n.id) % 7 });
