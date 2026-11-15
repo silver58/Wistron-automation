@@ -395,16 +395,16 @@ const POOL = { Ember: ['wickflick', 'cinderpounce', 'flaredash', 'sunforge', 'em
   Bloom: ['seedspit', 'vinesnare', 'thornlash', 'petalgale', 'rootdown'], Spark: ['staticnip', 'joltring', 'arcbolt', 'stormclap', 'overcharge'],
   Stone: ['pebbletoss', 'shalespike', 'boulderroll', 'landslide', 'stoneskin'], Gale: ['gustsnip', 'feathercut', 'squall', 'cyclone', 'updraft'],
   Hush: ['hollowwhisper', 'gloombite', 'silencefall', 'voidhymn', 'muffle'], Plain: ['bump', 'quickjab', 'headlong', 'haymaker', 'catnap'] };
-const genLearn = (t, also) => { const p = POOL[t], a = POOL[also || 'Plain']; return [[1, 'bump'], [1, p[0]], [6, p[4]], [9, 'glare'], [12, p[1]], [18, a[1]], [24, p[2]], [31, 'quickjab'], [38, p[3]]]; };
-const STAGE_TOTAL = [215, 320, 440], STAGE_RATE = [190, 90, 35], STAGE_XP = [60, 150, 240], STAGE_TINT = [.08, 0, -.1];
+const genLearn = (t, also) => { const p = POOL[t], a = POOL[also || 'Plain']; return [[1, 'bump'], [4, 'glare'], [7, p[0]], [11, p[4]], [15, p[1]], [21, a[1]], [26, p[2]], [33, 'quickjab'], [40, p[3]]]; };
+const STAGE_TOTAL = [185, 300, 430], STAGE_RATE = [190, 90, 35], STAGE_XP = [60, 150, 240], STAGE_TINT = [.08, 0, -.1];
 const SP = {}, ALSO = {};
 FAMILIES.forEach((f, fi) => f.n.forEach((name, s) => {
   const id = name.toLowerCase(), C = CLASSIC[id] || {}, plan = (f.plans || [])[s] || f.plan;
   const look = Object.assign({}, f.look, { body: shade(f.look.body, STAGE_TINT[s]) }, f.q ? { q: f.q } : {}, (f.ov || [])[s] || {}, { plan, stage: s });
   if (look.big === undefined) look.big = s >= (f.big ?? 2);
   const sum = f.prof.reduce((x, y) => x + y);
-  SP[id] = { name, type: f.t, base: f.prof.map(v => Math.round(STAGE_TOTAL[s] * v / sum)), xp: STAGE_XP[s], rate: f.partner ? 0 : STAGE_RATE[s],
-    learn: (C.learn && CLASSIC[id].type === f.t) ? C.learn.slice() : genLearn(f.t, f.also), look, dex: f.dex[s], fam: fi, stage: s };
+  SP[id] = { name, type: f.t, base: f.prof.map(v => Math.round(STAGE_TOTAL[s] * v / sum * (f.partner ? 1.3 : 1))), xp: STAGE_XP[s], rate: f.partner ? 0 : STAGE_RATE[s],
+    learn: (f.partner && C.learn) ? C.learn.slice() : genLearn(f.t, f.also), look, dex: f.dex[s], fam: fi, stage: s };
   if (s < 2) { const nx = f.n[s + 1].toLowerCase(); SP[id].evo = [nx, C.evo && C.evo[0] === nx ? C.evo[1] : f.evo[s]]; }
   ALSO[id] = [f.also || 'Plain'];
 }));
@@ -438,7 +438,7 @@ function migrateKith(m) {
 for (const [id, extra] of Object.entries({ pipwick: [[13, 'quickjab']], wickwyre: [[22, 'flaredash'], [28, 'sunforge']], mosswarden: [[18, 'vinesnare'], [26, 'petalgale']],
   tidehound: [[21, 'brinelash'], [28, 'riptidecrash']], stormlark: [[21, 'joltring'], [27, 'stormclap']], craghorn: [[22, 'shalespike'], [28, 'landslide']],
   galeferret: [[21, 'feathercut'], [27, 'cyclone']], thumpkin: [[20, 'quickjab'], [26, 'haymaker']], hushwing: [[22, 'gloombite'], [28, 'voidhymn']],
-  duskmastiff: [[22, 'gloombite'], [26, 'muffle']], coalcrab: [[20, 'emberward']], glimmerfin: [[20, 'brinelash']], bramblemaw: [[18, 'rootdown']] })) if (SP[id] && CLASSIC[id] && SP[id].type === CLASSIC[id].type) SP[id].learn.push(...extra);
+  duskmastiff: [[22, 'gloombite'], [26, 'muffle']], coalcrab: [[20, 'emberward']], glimmerfin: [[20, 'brinelash']], bramblemaw: [[18, 'rootdown']] })) if (SP[id] && FAMILIES[SP[id].fam] && FAMILIES[SP[id].fam].partner) SP[id].learn.push(...extra);
 // Echo Scrolls: where each one comes from
 const SCROLL_SHOP = [['emberward', 1000], ['mistshell', 1000], ['rootdown', 1200], ['brinelash', 1500], ['vinesnare', 1500]];
 const SCROLL_SHOP2 = [['quickjab', 1800], ['overcharge', 2000], ['stoneskin', 2000], ['updraft', 2000], ['haymaker', 2500], ['catnap', 2500]];
@@ -1468,8 +1468,8 @@ const SIGNS = {
 };
 // Encounter tables list each family by its base form; wildForm() evolves it to fit the level rolled
 const ENC = {
-  route1: [['burrowbun', 2, 4, 12], ['breezel', 3, 5, 8], ['fawnbud', 3, 5, 7], ['puddlepup', 3, 5, 7], ['zapling', 4, 5, 6], ['trudgelet', 3, 5, 8], ['petalpip', 2, 4, 9],
-    ['fluffowl', 4, 5, 6], ['nibblet', 2, 4, 9], ['cubbit', 3, 5, 6], ['pilferkit', 3, 5, 7], ['glimmergnat', 3, 5, 7], ['emberfinch', 3, 5, 7], ['buzzlet', 3, 5, 7]],
+  route1: [['burrowbun', 2, 3, 12], ['breezel', 2, 4, 8], ['fawnbud', 2, 4, 7], ['puddlepup', 2, 4, 7], ['zapling', 3, 4, 6], ['trudgelet', 2, 4, 8], ['petalpip', 2, 3, 9],
+    ['fluffowl', 3, 4, 6], ['nibblet', 2, 3, 9], ['cubbit', 2, 4, 6], ['pilferkit', 2, 4, 7], ['glimmergnat', 2, 4, 7], ['emberfinch', 2, 4, 7], ['buzzlet', 2, 4, 7]],
   murk: [['smolderhog', 9, 12, 7], ['coalcrab', 10, 12, 6], ['gritpup', 9, 12, 7], ['sparkpole', 9, 12, 7], ['grubzap', 9, 12, 7], ['spotlet', 9, 12, 7], ['siltmole', 9, 12, 6],
     ['snufflet', 9, 12, 7], ['flickernewt', 10, 12, 6], ['dartfly', 10, 12, 6], ['smokid', 10, 12, 6], ['kindlepaw', 9, 12, 7], ['hueling', 9, 12, 7], ['snoozel', 9, 12, 6], ['capybud', 9, 12, 7], ['otterlet', 9, 12, 6]],
   murkHush: [['grublull', 11, 14, 16], ['corvlet', 11, 14, 14], ['duskpup', 11, 13, 13], ['mutebat', 11, 14, 14], ['shadekit', 11, 14, 13], ['silkling', 11, 14, 14], ['fluffowl', 11, 13, 8]],
@@ -1863,7 +1863,7 @@ async function warden() {
   await msg('WARDEN MOSS: So you\'re the one walking with an unbonded Pipwick. Word travels fast in a quiet world.');
   await msg('WARDEN MOSS: The Verdant Chord is one of the old songs. It was sung to calm the first Hush, long ago.');
   if (!await yes('WARDEN MOSS: I\'ll teach it to your Pipwick, if you show me your bond is real. Ready?')) return msg('WARDEN MOSS: Then come back when you are.');
-  const res = await battle({ foes: [makeKith('fawnbud', 10), makeKith('capybud', 11), makeKith('chameleaf', 12)], trainer: { name: 'WARDEN MOSS' } });
+  const res = await battle({ foes: [makeKith('fawnbud', 12), makeKith('capybud', 13), makeKith('chameleaf', 15)], trainer: { name: 'WARDEN MOSS' } });
   if (res !== 'win') return blackout();
   P.money += 1200;
   await msg('WARDEN MOSS: You fight like a pair, not a trainer and a tool. Here.');
@@ -2016,6 +2016,7 @@ async function chooseAction() {
 function aiPick(f) {
   const scored = f.moves.map(id => { const mv = MV[id]; let s = mv.pow ? mv.pow * (mv.acc / 100) * eff(mv.type, SP[B.me.id].type) * (SP[f.id].type === mv.type ? 1.5 : 1) : mv.heal ? (f.hp < f.maxHp * .4 ? 90 : 0) : 30 - Math.abs(mv.self ? f.st[mv.self] : B.me.st[mv.foe]) * 15; return [id, s]; });
   scored.sort((a, b) => b[1] - a[1]);
+  if (!B.trainer && !B.legend) return f.moves[ri(0, f.moves.length - 1)];
   return rnd() < .65 ? scored[0][0] : scored[ri(0, scored.length - 1)][0];
 }
 async function doTurn(act) {
