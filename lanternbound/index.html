@@ -261,7 +261,7 @@ const CLASSIC = {
 // prof: stat profile [hp, atk, def, spd] · evo: levels for each evolution · also: bonus scroll type · dex: one line per stage
 const FAMILIES = [
   // ===== Ember =====
-  { t: 'Ember', n: ['Pipwick', 'Wickwyre', 'Pharolux'], plan: 'fox', big: 1, partner: true, look: { body: '#f39a3d', belly: '#ffe2b0' }, ov: [0, { body: '#e8622c', belly: '#ffd29a' }, { body: '#c23a22', belly: '#ffe2a0' }],
+  { t: 'Ember', n: ['Pipwick', 'Wickwyre', 'Pharolux'], plan: 'pipfox', big: 1, partner: true, look: { body: '#f39a3d', belly: '#ffe2b0' }, ov: [0, { body: '#ec7a2e', belly: '#fff0d8' }, { body: '#d2442a', belly: '#fff0d8', acc2: '#ffd65a' }],
     prof: [.9, 1.1, .85, 1.15], evo: [16, 32], also: 'Spark', dex: ['A fox kit with a candle-flame tail. Its tail burns brighter around people it trusts.', 'A young fox with a mane of flame. Sailors once steered by its glow.', 'A great fox whose tail flashes like a lighthouse. Where it walks, no one gets lost.'] },
   { t: 'Ember', n: ['Smolderhog', 'Pyrequill', 'Pyreclad'], plan: 'hog', look: { body: '#b0703f', belly: '#f3d2a6', acc: '#7a3a1e' }, ov: [0, { acc: '#d9542a' }, { acc: '#ffb347', body: '#8e4a2a' }],
     prof: [1, 1.05, 1.05, .9], evo: [15, 31], also: 'Stone', dex: ['A hedgehog hoglet whose spines are warm to the touch.', 'Its quills glow at the tips like embers in a grate.', 'An old hedgehog wearing a coat of burning quills. Forest fires part around it.'] },
@@ -833,6 +833,8 @@ const PLANS = {
 };
 // Creature renderer: plans are written on a 32-unit grid and drawn at 64x64 for finer detail.
 // Pipeline: shapes -> cel shading -> bigger heads for young forms -> expressive eyes, blush, mouth -> colored outline.
+let _vecC; const vecCtx = () => (_vecC || (_vecC = mk(64, 64).getContext('2d', { willReadFrequently: true })));
+const FXPTS = {};
 function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), A = p(a), Bc = p(b); return '#' + A.map((v, i) => Math.round(v + (Bc[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
 function kithSprite(id) {
   const L = SP[id].look, N = 64, G = Array.from({ length: N }, () => Array(N).fill(null)), NOSHADE = new Set();
@@ -851,7 +853,10 @@ function kithSprite(id) {
     ell: (cx, cy, rx, ry, c) => ell(mx(cx), my(cy), Math.max(.7, rx * sc), Math.max(.7, ry * sc), c),
     tri: (a, b, c, col) => tri([mx(a[0]), my(a[1])], [mx(b[0]), my(b[1])], [mx(c[0]), my(c[1])], col),
     rect: (x, y, w, h, c) => rect(Math.round(mx(x)), Math.round(my(y)), Math.max(1, Math.round(w * sc)), Math.max(1, Math.round(h * sc)), c),
-    line: (x0, y0, x1, y1, r, c) => line(mx(x0), my(y0), mx(x1), my(y1), r * sc, c) };
+    line: (x0, y0, x1, y1, r, c) => line(mx(x0), my(y0), mx(x1), my(y1), r * sc, c),
+    // vec: fill a curved shape drawn with the canvas path API, then snap it to crisp pixels
+    vec: (draw, col, glowing) => { const t = vecCtx(); t.clearRect(0, 0, N, N); t.fillStyle = '#000'; t.strokeStyle = '#000'; draw(t); const d = t.getImageData(0, 0, N, N).data;
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (d[(y * N + x) * 4 + 3] > 115) { G[y][x] = col; if (glowing) NOSHADE.add(y * N + x); else NOSHADE.delete(y * N + x); } } };
   PLANS[L.plan](K, L);
   const empty = (x, y) => x < 0 || y < 0 || x >= N || y >= N || !G[y][x];
   // cel shading: light from the upper left, soft core shadow toward the lower right
@@ -863,9 +868,9 @@ function kithSprite(id) {
     else if (empty(x + 1, y + 1) || empty(x + 2, y + 2) || empty(x, y + 2) || empty(x + 2, y) || empty(x + 3, y + 3)) S[y][x] = shade(c, -.12);
   }
   // young forms get bigger heads: magnify the area around the eyes
-  const E = K.eyes.map(([ex, ey, st]) => [mx(ex), my(ey), st || L.eye || 'cute']);
+  const E = K.rawEyes ? K.rawEyes.map(([x, y, st]) => [x, y, st || 'cute']) : K.eyes.map(([ex, ey, st]) => [mx(ex), my(ey), st || L.eye || 'cute']);
   const hc = E.length ? [E.reduce((a, e) => a + e[0], 0) / E.length, E.reduce((a, e) => a + e[1], 0) / E.length] : null;
-  const mag = L.legend || SP[id].legend ? 1 : [1.3, 1.15, 1][stg], RAD = 15 + 4 * k, gain = mag - 1;
+  const mag = L.legend || SP[id].legend || K.rawEyes ? 1 : [1.3, 1.15, 1][stg], RAD = 15 + 4 * k, gain = mag - 1;
   const fwd = (x, y) => { if (!hc || gain <= 0) return [x, y]; const dx = x - hc[0], dy = y - hc[1], r = Math.hypot(dx, dy); if (r >= RAD) return [x, y]; let d = r; for (let i = 0; i < 8; i++) d = r * (1 + gain * (1 - (d / RAD) ** 2)); d = Math.min(d, RAD); return r ? [hc[0] + dx / r * d, hc[1] + dy / r * d] : [x, y]; };
   if (hc && gain > 0) {
     const O = S.map(r => r.slice());
@@ -879,7 +884,7 @@ function kithSprite(id) {
   const put = (x, y, c) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < N && y < N) S[y][x] = c; };
   const pell = (cx, cy, rx, ry, c) => { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) put(x, y, c); } };
   const EYE = '#1e1a2a', iris = L.iris || (L.eyeCol && L.eye !== 'glow' ? L.eyeCol : shade(TYPE_COL[SP[id].type], -.15));
-  const [ew, eh] = [[5.2, 6.4], [4.8, 5.8], [4.2, 5]][stg].map(v => SP[id].legend ? v * .9 : v);
+  const [ew, eh] = K.eyeSize || [[5.2, 6.4], [4.8, 5.8], [4.2, 5]][stg].map(v => SP[id].legend ? v * .9 : v);
   // blush for the youngest forms
   if (stg === 0 && L.blush !== false) for (const e of E) { const [x, y] = fwd(e[0], e[1]), bx = x + (E.length > 1 && x > hc[0] ? 1.5 : -1.5), by = y + eh * .75 + 1.5;
     for (let j = -1; j <= 1; j++) for (let i = -2; i <= 2; i++) { const X = Math.floor(bx + i), Y = Math.floor(by + j); if (S[Y] && S[Y][X] && Math.abs(i) + Math.abs(j) < 3) S[Y][X] = mixHex(S[Y][X], '#ff7fa0', .45); } }
@@ -893,8 +898,8 @@ function kithSprite(id) {
     pell(x - 1.1, y - 1.2, 1.3, 1.5, '#ffffff'); put(x + 1, y + 1.8, '#ffffff');
     if (st === 'angry' || st === 'fierce') { for (let i = -3; i <= 3; i++) for (let j = 0; j < 4; j++) { const yy = y - eh / 2 - 1 + j + (i + 3) * .45 - 1.4; if (yy < y - eh / 2 + (i + 3) * .5 - .5) put(x + i, yy, headCol); } for (let i = -3; i <= 3; i++) put(x + i, y - eh / 2 + (i + 3) * .5 - 1, EYE); }
   }
-  if (K.mouth) {
-    const [m0, m1, st] = K.mouth, [x, y] = fwd(mx(m0), my(m1));
+  if (K.mouth || K.rawMouth) {
+    const [m0, m1, st] = K.rawMouth || K.mouth, [x, y] = K.rawMouth ? [m0, m1] : fwd(mx(m0), my(m1));
     if (st === 'open') { pell(x + 1, y + 1, 2.4, 1.8, '#5a1430'); pell(x + 1, y + 2, 1.4, .9, '#ff8fa8'); }
     else if (st === 'smile') { put(x, y, EYE); put(x + 1, y + 1, EYE); put(x + 2, y + 1, EYE); put(x + 3, y, EYE); }
     else { for (let i = 0; i < 4; i++) put(x + i, y, EYE); }
@@ -908,6 +913,7 @@ function kithSprite(id) {
   }
   const c = mk(N, N), x = c.getContext('2d');
   for (let y = 0; y < N; y++) for (let i = 0; i < N; i++) if (O[y][i]) R(x, O[y][i], i, y);
+  if (K.fxPoints) FXPTS[id] = K.fxPoints;
   if (stg === 2) glowRing(c, shade(TYPE_COL[SP[id].type], .45));
   return c;
 }
@@ -1416,7 +1422,83 @@ Object.assign(PLANS, {
     K.eyes.push([6, 12, 'glow'], [10, 12, 'glow']);
   };
 })();
+// Pipwick line: drawn with smooth curves at full 64x64 resolution, then shaded and outlined like the rest.
+// An original candle fox: a wax-drip tail tip holding a flame, a flame mark on the brow, dark socks and a fluffy chest ruff.
+PLANS.pipfox = function (K, L) {
+  const st = K.stage, B = L.body, Be = L.belly, sock = shade(B, -.55), earIn = '#ffd6b0';
+  const F = (draw, col, glow) => K.vec(draw, col, glow);
+  const poly = (pts, col, glow) => F(c => { c.beginPath(); c.moveTo(...pts[0]); for (const p of pts.slice(1)) p.length === 2 ? c.lineTo(...p) : p.length === 4 ? c.quadraticCurveTo(...p) : c.bezierCurveTo(...p); c.closePath(); c.fill(); }, col, glow);
+  const oval = (x, y, rx, ry, col, rot = 0, glow) => F(c => { c.beginPath(); c.ellipse(x, y, rx, ry, rot, 0, 7); c.fill(); }, col, glow);
+  const flame = (x, y, h, w, lean = 0) => {
+    const drop = (hh, ww, col) => F(c => { c.beginPath(); c.moveTo(x + lean, y - hh); c.quadraticCurveTo(x + ww * 1.25, y - hh * .35, x + ww, y); c.arc(x, y, ww, 0, Math.PI); c.quadraticCurveTo(x - ww * 1.25, y - hh * .35, x + lean, y - hh); c.fill(); }, col, true);
+    drop(h, w, '#ff7a24'); drop(h * .72, w * .66, '#ffc23a'); drop(h * .42, w * .36, '#fff4c4');
+  };
+  const leg = (x, top, len, w, col, sockCol) => { poly([[x, top], [x + w, top], [x + w - .5, top + len], [x + .5, top + len]], col); poly([[x + .3, top + len - 4.5], [x + w - .3, top + len - 4.5], [x + w - .5, top + len], [x + .5, top + len]], sockCol); };
+  if (st === 0) {
+    // tail sweeping up behind the body, ending in a candle tip with a flame
+    poly([[40, 51], [60, 50, 59, 30, 54, 22], [50, 30, 50, 42, 38, 45]], B);
+    oval(54.5, 22, 5.2, 4.2, '#fff1d6'); oval(51.5, 25.5, 1.4, 2.2, '#fff1d6'); oval(57, 25, 1.2, 1.8, '#fff1d6');
+    flame(54.5, 18, 15, 4.2, -1);
+    leg(39, 50, 12, 4.4, shade(B, -.18), shade(sock, -.1)); leg(26, 50, 12, 4.2, shade(B, -.18), shade(sock, -.1));
+    oval(35, 47.5, 12.5, 8, B); oval(32, 51, 8, 3.6, Be);
+    oval(42, 50, 6.6, 6.2, B); leg(41.5, 51, 11, 5, B, sock); leg(21.5, 50, 12, 5, B, sock);
+    poly([[13, 39], [20, 37], [29, 41], [28, 47], [25, 45], [23, 50], [20, 46], [17, 50], [15, 45], [12, 46]], Be);
+    // ears, head, muzzle
+    poly([[12, 24], [8.5, 5], [23, 19]], B); poly([[13.5, 21], [11, 9.5], [20, 18]], earIn); poly([[8.5, 5], [11.5, 11.5], [9.4, 12]], sock);
+    poly([[24, 19], [32, 2.5], [35, 23]], B); poly([[26, 18.5], [31.5, 8], [33, 20]], earIn); poly([[32, 2.5], [33.5, 9], [30.6, 8.5]], sock);
+    oval(21, 29, 13.5, 11.8, B);
+    poly([[8, 32], [5, 36], [9, 35.5], [7, 39.5], [12, 37]], B);
+    oval(11, 35.5, 7.4, 5.2, Be); oval(3.8, 33, 2.4, 1.9, '#2a1a1a'); oval(3.2, 32.4, .8, .6, '#ffffff');
+    poly([[21.5, 15], [24, 20], [21.5, 23.5], [19, 20]], '#ffcf5a', true);
+    K.rawEyes = [[14.5, 28, 'cute'], [25, 28, 'cute']]; K.eyeSize = [7, 8.4]; K.rawMouth = [8.5, 40, 'smile'];
+    K.fxPoints = [[54.5, 6]];
+  } else if (st === 1) {
+    poly([[44, 44], [62, 42, 62, 22, 56, 12], [52, 24, 52, 36, 42, 40]], B);
+    oval(56, 13, 4.4, 3.6, '#fff1d6'); oval(53.5, 16, 1.2, 2, '#fff1d6');
+    flame(56, 9.5, 17, 4.6, -1.5);
+    leg(43, 44, 18, 4.2, shade(B, -.18), shade(sock, -.1)); leg(26, 44, 18, 4, shade(B, -.18), shade(sock, -.1));
+    oval(36, 41, 14, 7.4, B); oval(33, 44.5, 9.5, 3.2, Be);
+    for (let i = 0; i < 4; i++) flame(26 + i * 5, 36 - i * .6, 9 + (i % 2) * 3, 2.6, 2);
+    oval(45, 43.5, 6.4, 6.6, B); leg(44.5, 45, 17, 4.6, B, sock); leg(21, 43, 19, 4.6, B, sock);
+    poly([[11, 30], [18, 28], [26, 33], [24, 41], [21, 38], [19, 43], [16, 38], [13, 41], [12, 36]], Be);
+    poly([[8.5, 17], [6, -1], [19, 12]], B); poly([[10, 14], [8, 4], [16, 11.5]], earIn); flame(6.8, 3, 7, 2, -1);
+    poly([[19, 12], [26, -2], [30, 15]], B); poly([[21, 12], [26, 3], [28, 13]], earIn); flame(26, 1, 7, 2, 0);
+    oval(17, 21, 11, 9.4, B);
+    oval(6.5, 26, 7.2, 4, Be); poly([[1, 25], [12, 22], [12, 29], [2, 28]], Be);
+    oval(1.5, 25, 2.2, 1.7, '#2a1a1a'); oval(1, 24.5, .7, .5, '#ffffff');
+    poly([[17.5, 10], [20, 14.5], [17.5, 17.5], [15, 14.5]], '#ffcf5a', true);
+    K.rawEyes = [[11.5, 20, 'cute'], [20.5, 20, 'cute']]; K.eyeSize = [5.8, 7]; K.rawMouth = [5, 29, 'smile'];
+    K.fxPoints = [[56, -3], [6.8, -1], [26, -3]];
+  } else {
+    // a towering beacon fox: flowing flame mane, gold lantern bands and a tail like a lighthouse flame
+    poly([[46, 40], [63, 36, 63, 18, 55, 12], [52, 22, 52, 32, 44, 36]], B);
+    oval(54.5, 13, 4.6, 3.6, '#ffe08a');
+    flame(54.5, 10, 20, 5.6, -1);
+    leg(45, 41, 21, 4.4, shade(B, -.18), shade(sock, -.1)); leg(27, 41, 21, 4.2, shade(B, -.18), shade(sock, -.1));
+    oval(37, 37.5, 15, 7.4, B); oval(34, 41, 10, 3, L.acc2 || '#ffe08a');
+    for (let i = 0; i < 6; i++) flame(18 + i * 5, 33 - i * 1.2 + (i % 2) * 2, 11 + (i % 3) * 3, 2.8, 3);
+    oval(46.5, 40, 6.6, 7, B); leg(46, 41, 21, 4.8, B, sock); leg(22, 40, 22, 4.8, B, sock);
+    for (const x of [46, 22]) poly([[x - .2, 53], [x + 5, 53], [x + 5, 55.4], [x - .2, 55.4]], '#ffd65a', true);
+    poly([[9, 26], [17, 24], [24, 30], [22, 39], [19, 35], [16, 40], [13, 35], [10, 38], [9.5, 33]], '#ffe08a');
+    poly([[6.5, 14], [4, -4], [16.5, 9]], B); poly([[8, 11], [6, 1], [14, 8.5]], earIn); flame(4.8, 1, 8, 2.2, -1);
+    poly([[16.5, 9], [23, -5], [27.5, 12]], B); poly([[18.5, 9], [23, 0], [25.5, 10]], earIn); flame(23, -1.5, 8, 2.2, 0);
+    oval(15, 18.5, 10.4, 8.6, B);
+    poly([[0, 22.5], [11, 19.5], [12, 26.5], [1, 25.5]], Be); oval(5.5, 23.5, 6, 3.4, Be);
+    oval(.8, 22.6, 2, 1.6, '#2a1a1a');
+    poly([[15.5, 7.5], [18.2, 12], [15.5, 15.5], [12.8, 12]], '#fff2b0', true);
+    K.rawEyes = [[9.5, 17.5, 'cute'], [18.5, 17.5, 'cute']]; K.eyeSize = [5.2, 6.2]; K.rawMouth = [3.5, 26.5, 'line'];
+    K.fxPoints = [[54.5, -6], [4.8, -3], [23, -5]];
+  }
+};
 const kithCache = {};
+function kithIcon(id) { // portrait trimmed to the creature and centered in a square, for lists
+  const k = 'i' + id; if (kithCache[k]) return kithCache[k];
+  const src = kithImg(id), d = src.getContext('2d').getImageData(0, 0, 64, 64).data; let x0 = 64, y0 = 64, x1 = 0, y1 = 0;
+  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if (d[(y * 64 + x) * 4 + 3] > 0) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  const side = Math.max(x1 - x0, y1 - y0) + 1, c = mk(side, side), cx = c.getContext('2d');
+  cx.drawImage(src, x0, y0, x1 - x0 + 1, y1 - y0 + 1, Math.floor((side - (x1 - x0 + 1)) / 2), side - (y1 - y0 + 1), x1 - x0 + 1, y1 - y0 + 1);
+  return (kithCache[k] = c);
+}
 function kithSmall(id, flip) { // half-resolution copy so the overworld partner matches the map's chunky pixels
   const k = 's' + id + (flip ? 'f' : ''); if (!kithCache[k]) { const c = mk(32, 32), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(kithImg(id, flip), 0, 0, 32, 32); kithCache[k] = c; } return kithCache[k];
 }
@@ -2167,7 +2249,7 @@ async function bagMenu(inBattle) {
   return i < 0 ? null : ids[i];
 }
 async function pickKith(title, force) {
-  const opts = P.party.map(m => ({ label: m.name, right: `Lv${m.level} ${m.hp}/${m.maxHp}`, faint: m.hp <= 0 }));
+  const opts = P.party.map(m => ({ label: m.name, icon: m.id, right: `Lv${m.level} ${m.hp}/${m.maxHp}`, faint: m.hp <= 0 }));
   const i = await choose(opts, { layout: 'big', title, cancel: !force, sub: j => { const m = P.party[j]; return `${SP[m.id].type} type${m.partner ? ' · your partner' : ''}${m.hushed ? ' · hushed' : ''}`; } });
   return i < 0 ? null : P.party[i];
 }
@@ -2195,7 +2277,7 @@ async function scrollMenu() {
     const i = await choose(list.map(mv => ({ label: MV[mv].name, right: MV[mv].type })), { layout: 'big', title: `ECHO SCROLLS  (${list.length})`, sub: j => scrollInfo(list[j]) });
     if (i < 0) return;
     const mv = list[i];
-    const opts = P.party.map(m => ({ label: m.name, right: m.moves.includes(mv) ? 'KNOWN' : canLearn(m, mv) ? 'ABLE' : '--', disabled: !canLearn(m, mv) || m.moves.includes(mv) }));
+    const opts = P.party.map(m => ({ label: m.name, icon: m.id, right: m.moves.includes(mv) ? 'KNOWN' : canLearn(m, mv) ? 'ABLE' : '--', disabled: !canLearn(m, mv) || m.moves.includes(mv) }));
     const k = await choose(opts, { layout: 'big', title: `Teach ${MV[mv].name}?`, sub: j => { const m = P.party[j]; return canLearn(m, mv) ? `${SP[m.id].type} type. Current moves: ${m.moves.map(id => MV[id].name).join(', ')}.` : `${m.name} (${SP[m.id].type}) can't learn ${MV[mv].type} moves.`; } });
     if (k < 0) continue;
     await learnMove(P.party[k], mv);
@@ -2229,7 +2311,7 @@ async function partyMenu() {
 }
 async function archiveMenu() {
   if (!P.archive.length) return msg('Odile\'s Archive is empty. Kith you bond with while your party is full are sent here.');
-  const i = await choose(P.archive.map(m => ({ label: m.name, right: `Lv${m.level}` })), { layout: 'big', title: 'ODILE\'S ARCHIVE', sub: () => 'Choose a Kith to bring along.' });
+  const i = await choose(P.archive.map(m => ({ label: m.name, icon: m.id, right: `Lv${m.level}` })), { layout: 'big', title: 'ODILE\'S ARCHIVE', sub: () => 'Choose a Kith to bring along.' });
   if (i < 0) return;
   if (P.party.length >= 6) return msg('Your party is full. Send someone to the Archive first.');
   const m = P.archive.splice(i, 1)[0]; healMon(m); P.party.push(m);
@@ -2238,7 +2320,7 @@ async function archiveMenu() {
 const healMon = m => { m.hp = m.maxHp; m.dispHp = m.hp; };
 async function journal() {
   const list = DEX_ORDER.filter(id => !SP[id].legend || P.seen.includes(id));
-  const i = await choose(list.map(id => ({ label: '#' + String(DEX_ORDER.indexOf(id) + 1).padStart(3, '0') + ' ' + (P.seen.includes(id) ? SP[id].name : '??????'), right: P.caught.includes(id) ? 'BONDED' : P.seen.includes(id) ? 'SEEN' : '' })),
+  const i = await choose(list.map(id => ({ icon: id, seen: P.seen.includes(id), label: '#' + String(DEX_ORDER.indexOf(id) + 1).padStart(3, '0') + ' ' + (P.seen.includes(id) ? SP[id].name : '??????'), right: P.caught.includes(id) ? 'BONDED' : P.seen.includes(id) ? 'SEEN' : '' })),
     { layout: 'big', title: `JOURNAL  seen ${P.seen.length}  bonded ${P.caught.length}`, sub: j => P.seen.includes(list[j]) ? `${SP[list[j]].type}. ${SP[list[j]].dex}` : 'Not yet encountered.' });
   if (i >= 0 && P.seen.includes(list[i])) await msg(`${SP[list[i]].name} (${SP[list[i]].type}): ${SP[list[i]].dex}`);
 }
@@ -2481,8 +2563,8 @@ function drawWorld(now) {
     if (o.kith) {
       const br = moving ? 0 : Math.sin(now / 320) * .05, hgt = 64 * (1 + br), w = 64 * (1 - br * .5);
       g.drawImage(o.kith, sx + (64 - w) / 2, sy - 6 - hop * 10 + (64 - hgt), w, hgt);
-      const f = partnerEnt.dir === 'right', wick = [sx + (f ? 44 : 20), sy - 2 - hop * 10], tail = [sx + (f ? 3 : 61), sy + 16 - hop * 10];
-      for (const [fx, fy] of [wick, tail]) if (rnd() < .3) spawnP({ sp: 'world', x: fx + CAM.x + rnd() * 6 - 3, y: fy + CAM.y, vx: rnd() * 30 - 15, vy: -50 - rnd() * 50, shape: 'circ', size: 2 + rnd() * 2.5, col: pickc(['#ffd23f', '#ff9a3c', '#ffe9a0']), glow: true, life: 500 + rnd() * 400, wob: 20 });
+      const f = partnerEnt.dir === 'right', pid = partnerMon().id; kithImg(pid); const pts = (FXPTS[pid] || [[54, 6]]).map(([x, y]) => [sx + (f ? 64 - x : x), sy - 6 - hop * 10 + y]), wick = pts[0];
+      for (const [fx, fy] of pts) if (rnd() < .3) spawnP({ sp: 'world', x: fx + CAM.x + rnd() * 6 - 3, y: fy + CAM.y, vx: rnd() * 30 - 15, vy: -50 - rnd() * 50, shape: 'circ', size: 2 + rnd() * 2.5, col: pickc(['#ffd23f', '#ff9a3c', '#ffe9a0']), glow: true, life: 500 + rnd() * 400, wob: 20 });
       lights.push({ x: wick[0], y: wick[1] + 10, r: 210 + Math.sin(now / 90) * 8 + rnd() * 6, i: 1, warm: true });
     } else {
       const idle = !moving && !o.me ? (Math.floor(now / 520 + o.seed) % 2) * -4 : 0;
@@ -2787,7 +2869,8 @@ function drawUI(now) {
     c.opts.slice(c.scroll, c.scroll + vis).forEach((o, k) => {
       const i = k + c.scroll, y = 76 + k * 38, col = o.disabled ? '#a89f94' : o.faint ? '#c0392b' : INK;
       if (i === c.idx) cursor(32, y);
-      txt(o.label, 56, y, col); if (o.right) txt(o.right, 604, y, col, 14, 'right');
+      let lx = 56; if (o.icon) { g.save(); g.imageSmoothingEnabled = false; if (o.faint) g.filter = 'grayscale(1) brightness(.8)'; else if (!o.seen && o.seen !== undefined) g.filter = 'brightness(0) opacity(.35)'; g.drawImage(kithIcon(o.icon), 52, y - 13, 36, 36); g.restore(); lx = 96; }
+      txt(o.label, lx, y, col); if (o.right) txt(o.right, 604, y, col, 14, 'right');
     });
     if (c.scroll > 0) txt('▲', 600, 52, INK, 12); if (c.scroll + vis < c.opts.length) txt('▼', 600, 452, INK, 12);
     g.fillStyle = INK; g.fillRect(24, 470, 592, 3);
