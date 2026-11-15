@@ -309,7 +309,7 @@ const FAMILIES = [
     prof: [1, 1.1, 1.3, .6], evo: [17, 22, 38], also: 'Ember', dex: ['', 'A pile of pebbles that stays together out of friendship.', '', 'Lives on mountain peaks. Avalanches politely go around it.'] },
   { t: 'Stone', n: ['Gritpup', 'Geodillo', 'Crystadillo', 'Prismadon'], plan: 'armadillo', look: { body: '#b88e6a', belly: '#f0dcc0', acc2: '#8fe0f0' }, ov: [0, { body: '#a87e5a', belly: '#e8cfae' }, { body: '#8a6a5a', acc2: '#c0a8ff' }, { body: '#6a4a5a', acc2: '#ff8fd0' }],
     prof: [1, .95, 1.3, .8], evo: [10, 26, 38], also: 'Ember', dex: ['Rolls into a ball at the slightest noise. Including its own sneezes.', '', 'Its crystals ring like bells when it runs.', 'Splits sunlight into rainbows across whole canyons.'] },
-  { t: 'Stone', n: ['Cobblet', 'Stackstone', 'Cairnguard', 'Monolord'], plans: ['rock', 'golem', 'golem', 'golem'], look: { body: '#9a9aa6', acc: '#7a7a88', acc2: '#7ff0ff' }, ov: [0, 0, { body: '#8a8a96', acc: '#6a6a78' }, { body: '#5a5a6a', acc: '#3a3a4a', acc2: '#ffd65a' }],
+  { t: 'Stone', n: ['Cobblet', 'Stackstone', 'Cairnguard', 'Monolord'], plans: ['cobble', 'golem', 'golem', 'golem'], look: { body: '#9a9aa6', acc: '#7a7a88', acc2: '#7ff0ff' }, ov: [0, 0, { body: '#8a8a96', acc: '#6a6a78' }, { body: '#5a5a6a', acc: '#3a3a4a', acc2: '#ffd65a' }],
     prof: [1.15, 1.15, 1.3, .4], evo: [12, 18, 40], also: 'Ember', dex: ['A cobblestone that wandered off the road.', 'Stacks itself taller to see over hills.', '', 'An ancient guardian. The runes on its body are a map of the stars.'] },
   { t: 'Stone', n: ['Siltmole', 'Gemmole', 'Quarrymole', 'Coremole'], plan: 'mole', look: { body: '#6a5a6a', belly: '#e8c0c8', acc: '#f2d6a0', acc2: '#8fe0f0' }, ov: [0, { acc2: '#ff8fd0' }, { body: '#5a4a5a', acc2: '#ffd65a' }, { body: '#3a2a3a', acc: '#ffb347', acc2: '#ff6a5a' }],
     prof: [1, 1.15, 1.1, .75], evo: [13, 25, 37], also: 'Plain', dex: ['Digs tunnels so neat that villages use them as cellars.', 'Collects gems and arranges them by color.', 'Can dig through a hill before lunch. Then eats lunch.', 'Has tunneled to the warm heart of the world and back.'] },
@@ -677,10 +677,10 @@ const PLANS = {
     ell(4, 21, 4, 5, B); ell(28, 20, 4, 5, B); ell(4, 25, 3, 2, Dk);
     rect(7, 12, 18, 13, B); ell(16, 12, 9, 3, B);
     ell(7, 13, 4, 3.2, A); ell(25, 13, 4, 3.2, A);
-    ell(14, 7, 5, 4.2, B); ell(15, 3.5, 3, 1.1, '#5aa83a');
+    ell(15, 7, 6.5, 5.5, B); ell(14, 5, 3.4, 2.2, shade(B, .18)); ell(16, 2, 3.4, 1.2, '#5aa83a');
     for (const [x, y] of [[15, 15], [15, 16], [15, 17], [14, 18], [16, 18], [15, 19], [12, 21], [18, 21]]) K.glow(x, y, A2);
     line(9, 23, 23, 23, .4, shade(B, -.3));
-    K.eyes.push([11, 6, 'glow'], [15, 6, 'glow']);
+    K.eyes.push([12, 7, 'glow'], [17, 7, 'glow']); K.mouth = [13.5, 10, 'line'];
   },
   armadillo(K) {
     const { ell, tri, line, B, Be, A2, Dk } = K;
@@ -787,45 +787,83 @@ const PLANS = {
     K.eyes.push([7, 15, 'angry']);
   },
 };
+// Creature renderer: plans are written on a 32-unit grid and drawn at 64x64 for finer detail.
+// Pipeline: shapes -> cel shading -> bigger heads for young forms -> expressive eyes, blush, mouth -> colored outline.
+function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), A = p(a), Bc = p(b); return '#' + A.map((v, i) => Math.round(v + (Bc[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
 function kithSprite(id) {
-  const L = SP[id].look, N = 32, G = Array.from({ length: N }, () => Array(N).fill(null)), NOSHADE = new Set();
-  const set = (x, y, c) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < N && y < N) G[y][x] = c; };
-  const ell = (cx, cy, rx, ry, c) => { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) set(x, y, c); } };
+  const L = SP[id].look, N = 64, G = Array.from({ length: N }, () => Array(N).fill(null)), NOSHADE = new Set();
+  const put0 = (x, y, c) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < N && y < N) G[y][x] = c; };
+  const ell = (cx, cy, rx, ry, c) => { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) put0(x, y, c); } };
   const tri = (a, b, c, col) => { const xs = [a[0], b[0], c[0]], ys = [a[1], b[1], c[1]], sg = (p, q, r) => (p[0] - r[0]) * (q[1] - r[1]) - (q[0] - r[0]) * (p[1] - r[1]);
-    for (let y = Math.floor(Math.min(...ys)); y <= Math.max(...ys); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.max(...xs); x++) { const p = [x + .5, y + .5], d1 = sg(p, a, b), d2 = sg(p, b, c), d3 = sg(p, c, a); if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) set(x, y, col); } };
-  const rect = (x, y, w, h, c) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) set(x + i, y + j, c); };
-  const line = (x0, y0, x1, y1, r, c) => { const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2) + 1; for (let i = 0; i <= n; i++) { const t = i / n; ell(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, Math.max(.55, r), Math.max(.55, r), c); } };
-  const glow = (x, y, c) => { set(x, y, c); NOSHADE.add(Math.floor(y) * N + Math.floor(x)); };
+    for (let y = Math.floor(Math.min(...ys)); y <= Math.max(...ys); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.max(...xs); x++) { const p = [x + .5, y + .5], d1 = sg(p, a, b), d2 = sg(p, b, c), d3 = sg(p, c, a); if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) put0(x, y, col); } };
+  const rect = (x, y, w, h, c) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) put0(x + i, y + j, c); };
+  const line = (x0, y0, x1, y1, r, c) => { const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2) + 1; for (let i = 0; i <= n; i++) { const t = i / n; ell(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, Math.max(.6, r), Math.max(.6, r), c); } };
   const B = L.body, Be = L.belly || shade(B, .45), A = L.acc || shade(B, -.3), A2 = L.acc2 || '#ffd23f', Dk = shade(B, -.3);
-  // later evolution stages are drawn larger: the whole plan is scaled around the feet
-  const stg = L.stage ?? 3, k = [.72, .84, .94, 1][stg], mx = v => 16 + (v - 16) * k, my = v => 30.5 + (v - 30.5) * k;
+  const stg = L.stage ?? 3, k = [.74, .86, .95, 1][stg], sc = 2 * k, mx = v => (16 + (v - 16) * k) * 2, my = v => (30.5 + (v - 30.5) * k) * 2;
+  const dot = Math.max(1, Math.round(sc));
   const K = { B, Be, A, A2, Dk, eyes: [], mouth: null, big: !!L.big, stage: stg,
-    set: (x, y, c) => set(mx(x), my(y), c), glow: (x, y, c) => glow(mx(x), my(y), c),
-    ell: (cx, cy, rx, ry, c) => ell(mx(cx), my(cy), Math.max(.6, rx * k), Math.max(.6, ry * k), c),
+    set: (x, y, c) => rect(Math.floor(mx(x)), Math.floor(my(y)), dot, dot, c),
+    glow: (x, y, c) => { const X = Math.floor(mx(x)), Y = Math.floor(my(y)); for (let j = 0; j < dot; j++) for (let i = 0; i < dot; i++) { put0(X + i, Y + j, c); NOSHADE.add((Y + j) * N + X + i); } },
+    ell: (cx, cy, rx, ry, c) => ell(mx(cx), my(cy), Math.max(.7, rx * sc), Math.max(.7, ry * sc), c),
     tri: (a, b, c, col) => tri([mx(a[0]), my(a[1])], [mx(b[0]), my(b[1])], [mx(c[0]), my(c[1])], col),
-    rect: (x, y, w, h, c) => rect(Math.round(mx(x)), Math.round(my(y)), Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k)), c),
-    line: (x0, y0, x1, y1, r, c) => line(mx(x0), my(y0), mx(x1), my(y1), r * k, c) };
+    rect: (x, y, w, h, c) => rect(Math.round(mx(x)), Math.round(my(y)), Math.max(1, Math.round(w * sc)), Math.max(1, Math.round(h * sc)), c),
+    line: (x0, y0, x1, y1, r, c) => line(mx(x0), my(y0), mx(x1), my(y1), r * sc, c) };
   PLANS[L.plan](K, L);
-  // shading: light from the top-left
-  const S = G.map(r => r.slice());
+  const empty = (x, y) => x < 0 || y < 0 || x >= N || y >= N || !G[y][x];
+  // cel shading: light from the upper left, soft core shadow toward the lower right
+  let S = G.map(r => r.slice());
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
     const c = G[y][x]; if (!c || NOSHADE.has(y * N + x)) continue;
-    if ((y > 0 && !G[y - 1][x]) || (x > 0 && !G[y][x - 1] && y < N / 2)) S[y][x] = shade(c, .3);
-    else if ((y < N - 1 && !G[y + 1][x]) || (x < N - 1 && !G[y][x + 1])) S[y][x] = shade(c, -.22);
+    if (empty(x, y - 1) || empty(x - 1, y - 1) || (empty(x, y - 2) && empty(x - 1, y))) S[y][x] = shade(c, .24);
+    else if (empty(x, y + 1) || empty(x + 1, y)) S[y][x] = shade(c, -.24);
+    else if (empty(x + 1, y + 1) || empty(x + 2, y + 2) || empty(x, y + 2) || empty(x + 2, y) || empty(x + 3, y + 3)) S[y][x] = shade(c, -.12);
   }
-  const put = (x, y, c) => { if (x >= 0 && y >= 0 && x < N && y < N) S[y][x] = c; };
-  for (const [ex, ey, st = L.eye || 'dot'] of K.eyes) {
-    const x = Math.floor(mx(ex)), y = Math.floor(my(ey));
-    if (st === 'big') { for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) put(x + i - 1, y + j - 1, '#ffffff'); put(x - 1, y, INK); put(x, y, INK); put(x - 1, y + 1, INK); put(x, y + 1, INK); put(x, y, '#ffffff'); }
-    else if (st === 'glow') { const c = L.eyeCol || A2; put(x, y, c); put(x + 1, y, c); put(x, y + 1, shade(c, -.2)); put(x + 1, y + 1, shade(c, -.2)); put(x, y, '#ffffff'); }
-    else if (st === 'sleepy') { put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x - 1, y, INK); }
-    else if (st === 'angry') { put(x, y, INK); put(x + 1, y, INK); put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x, y, '#ffffff'); put(x - 1, y - 2, INK); put(x, y - 1, INK); put(x + 1, y - 1, INK); }
-    else { put(x, y, INK); put(x + 1, y, INK); put(x, y + 1, INK); put(x + 1, y + 1, INK); put(x, y, '#ffffff'); }
+  // young forms get bigger heads: magnify the area around the eyes
+  const E = K.eyes.map(([ex, ey, st]) => [mx(ex), my(ey), st || L.eye || 'cute']);
+  const hc = E.length ? [E.reduce((a, e) => a + e[0], 0) / E.length, E.reduce((a, e) => a + e[1], 0) / E.length] : null;
+  const mag = L.legend || SP[id].legend ? 1 : [1.32, 1.2, 1.08, 1][stg], RAD = 15 + 4 * k, gain = mag - 1;
+  const fwd = (x, y) => { if (!hc || gain <= 0) return [x, y]; const dx = x - hc[0], dy = y - hc[1], r = Math.hypot(dx, dy); if (r >= RAD) return [x, y]; let d = r; for (let i = 0; i < 8; i++) d = r * (1 + gain * (1 - (d / RAD) ** 2)); d = Math.min(d, RAD); return r ? [hc[0] + dx / r * d, hc[1] + dy / r * d] : [x, y]; };
+  if (hc && gain > 0) {
+    const O = S.map(r => r.slice());
+    for (let y = Math.floor(hc[1] - RAD); y <= hc[1] + RAD; y++) for (let x = Math.floor(hc[0] - RAD); x <= hc[0] + RAD; x++) {
+      if (x < 0 || y < 0 || x >= N || y >= N) continue; const dx = x + .5 - hc[0], dy = y + .5 - hc[1], d = Math.hypot(dx, dy); if (d >= RAD) continue;
+      const s = 1 + gain * (1 - (d / RAD) ** 2), sx = Math.floor(hc[0] + dx / s), sy = Math.floor(hc[1] + dy / s);
+      O[y][x] = sx >= 0 && sy >= 0 && sx < N && sy < N ? S[sy][sx] : null;
+    }
+    S = O;
   }
-  if (K.mouth) { const [mx0, my0, st] = K.mouth, mxp = Math.floor(mx(mx0)), myp = Math.floor(my(my0)); const [mxx, myy] = [mxp, myp]; if (st === 'smile') { put(mxx, myy, INK); put(mxx + 1, myy + 1, INK); put(mxx + 2, myy, INK); } else if (st === 'open') { put(mxx, myy, '#4a1428'); put(mxx + 1, myy, '#4a1428'); put(mxx, myy + 1, '#4a1428'); put(mxx + 1, myy + 1, '#4a1428'); } else { put(mxx, myy, INK); put(mxx + 1, myy, INK); put(mxx + 2, myy, INK); } }
+  const put = (x, y, c) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < N && y < N) S[y][x] = c; };
+  const pell = (cx, cy, rx, ry, c) => { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) put(x, y, c); } };
+  const EYE = '#1e1a2a', iris = L.iris || (L.eyeCol && L.eye !== 'glow' ? L.eyeCol : shade(TYPE_COL[SP[id].type], -.15));
+  const [ew, eh] = [[5.2, 6.4], [4.8, 6], [4.4, 5.2], [4, 5]][stg].map(v => SP[id].legend ? v * .9 : v);
+  // blush for the youngest forms
+  if (stg <= 1 && L.blush !== false) for (const e of E) { const [x, y] = fwd(e[0], e[1]), bx = x + (E.length > 1 && x > hc[0] ? 1.5 : -1.5), by = y + eh * .75 + 1.5;
+    for (let j = -1; j <= 1; j++) for (let i = -2; i <= 2; i++) { const X = Math.floor(bx + i), Y = Math.floor(by + j); if (S[Y] && S[Y][X] && Math.abs(i) + Math.abs(j) < 3) S[Y][X] = mixHex(S[Y][X], '#ff7fa0', .45); } }
+  for (const [ex0, ey0, st] of E) {
+    const [x, y] = fwd(ex0, ey0), headCol = (S[Math.floor(y - eh)] || [])[Math.floor(x)] || B;
+    if (st === 'sleepy') { for (let i = -2; i <= 2; i++) { put(x + i, y + 1 - (Math.abs(i) < 2 ? 1 : 0), EYE); put(x + i, y + 2 - (Math.abs(i) < 2 ? 1 : 0), EYE); } continue; }
+    if (st === 'glow') { const gc = L.eyeCol || A2; pell(x, y, ew / 2 + .4, eh / 2 + .4, EYE); pell(x, y, ew / 2 - .3, eh / 2 - .3, gc); pell(x - .6, y - .8, 1.1, 1.3, '#ffffff'); continue; }
+    pell(x, y, ew / 2 + .3, eh / 2 + .3, EYE);
+    pell(x - .6, y + .9, ew / 2 - .7, eh / 2 - 1.1, iris);
+    pell(x - .6, y + .9, ew / 2 - 1.7, eh / 2 - 2, EYE);
+    pell(x - 1.1, y - 1.2, 1.3, 1.5, '#ffffff'); put(x + 1, y + 1.8, '#ffffff');
+    if (st === 'angry' || st === 'fierce') { for (let i = -3; i <= 3; i++) for (let j = 0; j < 4; j++) { const yy = y - eh / 2 - 1 + j + (i + 3) * .45 - 1.4; if (yy < y - eh / 2 + (i + 3) * .5 - .5) put(x + i, yy, headCol); } for (let i = -3; i <= 3; i++) put(x + i, y - eh / 2 + (i + 3) * .5 - 1, EYE); }
+  }
+  if (K.mouth) {
+    const [m0, m1, st] = K.mouth, [x, y] = fwd(mx(m0), my(m1));
+    if (st === 'open') { pell(x + 1, y + 1, 2.4, 1.8, '#5a1430'); pell(x + 1, y + 2, 1.4, .9, '#ff8fa8'); }
+    else if (st === 'smile') { put(x, y, EYE); put(x + 1, y + 1, EYE); put(x + 2, y + 1, EYE); put(x + 3, y, EYE); }
+    else { for (let i = 0; i < 4; i++) put(x + i, y, EYE); }
+  }
+  // colored outline: each edge takes a deep shade of the color it borders, darker underneath
+  const O = S.map(r => r.slice());
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    if (S[y][x]) continue; let c = null, below = false;
+    for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1]]) { const v = (S[y + dy] || [])[x + dx]; if (v) { c = v; below = dy === -1; break; } }
+    if (c) O[y][x] = shade(c, below ? -.62 : -.5);
+  }
   const c = mk(N, N), x = c.getContext('2d');
-  for (let y = 0; y < N; y++) for (let i = 0; i < N; i++) if (S[y][i]) R(x, S[y][i], i, y);
-  outline(c);
+  for (let y = 0; y < N; y++) for (let i = 0; i < N; i++) if (O[y][i]) R(x, O[y][i], i, y);
   if (stg === 3) glowRing(c, shade(TYPE_COL[SP[id].type], .45));
   return c;
 }
@@ -835,6 +873,15 @@ function glowRing(c, col) {
   x.globalAlpha = .55; x.fillStyle = col; for (const [i, y] of pts) x.fillRect(i, y, 1, 1); x.globalAlpha = 1;
 }
 Object.assign(PLANS, {
+  cobble(K) {
+    const { ell, rect, line, B, A, A2, Dk } = K;
+    rect(10, 26, 4, 3, Dk); rect(18, 26, 4, 3, Dk);
+    ell(6, 20, 2.4, 2, B); ell(26, 20, 2.4, 2, B);
+    rect(7, 11, 18, 16, B); rect(8, 10, 16, 1, B); rect(8, 27, 16, 1, B);
+    line(7, 19, 25, 19, .45, A); line(16, 11, 16, 19, .45, A); line(12, 19, 12, 27, .45, A); line(20, 19, 20, 27, .45, A);
+    rect(9, 8, 6, 3, '#5aa83a'); rect(11, 7, 3, 1, '#7ccf5a'); K.glow(21, 23, A2);
+    K.eyes.push([12, 15], [19, 15]); K.mouth = [15, 17.5, 'smile'];
+  },
   lizard(K) {
     const { ell, tri, line, set, B, Be, A, A2, Dk, big } = K;
     line(22, 23, 29, 19, 1.4, B); line(29, 19, 30, 13, .9, B); tri([28, 13], [30.5, 6], [32, 13], '#f2762e'); set(30, 10, A2);
@@ -1066,6 +1113,9 @@ Object.assign(PLANS, {
   },
 });
 const kithCache = {};
+function kithSmall(id, flip) { // half-resolution copy so the overworld partner matches the map's chunky pixels
+  const k = 's' + id + (flip ? 'f' : ''); if (!kithCache[k]) { const c = mk(32, 32), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(kithImg(id, flip), 0, 0, 32, 32); kithCache[k] = c; } return kithCache[k];
+}
 function kithImg(id, flip) { const k = id + (flip ? 'f' : ''); if (!kithCache[k]) kithCache[k] = flip ? flipped(kithImg(id)) : kithSprite(id); return kithCache[k]; }
 
 // ================= world map =================
@@ -2114,7 +2164,7 @@ function drawWorld(now) {
   const ents = [];
   for (const n of NPCS) if (!n.gone) ents.push({ e: n, img: personImg(n.look, n.dir, n.t < 1 ? n.fr : 0), seed: hash(n.id) % 7 });
   const pv = partnerEnt && partnerVisible();
-  if (pv) ents.push({ e: partnerEnt, kith: kithImg(partnerMon().id, partnerEnt.dir === 'right') });
+  if (pv) ents.push({ e: partnerEnt, kith: kithSmall(partnerMon().id, partnerEnt.dir === 'right') });
   ents.push({ e: player, img: personImg(LOOKS.player, player.dir, player.t < 1 ? player.fr : 0), me: true });
   ents.sort((a, b) => entPos(a.e)[1] - entPos(b.e)[1]);
   const lights = [];
@@ -2220,7 +2270,7 @@ function battleBg(now) {
   }
 }
 function drawMon(m, side, now) {
-  const foe = side === 'foe', sz = foe ? (B.legend ? 224 : 160) : 192, [cx] = ctr(side), baseY = foe ? 206 : 404;
+  const foe = side === 'foe', sz = 192, [cx] = ctr(side), baseY = foe ? 206 : 404;
   let x = cx - sz / 2, y = baseY - sz, alpha = 1, scale = 1, bright = 1;
   const en = B.enter[side]; if (en) { const k = Math.min(1, (now - en) / 520), e = 1 - Math.pow(1 - k, 3); x += (foe ? 1 : -1) * (1 - e) * 380; }
   const lu = B.lunge; if (lu && lu.side === side) { const k = (now - lu.t0) / lu.dur; if (k < 1) { const s = Math.sin(Math.PI * k); x += (foe ? -1 : 1) * s * 46; y -= s * 14; } }
@@ -2412,7 +2462,7 @@ function drawCredits(now) {
 }
 function drawIntro(now) {
   g.fillStyle = '#141228'; g.fillRect(0, 0, 640, 576);
-  g.globalAlpha = .35 + Math.sin(now / 900) * .1; g.drawImage(kithImg('quietus'), 150, 40 + Math.sin(now / 1200) * 10, 340, 340); g.globalAlpha = 1;
+  g.globalAlpha = .35 + Math.sin(now / 900) * .1; g.drawImage(kithImg('quietus'), 160, 40 + Math.sin(now / 1200) * 10, 320, 320); g.globalAlpha = 1;
   if (rnd() < .3) spawnP({ x: -80, y: rnd() * 420, vx: 30 + rnd() * 40, wob: 10, shape: 'soft', size: 80 + rnd() * 60, col: 'rgba(200,195,230,.18)', life: 9000, fadeIn: 1500 });
   drawParts('screen');
 }
