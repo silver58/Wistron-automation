@@ -2049,7 +2049,18 @@ function kithIcon(id) { // portrait trimmed to the creature and centered in a sq
 function kithSmall(id, flip) { // half-resolution copy so the overworld partner matches the map's chunky pixels
   const k = 's' + id + (flip ? 'f' : ''); if (!kithCache[k]) { const c = mk(32, 32), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(kithImg(id, flip), 0, 0, 32, 32); kithCache[k] = c; } return kithCache[k];
 }
-function kithImg(id, flip) { const k = id + (flip ? 'f' : ''); if (!kithCache[k]) kithCache[k] = flip ? flipped(kithImg(id)) : kithSprite(id); return kithCache[k]; }
+function kithFallback(id) { // plain drawing with no pixel read-back, used only if the full sprite can't be built
+  const c = mk(64, 64), x = c.getContext('2d'), L = (SP[id] && SP[id].look) || {}, col = L.body || '#c9a27a';
+  x.fillStyle = INK; x.beginPath(); x.ellipse(32, 44, 20, 15, 0, 0, 7); x.fill(); x.fillStyle = col; x.beginPath(); x.ellipse(32, 44, 18, 13, 0, 0, 7); x.fill();
+  x.fillStyle = L.belly || '#fff0dc'; x.beginPath(); x.ellipse(30, 49, 10, 6, 0, 0, 7); x.fill();
+  x.fillStyle = INK; x.fillRect(22, 38, 4, 5); x.fillRect(32, 38, 4, 5); x.fillStyle = '#fff'; x.fillRect(22, 38, 2, 2); x.fillRect(32, 38, 2, 2);
+  return c;
+}
+function kithImg(id, flip) {
+  const k = id + (flip ? 'f' : '');
+  if (!kithCache[k]) { try { kithCache[k] = flip ? flipped(kithImg(id)) : kithSprite(id); } catch (e) { reportErr('sprite ' + id, e); kithCache[k] = flip ? flipped(kithFallback(id)) : kithFallback(id); } }
+  return kithCache[k];
+}
 
 // ================= world map =================
 const MW = 32, MH = 100;
@@ -2589,10 +2600,21 @@ async function ending() {
 const alive = m => m.hp > 0;
 function lab(m) { if (B.foes.includes(m)) return B.trainer ? `Foe ${m.name}` : `${m.hushed ? 'Hushed' : 'Wild'} ${m.name}`; return m.name; }
 async function battle(o) {
+  try { return await battleInner(o); }
+  catch (e) {
+    reportErr('battle', e);
+    B = null; transFx = null; waiter = null; ui.choice = null; ui.text = null; mode = 'world';
+    await msg('The battle was interrupted. Your Kith are safe.');
+    return 'run';
+  }
+}
+async function battleInner(o) {
   const prev = mode;
   B = { foes: o.foes, foe: o.foes[0], me: null, trainer: o.trainer, canRun: !!o.canRun, canCatch: !!o.canCatch, fx: {}, foeShow: true, meShow: false, legend: o.legend, enter: {}, hit: {}, faint: {} };
   B.bg = o.bg || (o.legend ? 'sea' : bgFor(o.foes[0].hushed));
-  if (prev === 'world') { transFx = { t0: NOW(), dur: 950 }; await sleep(950); transFx = null; }
+  if (prev === 'world') transFx = { t0: NOW(), dur: 950 };
+  const tPrep = NOW(); for (const f of o.foes) kithImg(f.id); const lead = P.party.find(alive); if (lead) kithImg(lead.id, true);
+  if (prev === 'world') { await sleep(Math.max(0, 950 - (NOW() - tPrep))); transFx = null; }
   mode = 'battle'; B.openT = NOW(); B.enter.foe = NOW();
   for (let i = PARTS.length - 1; i >= 0; i--) if (PARTS[i].sp !== 'screen' || !PARTS[i].path) PARTS.splice(i, 1);
   for (const f of o.foes) { f.st = { atk: 0, def: 0 }; f.dispHp = f.hp; }
@@ -3473,6 +3495,7 @@ function update(dt, now) {
   }
 }
 function render(now) {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none';
   g.imageSmoothingEnabled = false;
   g.save();
   if (shakeFx) { const k = (now - shakeFx.t0) / shakeFx.ms; if (k < 1) { const m = shakeFx.mag * (1 - k); g.translate(Math.round((rnd() * 2 - 1) * m), Math.round((rnd() * 2 - 1) * m)); } else shakeFx = null; }
@@ -3489,7 +3512,14 @@ function render(now) {
   drawUI(now);
   if (fade.a > 0) { g.fillStyle = `rgba(20,18,40,${fade.a})`; g.fillRect(0, 0, 640, 576); }
 }
-function frame(now) { const dt = Math.min(50, now - last); last = now; update(dt, now); render(now); requestAnimationFrame(frame); }
+const seenErr = new Set();
+function reportErr(where, e) { const k = where + (e && e.message); if (!seenErr.has(k)) { seenErr.add(k); console.error('[' + where + ']', e); } }
+function frame(now) {
+  requestAnimationFrame(frame); // schedule first so one bad frame can never stop the game loop
+  const dt = Math.min(50, now - last); last = now;
+  try { update(dt, now); } catch (e) { reportErr('update', e); }
+  try { render(now); } catch (e) { reportErr('render', e); cv.width = cv.width; } // resetting the canvas clears any half-finished drawing state
+}
 addEventListener('visibilitychange', () => { if (document.hidden && P && player && mode === 'world') save(true); });
 
 Promise.race([document.fonts ? document.fonts.load(`16px ${FONT}`) : 0, sleep(1500)]).catch(() => {}).then(() => {
