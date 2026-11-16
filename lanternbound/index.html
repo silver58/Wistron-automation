@@ -66,7 +66,16 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 <script>
 "use strict";
 // ================= basics =================
-const cv = document.getElementById('screen'), g = cv.getContext('2d');
+const cv = document.getElementById('screen'), G0 = cv.getContext('2d');
+let g = G0; // drawing target: the low-res scene buffer while drawing the world, the full-size canvas for text and menus
+// The scene is drawn at 160x144 (16px tiles, like classic handhelds) and scaled up 4x with hard pixel edges.
+const LOW = document.createElement('canvas'); LOW.width = 160; LOW.height = 144;
+const LG = LOW.getContext('2d', { willReadFrequently: true });
+const OVL = []; // sharp overlays (HP boxes, banners, titles) queued while drawing the scene
+// limited colour palette with 4x4 ordered dithering, so gradients become retro dither patterns instead of rings
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v / 16 - .47) * (255 / 7));
+const POSTER = new Uint8Array(256 * 16);
+for (let b = 0; b < 16; b++) for (let v = 0; v < 256; v++) POSTER[b * 256 + v] = Math.round(Math.max(0, Math.min(7, Math.round((v + BAYER[b]) / 255 * 7))) / 7 * 255);
 const FONT = '"Press Start 2P", ui-monospace, monospace';
 const rnd = Math.random, ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -912,6 +921,13 @@ let _vecC; const vecCtx = () => (_vecC || (_vecC = mk(64, 64).getContext('2d', {
 const FXPTS = {};
 function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), A = p(a), Bc = p(b); return '#' + A.map((v, i) => Math.round(v + (Bc[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
 function kithSprite(id) {
+  if (PIXART[id]) { // hand-placed starter art, bottom-centred in the 64x64 frame
+    const art = pixCanvas(PIXART[id]), c = mk(64, 64), x = c.getContext('2d');
+    x.drawImage(art, Math.floor((64 - art.width) / 2), 64 - art.height);
+    FXPTS[id] = [[52.5, 3]];
+    if (PIX_STAGE[id] === 2) glowRing(c, shade(TYPE_COL.Ember, .45));
+    return c;
+  }
   const L = SP[id].look, N = 64, G = Array.from({ length: N }, () => Array(N).fill(null)), NOSHADE = new Set();
   const put0 = (x, y, c) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < N && y < N) G[y][x] = c; };
   const ell = (cx, cy, rx, ry, c) => { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) put0(x, y, c); } };
@@ -2037,6 +2053,11 @@ V.sloth = (k) => {
 };
 
 
+// Hand-placed pixel art for the starter line (battle sprites and 16x16 overworld followers).
+const PIX_PAL = {"k": "#3b1d14", "o": "#f08a3a", "d": "#c4602a", "D": "#96401e", "l": "#ffb66a", "c": "#fff3dc", "m": "#e3c49c", "r": "#ff6a1f", "y": "#ffcc33", "w": "#ffffff", "e": "#241418", "i": "#a83c28", "p": "#ffb09a", "n": "#241418", "g": "#ffd65a"};
+const PIXART = {"pipwick": ["......................k........kk.......", "......k..............kok......krrk......", ".....kok............kook.....kkrrk......", ".....kook..........kodok....krrrrrk.....", ".....koook........kodpok....krryrrrk....", ".....koddok..kkkkkooppdok..krryyyrrk....", ".....koppdokkooooooopppok..krryyyyrk....", ".....kopppoooooogooooppok..kryywwyrk....", ".....kopooooooogygooooook..kryywwyrk....", "....kooooooooooogoooooook..kryywwyrk....", "....kooooooooooooooooooook..krywyrrk....", "....kooooooooooooooooooook.kcrryrrckk...", "....koooooooooooooooooooookcccccccccck..", "....koooowweoooowweeooooookmcccccccmmk..", "...kkooooweeoooowweeooooookkmmmmmmckk...", ".kkooooooeeeooooeeewooooook.kkoooomk....", "knnddddddeiiooooeeiiooooook..kooook.....", "knkcccccceeeooooeeeeooooodk..kooook.....", "kmcccccccccooooooooooooook...kooook.....", ".kmccccccccooppooooooppodk...kooook.....", "..kmmkckcccoooooooooooodk...koooook.....", "...kkmkmccmooooooooooddk....koooook.....", ".....kkkccdddooooodddccck...koooook.....", ".......kcccccdddddcccccck..kooooook.....", ".......kmmcccccccccccmmckkkkooooodk.....", "........kkccmmccmmmccoomoooooooook......", "........koccooccooommooooooooooodk......", "........kommooccoooooodoooooooook.......", "........kooooommooooodooooooooook.......", ".......kdooooooooooodoooooooooook.......", "........koDDDDdooooodoooooooooook.......", "........kooooodooooodoooooooooook.......", "........kdoooodooooodoooooooooook.......", ".........kdooodoooooodooooooooodk.......", ".........kddoodooooooooooooooodk........", ".........kdddddooooddoooooooook.........", ".........kdddddooookkoooooooook.........", ".........kmmmmdcccckdooooooooodk........", ".........kmDmmkcmmckkdddddddddk.........", "..........kkkk.kkkk..kkkkkkkkk.........."], "wickwyre": ["...................k......................kk....", "......rr..........rrr....................krrk...", "......yyk........kryr...................krrrk...", "......ywk........krwr..................krrrrrk..", "......rrok......kodrk.................krrryyrrk.", "......kodok....koopok.................krryyyrrk.", "......kopdok...kodpdk.................kryywwyrk.", "......koppok..koopppk.................kryywwyrk.", ".....kooppdokkkodpppk.................krrywwyrk.", ".....koopppoooooppppok................kcryyyrcck", ".....koopooooogoooppok...............kmccrrrccck", ".....kooooooogggoooook................kmcccccmmk", ".....koooooooogooooook.................kmmmmckk.", ".....koooooooooooooook..................kooomk..", "....koooweooooweeoooork.................kooook..", "....koooweooooweeoooork.................kooook..", "..kkooooeiooooeeioooork..r..............kooook..", "kkddddddeeooooeeerooryr..r..............kooook..", "nnccccccddoooooorrorryr.rrr..r..........kooook..", "nmccccccccooooorryrryyr.ryr..rr........koooook..", ".kmccccccmoooooryyrryyrryyrrrrr........koooook..", "..kmcccccdooooorywrrywyrywyrrrr........koooodk..", "...kkkmmccddooorywrrywyrywyrryrr......koooook...", "....kkkkmcccdddrywrrywroywyryyyr......koooodk...", "........kcccccccrrcrywroryrrywyrkkkkkkkooook....", "........kccccccccccorrroooorywyroooooooooodk....", "........kccccccccccoooooooooywyrooooooooook.....", "........kccccccccccooooooooorwyoooooooooodk.....", "........kmccccccccmoooooooooryrooooooooook......", ".........kmcmccmmcooooooooooooooodoooooook......", "..........kckmcoomooooooooooooooodoooooook......", "..........kmkocoooooooooooooooooodoooooook......", "...........kddmoooooooooooooooooodoooooook......", "...........kdddoooooooooooooooooodoooooook......", "...........kddddooooooooooooooooodoooooodk......", "...........kddddoodddddoooodddddddooooodk.......", "...........kddddookkkkkddddkkkkkdddooodk........", "...........kddddook....kkkk....kdddoook.........", "...........kddddook............kdddoook.........", "...........kddddook............kdddoook.........", "...........kddddook............kdddoook.........", "...........kddddook............kdddoook.........", "...........kddddook............kdddoook.........", "...........kddddook............kdddoook.........", "...........kddddook............kdddoook.........", "...........kddddddk............kddddddk.........", "............kkkkccc.............kkkkccc.........", "................................................"], "pharolux": ["........r.............k..........................kk.....", ".......ry............krr........................krrk....", ".......yyr...........ryr.......................kkrrk....", ".......ywr..........kryy......................krrrrrk...", ".......ywrk........koryy.....................krrryyrrk..", ".......kodok.......koddk.....................krryyyrrrk.", ".......kopook.....kooppk.....................kryyyyyrrk.", ".......kopdok.....kodppok....................kryywwyrrk.", ".......koppdok...koopppok....................kryywwyrrk.", ".......kopppook.koodpppok....................kryywwyrrk.", "......koopppoookkooppppok....................krrywwyrgk.", "......koopppoooooooopppok...................kggrryyrgggk", "......koopoooooogooooopok...................kgggrrrgggyk", "......koooooooogggooooook...................kygggggggyk.", "......kooooooooogoooooook....................kygyyygyk..", "......kooooooooooooooooook....................kyoooyk...", ".....koooooooooooooooooook....................kdooook...", ".....koooweoooooweeooooook.....................kooook...", "....kkoooweoooooweeooooorrk....................kooook...", "...koooooeioooooeeiooooorrk....................kooook...", ".kkodddddeeoooooeeerroorrr...rr.............r..kooook...", "nncdcccccddooooooorrroorrrr.rrr...r.........r..kooook...", "nmcccccccccdoooooorrrrrryyr.rrrr..rr........r.koooook...", ".kmccccccccmooooorryyrryyyrrryyr.rrr...r...rrrkoooook...", "..kmmmcccccdoooooryyyrryyyrryyyr.rrr...rr.rryrkoooook...", "...kkkcmmccmooooorywwrrywwrrywyrrryrr.ryr.rryrroooook...", "....kmkkkcmdddooorywwrrywwrrywwrryyyrrryrrryyrroooodk...", ".....kk.kmkgggddddrwwrrywwrrywyrryyyrryyyrryyyrooook....", ".........kggggggggryrrdrwyroryrorywyrrywyrrywyrooodk....", ".........kgggggggggrgggryroooroorywyrrywyrrywyroook.....", ".........kgggggggggggggorroooooorywyrrywyrrywyroodk.....", ".........kggggggggggggyooooooooorywyrrywrorywyrook......", ".........kygggggggggggoooooooooooryroorrroryyroodk......", "..........kygggggggggyooooooooooorrrooooooorrrook.......", "...........kggygggyygoooooooooooooooooodooooooook.......", "...........kygkyggoogoooooooooooooooooodooooooook.......", "............kykogyooyoooooooooooooooooodooooooook.......", ".............kddyoooooooooooooooooooooodooooooook.......", ".............kdddoooooooooooooooooooooodooooooook.......", ".............kddddooooooooooooooooooooodooooooodk.......", ".............kddddooooooooooooooooooododoooooodk........", ".............kddddooooddddooooooddddddddooooodk.........", ".............kddddooookkkkddddddkkkkkddddooook..........", ".............kddddooook...kkkkkk.....kdddooook..........", ".............kddddooodk..............kdddooook..........", ".............kddddoook...............kdddooook..........", ".............kddddoook...............kdddooook..........", ".............kddddoook...............kdddooook..........", ".............kddddgggg...............kdddggggg..........", ".............kddddgggg...............kdddggggg..........", ".............kddddoook...............kdddooook..........", ".............kddddoook...............kdddooook..........", ".............kddddoook...............kdddooook..........", ".............kdddddddk...............kdddddddk..........", "..............kkkkkccc................kkkkccc...........", "........................................................"], "mini0": ["...k...klk..krk.", "..kok..kok.krrk.", "..kookkook.kyyk.", "..koookook.kywk.", "..kooooookkcccck", ".koooooook.kcck.", ".kooooooookkook.", "kdddwoowookkook.", "nccceooeookkook.", "kcccdddddoooodk.", ".kkdcccccooook..", "...kcccccooook..", "...koooooooook..", "...kdooooooodk..", "....koodddook...", "....kddkkkddk..."], "mini1": ["...k...klk..krk.", "..kok..kok.krrk.", "..kookkook.kyyk.", "..koookook.kywk.", "..kooooookkcccck", "..kooooook.kcck.", ".koooooook.kook.", "kdddwoowok.kook.", "nccceooeokkkook.", "kcccdddddryoodk.", ".kkkcccccooook..", "...kcccccooook..", "...koddooooook..", "...kdddooooodk..", "....kdddddook...", "....kddkkkddk..."], "mini2": ["...k...klk..krk.", "..kok..kok.krrk.", "..kookkook.kyyk.", "..koookook.kywk.", "..kooooookkggggk", "..kooooook.kggk.", ".koooooook.kook.", "kdddwoowok.kook.", "nccceooeoykkook.", "kcccdddddryoodk.", ".kkkgggggooook..", "...kgggggooook..", "...koddooooook..", "...kdddooooodk..", "....kdddddook...", "....kddkkkddk..."]};
+function pixCanvas(rows) { const h = rows.length, w = rows[0].length, c = mk(w, h), x = c.getContext('2d'); rows.forEach((r, y) => { for (let i = 0; i < w; i++) if (r[i] !== '.') { x.fillStyle = PIX_PAL[r[i]]; x.fillRect(i, y, 1, 1); } }); return c; }
+const PIX_STAGE = { pipwick: 0, wickwyre: 1, pharolux: 2 };
 const kithCache = {};
 function kithIcon(id) { // portrait trimmed to the creature and centered in a square, for lists
   const k = 'i' + id; if (kithCache[k]) return kithCache[k];
@@ -2046,7 +2067,8 @@ function kithIcon(id) { // portrait trimmed to the creature and centered in a sq
   cx.drawImage(src, x0, y0, x1 - x0 + 1, y1 - y0 + 1, Math.floor((side - (x1 - x0 + 1)) / 2), side - (y1 - y0 + 1), x1 - x0 + 1, y1 - y0 + 1);
   return (kithCache[k] = c);
 }
-function kithSmall(id, flip) { // half-resolution copy so the overworld partner matches the map's chunky pixels
+function kithSmall(id, flip) { // overworld follower sprite
+  if (PIX_STAGE[id] !== undefined) { const k = 'm' + id + (flip ? 'f' : ''); if (!kithCache[k]) { const c = pixCanvas(PIXART['mini' + PIX_STAGE[id]]); kithCache[k] = flip ? flipped(c) : c; } return kithCache[k]; }
   const k = 's' + id + (flip ? 'f' : ''); if (!kithCache[k]) { const c = mk(32, 32), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(kithImg(id, flip), 0, 0, 32, 32); kithCache[k] = c; } return kithCache[k];
 }
 function kithFallback(id) { // plain drawing with no pixel read-back, used only if the full sprite can't be built
@@ -3077,7 +3099,7 @@ function regionLook(py) {
   return { dark: P.flags.ending ? .08 : .6, col: [26, 20, 50] };
 }
 function drawWorld(now) {
-  const [px, py] = entPos(player), camX = px - 4, camY = py - 4;
+  const [px0, py0] = entPos(player), camX = Math.round((px0 - 4) * 16) / 16, camY = Math.round((py0 - 4) * 16) / 16, px = px0, py = py0;
   CAM = { x: camX * 64, y: camY * 64 };
   g.imageSmoothingEnabled = false;
   const x0 = Math.floor(camX), y0 = Math.floor(camY);
@@ -3126,7 +3148,7 @@ function drawWorld(now) {
   ents.sort((a, b) => entPos(a.e)[1] - entPos(b.e)[1]);
   const lights = [];
   for (const o of ents) {
-    const [ex, ey] = entPos(o.e), sx = Math.round((ex - camX) * 64), sy = Math.round((ey - camY) * 64);
+    const [ex, ey] = entPos(o.e), sx = Math.round((ex - camX) * 16) * 4, sy = Math.round((ey - camY) * 16) * 4;
     const moving = o.e.t < 1, hop = moving ? Math.sin(o.e.t * Math.PI) : 0;
     g.fillStyle = 'rgba(20,10,30,.22)'; g.beginPath(); g.ellipse(sx + 32, sy + 58, 20 - hop * 4, 6 - hop, 0, 0, 7); g.fill();
     if (o.kith) {
@@ -3143,7 +3165,7 @@ function drawWorld(now) {
     // tall grass hides the legs of anyone standing in it
     const tx = Math.round(ex), ty = Math.round(ey), t = tileAt(tx, ty);
     if ((t === ',' || t === 'h') && Math.abs(ey - ty) < .35) g.drawImage(tileImg(t, tx, ty, now), 0, 10, 16, 6, Math.round((tx - camX) * 64), Math.round((ty - camY) * 64) + 40, 64, 24);
-    if (o.e.bang && now < o.e.bang) { const k = 1 - (o.e.bang - now) / 700, sc = k < .2 ? k / .2 * 1.25 : k < .3 ? 1.25 - (k - .2) * 2.5 : 1; g.save(); g.translate(sx + 32, sy - 30); g.scale(sc, sc); box(-20, -24, 40, 44); txt('!', -7, -10, '#d9534f'); g.restore(); }
+    if (o.e.bang && now < o.e.bang) OVL.push(() => { const k = 1 - (o.e.bang - now) / 700, sc = k < .2 ? k / .2 * 1.25 : k < .3 ? 1.25 - (k - .2) * 2.5 : 1; g.save(); g.translate(sx + 32, sy - 30); g.scale(sc, sc); box(-20, -24, 40, 44); txt('!', -7, -10, '#d9534f'); g.restore(); });
   }
   drawParts('world', CAM.x, CAM.y);
   // drifting cloud shadows over bright areas
@@ -3172,15 +3194,15 @@ function drawWorld(now) {
   g.globalCompositeOperation = 'source-over';
   if (py >= 42) { const gr = g.createLinearGradient(0, 0, 0, 576); gr.addColorStop(0, 'rgba(255,214,140,.12)'); gr.addColorStop(1, 'rgba(255,214,140,0)'); g.fillStyle = gr; g.fillRect(0, 0, 640, 576); }
   g.drawImage(VIGNETTE, 0, 0);
-  if (banner && now < banner.until) {
+  if (banner && now < banner.until) OVL.push(() => {
     const life = banner.until - now, inK = Math.min(1, (2200 - life) / 300), outK = Math.min(1, life / 300), e = Math.min(inK, outK), ease = 1 - Math.pow(1 - e, 3);
     const w = Math.min(624, banner.text.length * 16 + 92), y = -70 + ease * 82;
     box(8, y, w, 58); g.drawImage(SCROLL_IMG(), 22, y + 13, 32, 32); txt(banner.text, 62, y + 22);
-  }
+  });
 }
 
 // ================= battle rendering =================
-const FOE_C = [500, 128], ME_C = [166, 300];
+const FOE_C = [512, 150], ME_C = [160, 316];
 const ctr = s => s === 'me' ? ME_C : FOE_C;
 function hills(now, base, amp, col, speed, freq, ph) {
   g.fillStyle = col; g.beginPath(); g.moveTo(0, 416);
@@ -3220,14 +3242,14 @@ function battleBg(now) {
     g.globalCompositeOperation = 'lighter'; const mr = g.createLinearGradient(0, 230, 0, 416); mr.addColorStop(0, 'rgba(255,250,220,.25)'); mr.addColorStop(1, 'rgba(255,250,220,0)'); g.fillStyle = mr; g.fillRect(90 + Math.sin(now / 300) * 4, 230, 40, 186); g.globalCompositeOperation = 'source-over';
   }
   drawParts('bg');
-  for (const [cx, cy, rx, ry] of [[500, 200, 135, 28], [170, 396, 158, 30]]) {
+  for (const [cx, cy, rx, ry] of [[512, 246, 140, 26], [160, 410, 150, 24]]) {
     const pg = g.createRadialGradient(cx, cy - 6, 10, cx, cy, rx); const base = k === 'meadow' ? '#cfe6a0' : k === 'forest' ? '#6e9a5c' : k === 'hush' ? '#b3acd0' : '#4d5a8c';
     pg.addColorStop(0, shade(base, .25)); pg.addColorStop(1, shade(base, -.15)); g.fillStyle = pg; g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, 7); g.fill();
     g.strokeStyle = shade(base, -.3); g.lineWidth = 3; g.beginPath(); g.ellipse(cx, cy + 2, rx - 2, ry - 2, 0, .1, Math.PI - .1); g.stroke();
   }
 }
 function drawMon(m, side, now) {
-  const foe = side === 'foe', sz = 192, [cx] = ctr(side), baseY = foe ? 206 : 404;
+  const foe = side === 'foe', sz = 256, [cx] = ctr(side), baseY = foe ? 252 : 416;
   let x = cx - sz / 2, y = baseY - sz, alpha = 1, scale = 1, bright = 1;
   const en = B.enter[side]; if (en) { const k = Math.min(1, (now - en) / 520), e = 1 - Math.pow(1 - k, 3); x += (foe ? 1 : -1) * (1 - e) * 380; }
   const lu = B.lunge; if (lu && lu.side === side) { const k = (now - lu.t0) / lu.dur; if (k < 1) { const s = Math.sin(Math.PI * k); x += (foe ? -1 : 1) * s * 46; y -= s * 14; } }
@@ -3242,7 +3264,7 @@ function drawMon(m, side, now) {
   if (fa) { g.beginPath(); g.rect(0, 0, 640, baseY); g.clip(); }
   g.globalAlpha = alpha;
   const filt = []; if (m.hushed) filt.push('grayscale(.8)'); if (bright !== 1) filt.push(`brightness(${bright})`); g.filter = filt.length ? filt.join(' ') : 'none';
-  const w = sz * sx, h = sz * sy; g.drawImage(kithImg(m.id, !foe), x + (sz - w) / 2 + ax, y + (sz - h) + ay - (sz * (1 - scale)) / 2, w, h);
+  const w = sz * sx, h = sz * sy, q4 = v => Math.round(v / 4) * 4; g.drawImage(kithImg(m.id, !foe), q4(x + (sz - w) / 2 + ax), q4(y + (sz - h) + ay - (sz * (1 - scale)) / 2), q4(w), q4(h));
   g.restore(); g.filter = 'none';
   if (foe && m.hushed && rnd() < .15) spawnP({ x: cx + rnd() * 120 - 60, y: baseY - rnd() * 60, vy: -30 - rnd() * 30, wob: 12, shape: 'soft', size: 14 + rnd() * 10, col: 'rgba(170,155,220,.6)', life: 1400, fadeIn: 300 });
 }
@@ -3260,7 +3282,7 @@ function drawBattle(now) {
   if (B.foeShow && B.foe) drawMon(B.foe, 'foe', now);
   if (B.lan) {
     const L = B.lan, k = Math.min(1, (now - L.t0) / 520);
-    let x = 180 + (500 - 180) * k, y = 330 + (150 - 330) * k - Math.sin(Math.PI * k) * 140, rot = k < 1 ? k * 12 : 0;
+    let x = 180 + (512 - 180) * k, y = 330 + (150 - 330) * k - Math.sin(Math.PI * k) * 140, rot = k < 1 ? k * 12 : 0;
     if (L.shake) { const s = (now - L.shake) / 500; if (s < 1) rot = Math.sin(s * 18) * .35 * (1 - s); }
     if (k >= 1 && !L.shake) y += Math.sin(now / 300) * 3;
     drawLantern(x, y, rot, L.done ? 1.8 : 1, now);
@@ -3273,6 +3295,7 @@ function drawBattle(now) {
     g.globalCompositeOperation = 'source-over';
   }
   if (B.dark) { const k = (now - B.dark) / 750; if (k < 1) { g.fillStyle = `rgba(30,20,60,${Math.sin(Math.PI * k) * .55})`; g.fillRect(0, 0, 640, 416); } }
+  OVL.push(() => {
   const slide = (side, dir) => { const en = B.enter[side]; if (!en) return 0; const k = Math.min(1, (now - en) / 600); return (1 - (1 - Math.pow(1 - k, 3))) * 360 * dir; };
   if (B.foe && B.foeShow && !B.absorb) {
     const o = slide('foe', -1); g.save(); g.translate(o, 0);
@@ -3294,6 +3317,7 @@ function drawBattle(now) {
   }
   drawPops(now);
   if (ui.text == null && !(ui.choice && ui.choice.cfg.layout !== 'big')) box(0, 416, 640, 160);
+  });
 }
 function drawLanternIcon(x, y) { g.fillStyle = INK; g.fillRect(x, y, 10, 12); g.fillStyle = '#ffd65a'; g.fillRect(x + 2, y + 3, 6, 7); }
 
@@ -3383,12 +3407,12 @@ function drawTitle(now) {
   g.globalCompositeOperation = 'lighter'; const rf = g.createLinearGradient(0, 440, 0, 576); rf.addColorStop(0, 'rgba(255,214,90,.35)'); rf.addColorStop(1, 'rgba(255,214,90,0)'); g.fillStyle = rf; g.fillRect(488 + Math.sin(now / 250) * 5, 440, 24, 136); g.globalCompositeOperation = 'source-over';
   // title
   const fl = Math.sin(now / 700) * 4;
-  g.save(); g.shadowColor = 'rgba(255,200,80,.9)'; g.shadowBlur = 18 + Math.sin(now / 300) * 8; txt('LANTERNBOUND', 320, 64 + fl, '#ffd65a', 34, 'center'); g.restore();
-  txt('A tale of the Lumen Coast', 320, 122 + fl, '#e8dcf5', 14, 'center');
+  OVL.push(() => { g.save(); g.shadowColor = 'rgba(255,200,80,.9)'; g.shadowBlur = 18 + Math.sin(now / 300) * 8; txt('LANTERNBOUND', 320, 64 + fl, '#ffd65a', 34, 'center'); g.restore();
+  txt('A tale of the Lumen Coast', 320, 122 + fl, '#e8dcf5', 14, 'center'); });
   g.imageSmoothingEnabled = false;
   const py = 232 + Math.sin(now / 300) * 6;
   g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(216, 432, 70 - Math.sin(now / 300) * 6, 12, 0, 0, 7); g.fill();
-  g.drawImage(kithImg('pipwick'), 120, py, 192, 192);
+  g.drawImage(kithImg('pipwick'), 96, Math.round((py - 40) / 4) * 4, 256, 256);
   if (rnd() < .6) spawnP({ x: 120 + 60 + rnd() * 14, y: py + 12, vx: rnd() * 40 - 20, vy: -60 - rnd() * 60, wob: 30, shape: 'circ', size: 2 + rnd() * 3, col: pickc(['#ffd23f', '#ff9a3c', '#ffe9a0']), glow: true, life: 1200 });
   if (rnd() < .5) spawnP({ x: 120 + 182 + rnd() * 10, y: py + 66, vx: rnd() * 40 - 20, vy: -60 - rnd() * 60, wob: 30, shape: 'circ', size: 2 + rnd() * 3, col: pickc(['#ffd23f', '#ff9a3c']), glow: true, life: 1000 });
   drawParts('screen');
@@ -3411,15 +3435,15 @@ function drawCredits(now) {
   const gr = g.createLinearGradient(0, 0, 0, 576); gr.addColorStop(0, '#141a3a'); gr.addColorStop(1, '#4b3a5e'); g.fillStyle = gr; g.fillRect(0, 0, 640, 576);
   if (rnd() < .25) spawnP({ x: rnd() * 640, y: 600, vy: -40 - rnd() * 40, wob: 20, shape: 'soft', size: 14 + rnd() * 10, col: 'rgba(255,200,100,.9)', glow: true, life: 9000, fadeIn: 800 });
   drawParts('screen');
-  g.save(); g.shadowColor = 'rgba(255,200,80,.9)'; g.shadowBlur = 16; txt('THE LIGHT RETURNS', 320, 60, '#ffd65a', 24, 'center'); g.restore();
+  OVL.push(() => { g.save(); g.shadowColor = 'rgba(255,200,80,.9)'; g.shadowBlur = 16; txt('THE LIGHT RETURNS', 320, 60, '#ffd65a', 24, 'center'); g.restore(); });
   g.imageSmoothingEnabled = false;
   const m = partnerMon(); if (m) g.drawImage(kithImg(m.id), 256, 110 + Math.sin(now / 300) * 5, 128, 128);
   const lines = [`${P.name} and ${m ? m.name : 'Pipwick'}`, `Kith seen: ${P.seen.length}   Bonded: ${P.caught.length}`, `Steps walked: ${P.steps}`, '', 'Thank you for playing', 'LANTERNBOUND'];
-  lines.forEach((l, i) => txt(l, 320, 270 + i * 32, '#e8dcf5', 14, 'center'));
+  OVL.push(() => lines.forEach((l, i) => txt(l, 320, 270 + i * 32, '#e8dcf5', 14, 'center')));
 }
 function drawIntro(now) {
   g.fillStyle = '#141228'; g.fillRect(0, 0, 640, 576);
-  g.globalAlpha = .35 + Math.sin(now / 900) * .1; g.drawImage(kithImg('quietus'), 160, 40 + Math.sin(now / 1200) * 10, 320, 320); g.globalAlpha = 1;
+  g.globalAlpha = .35 + Math.sin(now / 900) * .1; g.drawImage(kithImg('quietus'), 192, Math.round((60 + Math.sin(now / 1200) * 10) / 4) * 4, 256, 256); g.globalAlpha = 1;
   if (rnd() < .3) spawnP({ x: -80, y: rnd() * 420, vx: 30 + rnd() * 40, wob: 10, shape: 'soft', size: 80 + rnd() * 60, col: 'rgba(200,195,230,.18)', life: 9000, fadeIn: 1500 });
   drawParts('screen');
 }
@@ -3495,10 +3519,11 @@ function update(dt, now) {
   }
 }
 function render(now) {
-  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none';
-  g.imageSmoothingEnabled = false;
+  OVL.length = 0;
+  g = LG; g.setTransform(.25, 0, 0, .25, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none'; g.imageSmoothingEnabled = false;
   g.save();
-  if (shakeFx) { const k = (now - shakeFx.t0) / shakeFx.ms; if (k < 1) { const m = shakeFx.mag * (1 - k); g.translate(Math.round((rnd() * 2 - 1) * m), Math.round((rnd() * 2 - 1) * m)); } else shakeFx = null; }
+  if (shakeFx) { const k = (now - shakeFx.t0) / shakeFx.ms; if (k < 1) { const m = shakeFx.mag * (1 - k); g.translate(Math.round((rnd() * 2 - 1) * m / 4) * 4, Math.round((rnd() * 2 - 1) * m / 4) * 4); } else shakeFx = null; }
+  g.fillStyle = '#000'; g.fillRect(0, 0, 640, 576);
   if (mode === 'title') drawTitle(now);
   else if (mode === 'intro') drawIntro(now);
   else if (mode === 'battle' && B) drawBattle(now);
@@ -3508,7 +3533,12 @@ function render(now) {
   g.restore();
   if (flashFx) { const k = (now - flashFx.t0) / flashFx.ms; if (k < 1) { g.globalAlpha = flashFx.a * (1 - k); g.fillStyle = flashFx.col; g.fillRect(0, 0, 640, 576); g.globalAlpha = 1; } else flashFx = null; }
   if (transFx) drawTransition(now);
-  if (mode === 'battle' && B && B.openT) { const k = (now - B.openT) / 450; if (k < 1) { g.fillStyle = '#141228'; const h = 288 * (1 - k * k); g.fillRect(0, 0, 640, h); g.fillRect(0, 576 - h, 640, h); } }
+  if (mode === 'battle' && B && B.openT) { const k = (now - B.openT) / 450; if (k < 1) { g.fillStyle = '#141228'; const h = Math.round(288 * (1 - k * k) / 4) * 4; g.fillRect(0, 0, 640, h); g.fillRect(0, 576 - h, 640, h); } }
+  // limit the palette for a classic handheld look
+  const img = LG.getImageData(0, 0, 160, 144), d = img.data; for (let q = 0, n = 0; q < d.length; q += 4, n++) { const o = (((n / 160 | 0) & 3) * 4 + (n % 160 & 3)) * 256; d[q] = POSTER[o + d[q]]; d[q + 1] = POSTER[o + d[q + 1]]; d[q + 2] = POSTER[o + d[q + 2]]; d[q + 3] = 255; } LG.putImageData(img, 0, 0);
+  g = G0; g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none'; g.imageSmoothingEnabled = false;
+  g.drawImage(LOW, 0, 0, 640, 576);
+  for (const f of OVL) f();
   drawUI(now);
   if (fade.a > 0) { g.fillStyle = `rgba(20,18,40,${fade.a})`; g.fillRect(0, 0, 640, 576); }
 }
@@ -3518,7 +3548,7 @@ function frame(now) {
   requestAnimationFrame(frame); // schedule first so one bad frame can never stop the game loop
   const dt = Math.min(50, now - last); last = now;
   try { update(dt, now); } catch (e) { reportErr('update', e); }
-  try { render(now); } catch (e) { reportErr('render', e); cv.width = cv.width; } // resetting the canvas clears any half-finished drawing state
+  try { render(now); } catch (e) { reportErr('render', e); g = G0; cv.width = cv.width; LOW.width = 160; } // resetting the canvas clears any half-finished drawing state
 }
 addEventListener('visibilitychange', () => { if (document.hidden && P && player && mode === 'world') save(true); });
 
